@@ -179,6 +179,21 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .stab{display:flex;align-items:center;gap:6px;border:3px solid #d8c8b0;background:rgba(255,255,255,.6);border-radius:16px;padding:4px 14px 4px 6px;font:inherit;font-size:15px;color:var(--plum);cursor:pointer;opacity:.7}
 .stab.on{border-color:var(--gold);background:linear-gradient(#fffaf0,#ffe9c8);opacity:1;box-shadow:0 3px 0 #c79a3c}
 .stab canvas{width:40px;height:40px}
+#diary{z-index:50}
+.book{position:relative;width:100%;max-width:400px;max-height:92%;display:flex;flex-direction:column;background:repeating-linear-gradient(#fffaf0 0 27px,#f0e2c8 27px 28px);border:5px solid #8a5a3a;border-left-width:14px;border-radius:10px 18px 18px 10px;box-shadow:inset 0 0 0 3px #f3c850,0 8px 0 rgba(0,0,0,.3);padding:14px 14px 10px}
+.dx{position:absolute;top:4px;right:6px;border:0;background:none;font-size:22px;color:#8a5a3a;cursor:pointer;padding:6px}
+.dpage{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-height:300px}
+.dpage h3{margin:2px 0;font-size:clamp(22px,6vw,30px);color:#8a5a3a}
+.dsub{margin:0;color:#a07a58}
+.dday{margin:0;align-self:flex-start;color:#c08f3a;font-size:15px}
+.dtxt{margin:0;font-size:clamp(16px,4.6vw,20px);line-height:1.75;white-space:pre-line}
+.dbig{width:120px;height:120px}
+.dgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%}
+.dgrid canvas{width:100%;aspect-ratio:1;background:rgba(255,255,255,.6);border-radius:8px;cursor:pointer}
+.dwho{display:flex;align-items:center;gap:6px;text-align:left;font-size:15px;line-height:1.6;background:rgba(255,255,255,.6);border-radius:12px;padding:4px 8px}
+.dwho canvas{width:48px;height:48px;flex:none}
+.dnav{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
+.back.fwd::before{clip-path:polygon(28% 6%,28% 94%,92% 50%)}
 </style>
 </head>
 <body>
@@ -219,6 +234,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="buyBar"></div>
  </section>
 <div id="finger" style="display:none"><canvas width="24" height="24"></canvas></div>
+ <div class="modal" id="diary"><div class="book"><button class="dx" id="dClose">✕</button><div class="dpage" id="dPage"></div>
+  <div class="dnav"><button class="back" id="dPrev">◀</button><span id="dNo"></span><button class="back fwd" id="dNext">▶</button></div></div></div>
  <div class="modal" id="tut"><div class="mcard"><div class="tpics" id="tPics"></div><p id="tText"></p><div class="dots" id="tDots"></div><button class="btn big" id="bTutNext">つぎへ ▶</button><button class="skip2" id="bTutSkip">とばす</button></div></div>
 </div>
 <script>
@@ -929,7 +946,7 @@ function showClear(){
 }
 function leaveClient(){
   const r=S.r;if(!r)return;
-  r.leaving='pay';r.gain=S.gain||0;persist();S.r=null;
+  r.leaving='pay';r.gain=S.gain||0;save.days=(save.days||0)+1;persist();S.r=null;
   $('#clear').classList.remove('on');show('home');
 }
 /* ========= パズル(ドラッグで もじを はめる) ========= */
@@ -1046,7 +1063,7 @@ function completePuzzle(){
   setTimeout(()=>{if(tok===P.tok)finishItem();},3900);
 }
 function finishItem(){
-  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
+  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
@@ -1423,6 +1440,7 @@ function drawDecor(t,dt){
     if(d.k==='lamp'&&q>0){sx=sy=1+.12*Math.sin(q*18)*q;}
     const img=soft(d.k,d.o,d.k==='book'&&q>0),z=40;
     hc.save();hc.translate(d.x,d.y+4+dy);hc.rotate(rot);hc.scale(sx,sy);hc.drawImage(img,-z/2,-z,z,z);
+    if(d.k==='book'&&save.diaryNew&&Math.sin(t*5)>-.3){hc.fillStyle='#ffe27a';hc.fillRect(8,-z-2,7,1);hc.fillRect(11,-z-5,1,7);hc.fillStyle='#fff';hc.fillRect(11,-z-2,1,1);}
     if(d.k==='lamp'&&lampOn){hc.globalAlpha=.5+.15*Math.sin(t*3);hc.fillStyle='#fff6c0';hc.fillRect(-3,-z+16,6,5);hc.globalAlpha=1;}
     hc.restore();
   });
@@ -1434,7 +1452,7 @@ function tapDecor(p){
     if(Math.abs(p.x-d.x)<18&&p.y>d.y-38&&p.y<d.y+6){
       initAudio();d.a=1.4;
       if(d.k==='bottle'){sfx('c'+(Math.random()*3|0));setTimeout(()=>sfx('c'+(2+(Math.random()*3|0))),160);}
-      else if(d.k==='book'){sfx('c5');burst(hparts,d.x,d.y-22,10,1);}
+      else if(d.k==='book'){sfx('c5');burst(hparts,d.x,d.y-22,10,1);setTimeout(()=>{if(screen==='home')openDiary(0);},350);return true;}
       else{lampOn=!lampOn;sfx(lampOn?'c6':'c1');burst(hparts,d.x,d.y-24,lampOn?14:4,1);}
       if(!H.talk||H.talk.id==='witch'){const line=d.k==='lamp'?d.say[lampOn?0:1]:pick(d.say);talk(WITCH,line,3);}
       return true;
@@ -1505,6 +1523,77 @@ function drawHome(t,dt){
     hc.font='bold 10px sans-serif';hc.textBaseline='middle';hc.lineWidth=3;hc.strokeStyle='#6a4a62';hc.strokeText('+'+q.n,q.x-3,y);hc.fillStyle='#ffe27a';hc.fillText('+'+q.n,q.x-3,y);hc.globalAlpha=1;}
 }
 const hparts=[];
+/* ========= まほうの にっき(なおした ものの きろく) ========= */
+const NOTE={
+'くつ':'はくと あしが かるく なる くつ。どこまでも あるけそう。','ふく':'さらさらの ふく。おひさまの においが するよ。','ぼうし':'つばの ひろい ぼうし。ひざしから まもって くれる。',
+'てぶくろ':'ゆびが ぽかぽか。ゆきあそびに ぴったり。','かさ':'あめの ひも へっちゃら。ひらくと ちいさな にじが でる。','ゆかた':'なつまつりに きたい ゆかた。おびが きらきら。',
+'くつした':'ふかふかの くつした。ねる まえに はくと ゆめが あまい。','げた':'からん ころんと なる げた。おまつりの おとが する。','かんむり':'おうさまの かんむり。かぶると すこし えらく なった きぶん。',
+'めがね':'かけると ちいさな もじも よく みえる。','かばん':'なんでも はいる ふしぎな かばん。おやつも いれよう。','リボン':'ふわっと むすぶと えがおが ふえる リボン。',
+'ドレス':'くるっと まわると すそが はなびらみたいに ひろがる。','ブーツ':'ぬかるみも へいき。ぴかぴかに みがいたよ。','マント':'まほうつかいの マント。かぜに なびくと かっこいい。',
+'ネクタイ':'きゅっと しめると しゃきっと する。','シャツ':'まっしろに なった シャツ。ぼたんも ぜんぶ ついたよ。','セーター':'もこもこで あったかい。けいとの においが する。',
+'エプロン':'おりょうりの ときの なかま。ぽけっとに おたまが はいる。','ヘルメット':'ころんでも あんしん。ぼうけんの おとも。','スカート':'ひらひら ゆれる スカート。はしると たのしい。',
+'ズボン':'のびのび うごける ズボン。きのぼりも できる。','パジャマ':'きると すぐ ねむく なる まほうの パジャマ。','コート':'さむい ひの みかた。ぼたんが きんいろ。',
+'マフラー':'ぐるぐる まくと くびが ぽかぽか。','サンダル':'すなはまを あるきたく なる サンダル。','ティアラ':'ちいさな ほうせきが ひかる ティアラ。',
+'けいと':'ころころ ころがる けいと。なにを あもうかな。','ふろしき':'なんでも つつめる ふろしき。むすびめが かわいい。','ウール':'ひつじさんから もらった ふわふわ。','タオル':'おふろあがりに ふかふか。いい におい。',
+'くま':'ずっと いっしょの くまの ぬいぐるみ。ほつれも なおしたよ。','たいこ':'どん どん! たたくと げんきが でる。','ふうせん':'ふわふわ そらへ いきたがる ふうせん。いとを しっかり。',
+'ひよこ':'ぴよぴよ なく ひよこの おもちゃ。','ふね':'おふろに うかべると すいすい すすむ。','いぬ':'しっぽを ふる いぬの ぬいぐるみ。なでると うれしそう。',
+'くるま':'ぶーん! ゆかを はしる ちいさな くるま。','ハート':'ハートの ふうせん。もつと どきどき する。','ユニコーン':'つのが きらきらの ユニコーン。ゆめの なかで とぶらしい。',
+'ヤギ':'めえ。かみを たべちゃう いたずらっこ。','ヨット':'しろい ほを はって うみへ でかけよう。','ロボット':'ねじを まくと かたかた あるく。',
+'みかん':'あまくて すっぱい みかん。こたつで たべたい。','すいか':'しましまの すいか。たねを とばして あそぼう。','もも':'やわらかくて いい かおりの もも。',
+'りんご':'まっかな りんご。かじると しゃきっ。','かき':'あきの あじ。おひさまいろの かき。','なし':'みずみずしい なし。しゃりしゃり おいしい。',
+'くり':'いがいがの なかから でてきた くり。','いちご':'つぶつぶの いちご。けーきに のせたいな。','ぶどう':'ひとつぶ ずつ たべる たのしい ぶどう。',
+'メロン':'あみめの もようが きれいな メロン。','レモン':'すっぱい! でも いい かおりの レモン。','あめ':'ころころ なめる あまい あめ。','だんご':'みっつ ならんだ だんご。いろが かわいい。',
+'ケーキ':'いちごの のった ケーキ。おいわいの ひに。','ムース':'ぷるぷるの ムース。すぷーんで そっと。','クッキー':'さくさくの クッキー。ちょこの つぶ いり。',
+'ホットケーキ':'ふかふかに やけた ホットケーキ。はちみつ たっぷり。','チーズ':'あなの あいた チーズ。ねずみさんが ねらってる。','ミルク':'まいあさ のむ ミルク。おおきく なれるかな。',
+'アイス':'つめたくて あまい アイス。とけない うちに!','コーヒー':'おとなの のみもの。ちょっぴり にがい。','ほん':'いろんな くにの おはなしが つまった ほん。',
+'えんぴつ':'けずると いい におい。もじを かく れんしゅう。','あかり':'よるの へやを やさしく てらす あかり。','ほんをよむ':'ほんを よむと こころが たびに でる。',
+'ノート':'まっしろな ノート。なにを かこうかな。','ランプ':'ゆらゆら ひかる ランプ。まほうの ひかり。','ピアノ':'ぽろん ぽろん。ゆびが おどりだす。',
+'オルガン':'ふいごで おとが でる オルガン。','ギター':'じゃらん! うたいたく なる ギター。','ラッパ':'ぱっぱらー! あさを しらせる ラッパ。','ベル':'ちりん。おきゃくさんが きた おと。',
+'カメラ':'ぱしゃり。たのしい ひを とって おこう。','テレビ':'いろんな まちの ようすが うつる。','はな':'まいにち みずを あげると にっこり さく。',
+'さくら':'はるに さく うすももいろの はな。','むし':'てんとうむしさん。ほしの もようが ななつ。','わに':'おおきな くちの わに。ほんとうは やさしい。',
+'へび':'にょろにょろ。ながい からだで だっこ できない。','ねこ':'ひなたぼっこが すきな ねこ。ごろごろ。','おに':'つのが ある けど こわく ない おに。',
+'ほし':'よぞらから おちてきた ほし。そっと かざろう。','つき':'まんまるに なったり ほそく なったり する つき。','くも':'もくもく くも。のって みたいな。',
+'きのこ':'もりで みつけた きのこ。たべちゃ だめだよ。','さかな':'すいすい およぐ さかな。ひれが きらきら。','かれい':'ひらべったい かれい。うみの そこで おひるね。',
+'ゆきだるま':'まっしろな ゆきだるま。とけないで ね。','やかん':'しゅんしゅん ゆげが でる やかん。おちゃの じかん。','いす':'すわると ほっと する いす。',
+'ほうき':'まほうつかいの だいじな ほうき。そらも とべる。','ろうそく':'ちいさな ひが ゆれる ろうそく。','ソファ':'ふかふかで ねむく なる ソファ。',
+'コップ':'すきな のみものを いれよう。','ナイフ':'ぱんを きる ナイフ。きを つけて つかおう。','サラダ':'しゃきしゃきの やさいが たっぷり。','ヌードル':'ずるずる すする あったかい ヌードル。','ワイン':'おとなが のむ むらさきの のみもの。'
+};
+const noteOf=w=>NOTE[w]||'ぴかぴかに なおしたよ。';
+const BOOK={i:0};
+function diaryList(){return save.diary||[];}
+function openDiary(i){save.diaryNew=false;persist();BOOK.i=i==null?0:i;$('#diary').classList.add('on');renderDiary();chime(5);}
+function renderDiary(){
+  const list=diaryList(),pg=$('#dPage');pg.innerHTML='';
+  const tot=ITEMS.length;
+  if(BOOK.i===0){
+    pg.insertAdjacentHTML('beforeend',`<h3>まほうの にっき</h3><p class="dsub">なおした もの ${list.length} / ${tot}</p>`);
+    if(!list.length){pg.insertAdjacentHTML('beforeend','<p class="dtxt">まだ なにも かいて ないよ。<br>おそうじを すると ここに かかれるよ。</p>');}
+    const g=document.createElement('div');g.className='dgrid';
+    list.forEach((e,k)=>{const it=IT(e.k)||IT(e.w);if(!it)return;const c=cvOf(spr(it[1],it[2]).c);c.addEventListener('click',()=>{BOOK.i=k+1;chime(2);renderDiary();});g.appendChild(c);});
+    pg.appendChild(g);
+  }else{
+    const e=list[BOOK.i-1],it=IT(e.k)||IT(e.w),cl=CLIENTS[e.ci];
+    pg.insertAdjacentHTML('beforeend',`<p class="dday">${e.day}にちめ</p>`);
+    if(it){const c=cvOf(spr(it[1],it[2]).c);c.className='dbig';pg.appendChild(c);}
+    pg.insertAdjacentHTML('beforeend',`<h3>${e.w}</h3><p class="dtxt">${noteOf(e.w)}</p>`);
+    if(cl){const row=document.createElement('div');row.className='dwho';row.appendChild(cvOf(spr('person',look(cl)).c));
+      row.insertAdjacentHTML('beforeend',`<span>${cl.n}さんの いらいで なおしたよ。${e.fav?'とても よろこんで いたよ。':'にこにこ して いたよ。'}</span>`);pg.appendChild(row);}
+    const h=document.createElement('button');h.className='btn sm pink';h.textContent='♪ きく';h.addEventListener('click',()=>{initAudio();say(e.w);});pg.appendChild(h);
+  }
+  $('#dPrev').style.visibility=BOOK.i>0?'visible':'hidden';
+  $('#dNext').style.visibility=BOOK.i<list.length?'visible':'hidden';
+  $('#dNo').textContent=BOOK.i===0?'':`${BOOK.i} / ${list.length}`;
+}
+$('#dPrev').addEventListener('click',()=>{if(BOOK.i>0){BOOK.i--;sfx('c3');renderDiary();}});
+$('#dNext').addEventListener('click',()=>{if(BOOK.i<diaryList().length){BOOK.i++;sfx('c4');renderDiary();}});
+$('#dClose').addEventListener('click',()=>{$('#diary').classList.remove('on');});
+function addDiary(r,j){
+  const it=r.items[j],w=it[0];save.diary=save.diary||[];
+  if(save.diary.some(e=>e.w===w))return;
+  const k=it[2].ci!=null?w+'#'+it[2].ci:w,cl=CLIENTS[r.ci];
+  save.diary.push({w,k,ci:r.ci,day:(save.days||0)+1,fav:r.cat===cl.fav});
+  save.diaryNew=true;
+}
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();if(b.dataset.go==='shelf'&&!canShop()){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show(b.dataset.go);}));
 const TUT=[
