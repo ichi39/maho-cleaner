@@ -785,16 +785,22 @@ function unlockPool(){
     document.addEventListener('visibilitychange',()=>{if(!document.hidden){try{ka.play().catch(()=>{});}catch(e){}}});}catch(e){}
   for(const k in SFX_DEFS){
     REC=[];SFX_DEFS[k]();const n=REC;REC=null;
-    const a=new Audio(wavURL(n));a.preload='auto';a.muted=true;SFX_EL[k]=a;
-    try{const p=a.play();const done=()=>{a.pause();a.currentTime=0;a.muted=false;};p&&p.then?p.then(done).catch(()=>{a.muted=false;}):done();}catch(e){a.muted=false;}
+    const url=wavURL(n);SFX_EL[k]=[];
+    for(let q=0;q<3;q++){const a=new Audio(url);a.preload='auto';a.muted=true;SFX_EL[k].push(a);
+      try{const p=a.play();const done=()=>{a.pause();a.currentTime=0;a.muted=false;a._ready=true;};p&&p.then?p.then(done).catch(()=>{a.muted=false;a._ready=true;}):done();}catch(e){a.muted=false;a._ready=true;}
+      a.addEventListener('ended',()=>{a._ready=true;});}
   }
 }
 ['touchend','click'].forEach(ev=>document.addEventListener(ev,unlockPool,{capture:true}));
 function sfx(key){
   if(!soundOn)return;
   if(!IS_IOS){SFX_DEFS[key]();return;}
-  const a=SFX_EL[key];if(!a)return;
-  try{a.muted=false;if(!a.paused)a.pause();a.currentTime=0;const p=a.play();p&&p.catch&&p.catch(()=>{});}catch(e){}
+  const list=SFX_EL[key];if(!list)return;
+  /* ならしおわった ものを play するだけ(とめたり まきもどしたり しない) */
+  const a=list.find(x=>x._ready&&(x.paused||x.ended));if(!a)return;
+  a._ready=false;
+  const go=()=>{try{const p=a.play();p&&p.catch&&p.catch(()=>{a._ready=true;});}catch(e){a._ready=true;}};
+  requestAnimationFrame(()=>setTimeout(go,0));
 }
 const chime=i=>sfx('c'+(i%8));
 const fanfare=()=>sfx('fan');
@@ -1139,13 +1145,13 @@ lcv.addEventListener('pointermove',e=>{
   L.tx=tx;L.ty=ty;
 });
 function endDrag(){
-  if(!drag)return;const L=drag.L,moved=drag.moved;drag=null;stopVoice();L.x=L.tx;L.y=L.ty;
+  if(!drag)return;const L=drag.L,moved=drag.moved;drag=null;stopVoice();
   const hot=P.hot;P.hot=-1;
   if(!moved){L.st='free';L.bx=L.x;L.by=L.y;L.tap=1;return;}
   /* ただしい ばしょが ちかければ すいこむ(ひろめに うけとめる) */
-  let mi=-1,md=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k]||P.chars[k]!==L.ch)return;const d=Math.hypot(L.x-sl.x,L.y-sl.y);if(d<md){md=d;mi=k;}});
+  let mi=-1,md=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k]||P.chars[k]!==L.ch)return;const d=Math.hypot(L.tx-sl.x,L.ty-sl.y);if(d<md){md=d;mi=k;}});
   if(mi>=0&&md<P.sz*1.3){chime(mi+P.arrived);L.chimed=true;P.filled[mi]=true;L.slot=mi;L.st='snap';L.age=0;L.sx=L.x;L.sy=L.y;if(!save.tutDrag){save.tutDrag=true;stopFinger();}return;}
-  let ni=-1,nd=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k])return;const d=Math.hypot(L.x-sl.x,L.y-sl.y);if(d<nd){nd=d;ni=k;}});
+  let ni=-1,nd=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k])return;const d=Math.hypot(L.tx-sl.x,L.ty-sl.y);if(d<nd){nd=d;ni=k;}});
   if(ni>=0&&nd<P.sz*.8){boo();L.st='back';L.age=0;L.shake=1;L.sx=L.x;L.sy=L.y;L.tx=L.px0;L.ty=L.py0;return;}
   L.st='free';L.bx=L.x;L.by=L.y;
 }
@@ -1202,7 +1208,7 @@ function drawPuzzle(t,dt){
       L.x=L.sx+(L.tx-L.sx)*e;L.y=L.sy+(L.ty-L.sy)*e;dx=Math.sin(L.age*45)*8*(1-p);amp=3+4*(1-p);
       if(p>=1){L.st='free';L.bx=L.x;L.by=L.y;}
     }else if(L.st==='placed'){
-      L.x=P.slots[L.slot].x;L.y=P.slots[L.slot].y;amp=0;rot=0;sx=1;sy=1;
+      L.x=P.slots[L.slot].x;L.y=P.slots[L.slot].y;{const q=Math.max(0,L.pop||0);amp=2.2*q;rot=Math.sin(t*28)*.06*q;sx=1+.06*Math.sin(t*30)*q;sy=1/sx;}
       if(L.pop>0){L.pop-=dt*2.4;const q=Math.max(0,L.pop);sc=1+.45*Math.sin(q*Math.PI)*q;}
       if(P.done){const d=P.doneT-L.slot*.12,q=d>0&&d<1.8?Math.abs(Math.sin(d*7))*(1-d/1.8):0;dy=-q*P.sz*.45;}
     }
@@ -1555,7 +1561,7 @@ function drawHome(t,dt){
     }
     else if(c.ph==='out'){c.x+=60*dt;walking=true;
       if(c.x>250){save.reqs=save.reqs.filter(q=>q.id!==c.id);persist();H.cs.splice(k,1);renderReqList();continue;}}
-    else{const dx=c.tx-c.x;c.x+=dx*Math.min(1,dt*2.5);if(Math.abs(dx)<.5)c.x=c.tx;walking=Math.abs(c.tx-c.x)>3;}
+    else{const dx=c.tx-c.x;c.x+=Math.sign(dx)*Math.min(Math.abs(dx),38*dt);walking=Math.abs(c.tx-c.x)>.5;}
     c.by=walking?-Math.abs(Math.sin(t*12))*2:Math.round(Math.sin(t*2+k*1.7)*.8);
   }
   [...H.cs].sort((a,b)=>(a.ph?1:0)-(b.ph?1:0)).forEach(c=>{const r=reqOf(c.id);if(!r)return;if(DAY().closed&&!c.ph)return;
