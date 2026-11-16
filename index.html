@@ -167,6 +167,10 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .hqrow{display:flex;gap:12px}
 .btn.gray{background:linear-gradient(#f4f0f0,#ddd4d4);border-color:#b8a8a8;box-shadow:0 4px 0 #a89898,inset 0 0 0 2px #fff}
 #homeInfo.coinpop{animation:pop .5s}
+.stabs{display:flex;gap:10px;justify-content:center;padding:0 12px 6px}
+.stab{display:flex;align-items:center;gap:6px;border:3px solid #d8c8b0;background:rgba(255,255,255,.6);border-radius:16px;padding:4px 14px 4px 6px;font:inherit;font-size:15px;color:var(--plum);cursor:pointer;opacity:.7}
+.stab.on{border-color:var(--gold);background:linear-gradient(#fffaf0,#ffe9c8);opacity:1;box-shadow:0 3px 0 #c79a3c}
+.stab canvas{width:40px;height:40px}
 </style>
 </head>
 <body>
@@ -202,6 +206,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="shelf" class="screen">
   <div class="bar"><button class="back" data-go="back">◀</button><h2 id="sCoin"></h2><span style="width:64px"></span></div>
+  <div class="stabs"><button class="stab on" data-st="wear"><canvas class="sti" width="24" height="24"></canvas><span>きせかえ</span></button><button class="stab" data-st="room"><canvas class="sti" width="24" height="24"></canvas><span>かざる</span></button></div>
   <div class="zwrap"><div class="sg" id="sgrid"></div></div>
   <div id="buyBar"></div>
  </section>
@@ -294,6 +299,8 @@ animal(d,o){const t=o.t,c=o.c||'#f0b878';
     d.r(12,8,4,7,w);d.e(16,8,4,4,w);d.t(0,4,17,1,3,'#ffd84a');d.r(11,5,2,9,m);d.r(13,4,2,2,m);d.r(13,3,2,2,w);d.p(17,8,E1);d.p(19,10,PK);}
   else if(t==='croc'){d.r(18,13,3,3,c);d.r(20,14,2,2,c);d.e(11,15,9,3.8,c);d.r(1,12,9,5,c);d.r(8,17,10,2,shade(c,.45));
     for(let x=2;x<9;x+=2)d.p(x,17,'#ffffff');d.e(8,11,2,2,'#ffffff',false);d.p(8,11,E1);for(const x of [11,14,17])d.p(x,12,shade(c,-.3));d.r(7,18,2,2,c);d.r(14,18,2,2,c);}
+  else if(t==='dog'){d.e(11,15.5,5.5,4.5,c);d.e(17,13,1.5,2.5,c);d.e(11,8.5,6.2,5.5,c);d.e(4.6,9,2,4.2,shade(c,-.3));d.e(17.4,9,2,4.2,shade(c,-.3));
+    d.e(11,11,3,2.2,'#fff4e0');d.r(10,9,2,1,E1);d.p(8,7,E1);d.p(14,7,E1);d.p(7,10,PK);d.p(15,10,PK);d.p(11,12,'#e06a80');d.e(8,20,2.4,1.4,c);d.e(14,20,2.4,1.4,c);d.p(13,4,shade(c,.3));}
   else{d.t(1,5,6,1,3,'#fff3c0');d.t(1,5,16,1,3,'#fff3c0');d.e(11,12,8,7.5,'#ff8f8f');d.r(5,5,12,3,E1);
     d.r(7,10,3,3,'#fff');d.r(12,10,3,3,'#fff');d.p(8,11,E1);d.p(13,11,E1);d.r(8,16,6,2,'#a03040');d.p(8,15,'#fff');d.p(13,15,'#fff');d.p(5,14,PK);d.p(17,14,PK);}},
 drum(d,o){const c=o.c;d.r(4,8,14,11,c);d.e(11,18.5,7,2,c);d.e(11,8,7,2.6,'#fff3d8');
@@ -326,6 +333,8 @@ fruit(d,o){const t=o.t,c=o.c;
   if(t==='apple'){d.e(8,12,5.5,7,c);d.e(14,12,5.5,7,c);d.r(11,3,1,4,'#7a5a3a');d.e(15,4,3,1.5,'#6fcf8f');d.p(6,9,'#fff');d.p(6,10,'#fff');}
   else if(t==='orange'||t==='peach'){const cc=t==='peach'?'#ffb7a0':c;d.e(11,12,8,8,cc);d.e(14,3,3,1.5,'#6fcf8f');d.r(11,3,1,3,'#7a5a3a');
     if(t==='peach'){d.l(11,6,12,17,shade(cc,-.18));d.e(7,3,2,1.4,'#6fcf8f');}else{d.p(8,9,shade(c,.4));d.p(14,13,shade(c,-.2));d.p(9,15,shade(c,-.2));}}
+  else if(t==='berry'){d.e(11,9,7.5,4.5,c);d.t(9,19,11,15,3,c);for(const [x,y] of [[7,10],[11,9],[15,10],[9,13],[13,13],[11,16]])d.p(x,y,'#ffe9a0');d.e(11,4.5,5,1.6,'#6fcf8f');d.r(11,2,1,3,'#4a9a5a');d.p(8,7,'#fff');}
+  else if(t==='grape'){for(const [x,y] of [[7,7],[11,7],[15,7],[9,11],[13,11],[11,15],[7,11],[15,11],[11,19]])d.e(x,y,2.5,2.5,c);d.r(11,1,1,4,'#7a5a3a');d.e(15,3,3,1.4,'#6fcf8f');d.p(6,6,'#fff');}
   else if(t==='lemon'){d.e(11,12,9,6,c);d.r(1,11,2,2,c);d.r(19,11,2,2,c);d.p(7,9,'#fffbd0');d.p(8,9,'#fffbd0');d.e(14,5,3,1.5,'#6fcf8f');}
   else{d.e(11,6,10.5,10.5,'#4ba85a');d.e(11,6,9,9,'#ff6b7a');d.e(11,6,9,9,'#ff6b7a',false);d.r(0,0,22,6,null);d.r(1,6,20,1,'#fff6e6');
     for(const [x,y] of [[6,10],[10,12],[14,10],[9,8],[13,14],[16,8]])d.r(x,y,1,2,E1);}},
@@ -393,6 +402,21 @@ wear(d,o){const c=o.c||'#e8a0b8',k=o.k,t=o.t;
   if(k==='hat'){
     if(t==='helmet'){d.e(11.5,5,7.4,4.6,c);d.r(0,6,22,16,null);d.r(4,5,15,1,shade(c,-.25));d.r(11,0,2,6,shade(c,.35));d.e(11.5,3,1.3,1.3,'#e8465a');return;}
     d.e(11.5,2.4,4.6,2.6,c);d.r(0,4,22,18,null);d.e(11.5,4.2,8.4,1.5,c);d.r(7,3,9,1,shade(c,-.3));d.e(16,2.6,1.3,1.1,'#ffffff');d.p(9,1,shade(c,.4));return;}
+  if(k==='crown'){const g=GOLD;d.r(8,1,8,3,g);d.p(8,0,g);d.p(11,0,g);d.p(12,0,g);d.p(15,0,g);d.r(8,3,8,1,shade(g,-.25));d.p(11,2,'#e8465a');d.p(12,2,'#e8465a');d.p(9,2,'#7fc8e8');d.p(14,2,'#9be8a0');return;}
+  if(k==='tiara'){const s='#e8ecf8';d.r(7,3,10,1,s);d.p(8,2,s);d.p(15,2,s);d.r(10,1,4,2,s);d.p(11,0,s);d.p(12,0,s);d.p(11,1,c);d.p(12,1,c);d.p(11,2,c);d.p(12,2,c);d.p(8,2,c);d.p(15,2,c);return;}
+  if(k==='glasses'){for(const x0 of [7,13]){d.r(x0,7,4,1,c);d.r(x0,11,4,1,c);d.r(x0,8,1,3,c);d.r(x0+3,8,1,3,c);}d.r(11,8,2,1,c);return;}
+  if(k==='muffler'){d.r(8,13,8,2,c);d.r(13,15,2,3,c);d.p(13,18,shade(c,.4));d.p(14,18,shade(c,.4));for(const x of [9,11,15])d.p(x,13,shade(c,.45));d.p(13,16,shade(c,.45));return;}
+  if(k==='yukata'){const c2=o.c2||GOLD;d.r(9,14,6,7,c);d.r(6,14,3,4,c);d.r(15,14,3,4,c);d.r(9,16,6,2,c2);d.p(14,18,c2);
+    d.p(10,14,CR);d.p(11,15,CR);d.p(13,14,CR);d.p(12,15,CR);for(const [x,y] of [[10,19],[13,20],[7,15],[16,16]])d.p(x,y,shade(c,.5));d.r(9,20,6,1,shade(c,-.2));return;}
+  if(k==='coat'){d.r(8,14,8,6,c);d.r(6,14,2,4,c);d.r(16,14,2,4,c);d.l(11,14,11,19,shade(c,-.25));d.p(10,15,GOLD);d.p(10,17,GOLD);d.p(9,14,shade(c,.4));d.p(14,14,shade(c,.4));d.r(8,19,8,1,shade(c,-.2));return;}
+  if(k==='pajama'){d.r(9,14,6,4,c);d.r(7,14,2,4,c);d.r(15,14,2,4,c);d.r(8,17,8,2,c);d.r(9,19,2,2,c);d.r(13,19,2,2,c);
+    for(const [x,y] of [[10,15],[13,16],[8,15],[15,17],[11,18],[9,20],[14,19]])d.p(x,y,'#ffe27a');d.p(11,14,CR);d.p(12,14,CR);return;}
+  if(k==='skirt'){d.t(17,20,11.5,8,12,c);d.r(8,17,8,1,shade(c,-.25));d.p(9,19,shade(c,-.2));d.p(14,19,shade(c,-.2));d.p(11,19,shade(c,-.2));d.r(6,20,12,1,shade(c,.45));return;}
+  if(k==='pants'){d.r(8,17,8,2,c);d.r(8,19,3,2,c);d.r(13,19,3,2,c);d.r(8,17,8,1,shade(c,-.3));d.p(11,17,GOLD);d.p(10,20,shade(c,.35));d.p(13,20,shade(c,.35));return;}
+  if(k==='socks'){const c2=o.c2||'#ff8fb0';d.r(9,19,2,3,c);d.r(13,19,2,3,c);d.r(9,19,2,1,c2);d.r(13,19,2,1,c2);d.p(8,21,c);d.p(15,21,c);return;}
+  if(k==='geta'){const w='#d8a870';d.r(8,21,3,1,w);d.r(13,21,3,1,w);d.p(9,20,c);d.p(10,20,c);d.p(13,20,c);d.p(14,20,c);return;}
+  if(k==='sandal'){d.r(8,21,3,1,c);d.r(13,21,3,1,c);d.p(9,20,c);d.p(14,20,c);d.p(8,20,shade(c,.4));d.p(15,20,shade(c,.4));return;}
+  if(k==='bag'){d.l(8,14,15,17,'#8a5a3a');d.r(15,17,5,4,c);d.r(15,17,5,1,shade(c,-.25));d.p(17,18,GOLD);d.p(16,19,shade(c,.35));return;}
   if(k==='ribbon'){d.e(15.6,2.6,1.9,1.6,c);d.e(19.4,2.6,1.9,1.6,c);d.p(17,2,shade(c,-.3));d.p(17,3,shade(c,-.3));d.p(15,2,shade(c,.4));return;}
   if(k==='flower'){for(const [x,y] of [[17.5,1.4],[19,2.8],[17.5,4.2],[16,2.8]])d.e(x,y,1.2,1.2,c);d.p(17,2,GOLD);d.p(17,3,GOLD);return;}
   if(k==='star'){const s=o.c||'#ffd84a';d.p(11,0,s);d.r(10,1,3,1,s);d.r(8,2,7,1,s);d.r(10,3,3,1,s);d.p(9,4,s);d.p(13,4,s);d.p(11,1,'#fff');return;}
@@ -411,6 +435,15 @@ wear(d,o){const c=o.c||'#e8a0b8',k=o.k,t=o.t;
     else{d.p(10,14,CR);d.p(13,14,CR);d.p(11,15,CR);d.p(12,16,CR);}
     return;}
 },
+car(d,o){const c=o.c;d.t(5,10,11,8,14,c);d.r(7,7,3,2,'#bfe8ff');d.r(12,7,3,2,'#bfe8ff');d.r(2,10,18,6,c);d.r(2,13,18,1,shade(c,.4));d.p(19,11,'#ffe27a');d.p(2,11,'#ff9a8a');
+  d.e(6,16.5,2.6,2.6,'#4a3a5a');d.e(16,16.5,2.6,2.6,'#4a3a5a');d.p(6,16,'#c0c0d0');d.p(16,16,'#c0c0d0');},
+dango(d){for(const t of [0,1])d.l(10+t,1,10+t,21,'#c89a6a');d.e(11,5,4.5,3.8,'#ffb0c8');d.e(11,11,4.5,3.8,'#fff6e6');d.e(11,17,4.5,3.8,'#9be8a0');d.p(9,4,'#fff');d.p(9,10,'#fff');d.p(9,16,'#fff');},
+ice(d,o){const c=o.c;d.t(11,21,11,10,2,'#e0a860');d.l(7,12,11,19,shade('#e0a860',-.25));d.l(15,12,11,19,shade('#e0a860',-.25));d.e(11,8,6.2,5,c);d.e(7,11,1.6,1.3,c);d.e(14,11.5,1.4,1.4,c);
+  d.e(11,2.5,1.8,1.8,'#e8465a');d.p(10,2,'#fff');d.p(8,6,'#fff');d.p(13,7,'#ffe27a');d.p(10,9,'#9be8a0');},
+wi(d,o){const t=new D();K.wear(t,o);if(['socks','geta','sandal'].includes(o.k))t.r(12,0,10,22,null);if(o.k==='bag')t.r(0,0,13,22,null);let x0=99,y0=99,x1=-1,y1=-1;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(t.g[y][x]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+  if(x1<0)return;const w=x1-x0+1,h=y1-y0+1,s=Math.max(1,Math.floor(Math.min(20/w,20/h)));const ox=Math.floor((N-w*s)/2),oy=Math.floor((N-h*s)/2);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(t.g[y][x])d.r(ox+(x-x0)*s,oy+(y-y0)*s,s,s,t.g[y][x]);},
 hand(d,o){const sk='#ffe0c8';d.r(9,2,3,10,sk);d.r(12,7,3,5,sk);d.r(15,9,2,4,sk);d.r(6,12,11,7,sk);d.r(7,19,9,2,sk);d.r(5,10,3,5,sk);d.p(10,3,shade(sk,.3));},
 person(d,o){
   if(o.hs&&!o.witch){
@@ -486,29 +519,48 @@ const CATS={
 };
 const ITEMS=[];
 const A=(cat,list)=>list.forEach(x=>ITEMS.push([x[0],x[1],x[2]||{},cat]));
-A('clothes',[['くつ','shoe',{c:'#e8606a'}],['かさ','umbrella',{c:'#8fb8e8'}],['ふく','shirt',{c:'#a8d8b0'}],['ぬの','cloth',{c:'#a8b8f0'}],['ぼうし','hat',{c:'#e8a0b8'}],['てぶくろ','glove',{c:'#e8606a'}],
- ['ネクタイ','tie',{c:'#5a8ad8'}],['マント','shirt',{t:'cape',c:'#8a7ad8'}],['ドレス','shirt',{t:'dress',c:'#f0a0c8'}],['リボン','ribbon',{c:'#e8606a'}],['ブーツ','shoe',{c:'#9a6a5a',tall:1}],
- ['シャツ','shirt',{c:'#9ac8f0'}],['セーター','shirt',{t:'sweater',c:'#f0b878'}],['エプロン','shirt',{t:'apron',c:'#f0a0c8'}],['ヘルメット','hat',{t:'helmet',c:'#f3c850'}],['ウール','yarn',{c:'#ff9ab8'}]]);
-A('clothes',[['ねくたい','tie',{c:'#e8606a'}],['まんと','shirt',{t:'cape',c:'#e8a0b8'}]]);
-A('toy',[['くま','animal',{t:'bear',c:'#c8956a'}],['たいこ','drum',{c:'#e8606a'}],['ふうせん','balloon',{c:'#7fc8e8'}],['ひよこ','animal',{t:'chick'}],['ろぼっと','robot'],
- ['ハート','balloon',{h:1,c:'#ff6a8a'}],['ユニコーン','animal',{t:'unicorn'}],['ヤギ','animal',{t:'goat'}],['ヒヨコ','animal',{t:'chick'}],['ヨット','boat',{c:'#e8606a'}]]);
-A('fruit',[['みかん','fruit',{t:'orange',c:'#ff9a3a'}],['れもん','fruit',{t:'lemon',c:'#ffe24a'}],['すいか','fruit',{t:'melon'}],['もも','fruit',{t:'peach'}],['りんご','fruit',{t:'apple',c:'#e8465a'}],['モモ','fruit',{t:'peach'}]]);
-A('sweets',[['あめ','candy',{c:'#ff8fb0'}],['けーき','cake',{t:'slice'}],['ちーず','cake',{t:'cheese'}],['ぷりん','cake',{t:'pudding'}],['ケーキ','cake',{t:'slice',c:'#ffe0a0'}],
- ['ムース','cake',{t:'pudding',c:'#ffb0c8'}],['クッキー','cake',{t:'cookie'}],['ホットケーキ','cake',{t:'pancake'}],['チーズ','cake',{t:'cheese'}],['ミルク','bottle',{c:'#fff6e6',milk:1}]]);
-A('books',[['ほん','book',{c:'#6a8ad8'}],['えんぴつ','pencil'],['らんぷ','lamp',{c:'#f5b0c8'}],['ほんをよむ','book',{c:'#b08ae0',open:1}],['ノート','book',{c:'#5a8ad8',ring:1}],['よる','moon'],['そら','cloud']]);
-A('music',[['ピアノ','piano',{c:'#b8a0e8'}],['オルガン','piano',{t:'organ',c:'#e8a0b0'}],['ギター','guitar',{c:'#e8a060'}],['ラッパ','trumpet'],['ベル','bell',{c:'#f3c850'}]]);
-A('denki',[['カメラ','camera',{c:'#8fd0c0'}],['テレビ','tv',{c:'#e8a0b0'}],['ロボット','robot',{c:'#f0c0a0'}]]);
-A('nature',[['はな','flower',{c:'#ff9ab8'}],['むし','ladybug'],['わに','animal',{t:'croc',c:'#6fc88f'}],['へび','snake',{c:'#7fcf8f'}],['ねこ','animal',{t:'cat'}],['ゆき','snowman'],['おに','animal',{t:'oni'}]]);
-A('home',[['やかん','kettle',{c:'#e0a0c0'}],['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ヌードル','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}],['ミルクヲノム','bottle',{c:'#fff6e6',milk:1}]]);
-
-A('nature',[['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['ユリ','flower',{c:'#fff0f6'}],['ネコ','animal',{t:'cat',c:'#d8c8b8'}],['ムシ','ladybug'],['ワニ','animal',{t:'croc',c:'#8fd09f'}],['ハナ','flower',{c:'#ffb36a'}],['ユキ','snowman'],['ホシ','star',{c:'#ffe9a0'}],['ツキ','moon'],['クモ','cloud',{c:'#e8f4ff'}],['サカナ','fish',{c:'#f0a0c0'}],['キノコ','mushroom',{c:'#b8a0e8'}],['ソラ','cloud',{c:'#d8ecff'}]]);
-A('toy',[['ふね','boat',{c:'#7fc8e8'}],['フネ','boat',{c:'#f0b878'}],['クマ','animal',{t:'bear',c:'#e0b890'}]]);
-A('home',[['いす','chair'],['ほうき','broom'],['ろうそく','candle'],['イス','chair',{c:'#8fb8e8'}],['ホウキ','broom'],['ロウソク','candle'],['ヤカン','kettle',{c:'#8fb8e8'}]]);
-A('clothes',[['いと','yarn',{c:'#8fb8e8'}],['イト','yarn',{c:'#f0c870'}],['カサ','umbrella',{c:'#f5a0b8'}],['クツ','shoe',{c:'#7a9ad8'}],['フク','shirt',{c:'#f0a0c8'}],['ヌノ','cloth',{c:'#f0a0c8'}]]);
-A('fruit',[['めろん','fruit',{t:'orange',c:'#9be8a0'}],['かき','fruit',{t:'orange',c:'#ff8a3a'}],['なし','fruit',{t:'orange',c:'#e8e07a'}],['くり','fruit',{t:'orange',c:'#a8683a'}],['メロン','fruit',{t:'orange',c:'#9be8a0'}],['カキ','fruit',{t:'orange',c:'#ff8a3a'}],['ナシ','fruit',{t:'orange',c:'#e8e07a'}]]);
-A('books',[['あかり','lamp',{c:'#ffe27a'}],['ホン','book',{c:'#e8a0b0'}]]);
+const W=(k,o)=>['wi',Object.assign({k},o||{})];
+const A2=(cat,list)=>list.forEach(x=>{const [w,k,o]=x;if(Array.isArray(k))ITEMS.push([w,k[0],k[1],cat]);else ITEMS.push([w,k,o||{},cat]);});
+/* きせかえ(にんぎょうに きせる もの) */
+A2('clothes',[
+ ['くつ','shoe',{c:'#e8606a'}],['ふく','shirt',{c:'#a8d8b0'}],['ぼうし','hat',{c:'#e8a0b8'}],['てぶくろ','glove',{c:'#e8606a'}],['かさ','umbrella',{c:'#8fb8e8'}],
+ ['ゆかた',W('yukata',{c:'#7fa8e8',c2:'#ffd84a'})],['くつした',W('socks',{c:'#ffffff',c2:'#ff8fb0'})],['げた',W('geta',{c:'#e8465a'})],['かんむり',W('crown')],['めがね',W('glasses',{c:'#c08f3a'})],['かばん',W('bag',{c:'#c8784a'})],
+ ['リボン','ribbon',{c:'#e8606a'}],['ドレス','shirt',{t:'dress',c:'#f0a0c8'}],['ブーツ','shoe',{c:'#9a6a5a',tall:1}],['マント','shirt',{t:'cape',c:'#8a7ad8'}],['ネクタイ','tie',{c:'#5a8ad8'}],
+ ['シャツ','shirt',{c:'#9ac8f0'}],['セーター','shirt',{t:'sweater',c:'#f0b878'}],['エプロン','shirt',{t:'apron',c:'#f0a0c8'}],['ヘルメット','hat',{t:'helmet',c:'#f3c850'}],
+ ['スカート',W('skirt',{c:'#e86a8a'})],['ズボン',W('pants',{c:'#5a7ac8'})],['パジャマ',W('pajama',{c:'#bfe0f8'})],['コート',W('coat',{c:'#c8956a'})],['マフラー',W('muffler',{c:'#e8465a'})],
+ ['サンダル',W('sandal',{c:'#ffb347'})],['ティアラ',W('tiara',{c:'#ff8fb0'})],
+ ['けいと','yarn',{c:'#8fb8e8'}],['ふろしき','cloth',{c:'#7fc8a0'}],['ウール','yarn',{c:'#ff9ab8'}],['タオル','cloth',{c:'#f0a0c8'}]
+]);
+A2('toy',[['くま','animal',{t:'bear',c:'#c8956a'}],['たいこ','drum',{c:'#e8606a'}],['ふうせん','balloon',{c:'#7fc8e8'}],['ひよこ','animal',{t:'chick'}],['ふね','boat',{c:'#7fc8e8'}],
+ ['いぬ','animal',{t:'dog',c:'#e8c090'}],['くるま','car',{c:'#e8606a'}],
+ ['ハート','balloon',{h:1,c:'#ff6a8a'}],['ユニコーン','animal',{t:'unicorn'}],['ヤギ','animal',{t:'goat'}],['ヨット','boat',{c:'#e8606a'}],['ロボット','robot',{c:'#f0c0a0'}]]);
+A2('fruit',[['みかん','fruit',{t:'orange',c:'#ff9a3a'}],['すいか','fruit',{t:'melon'}],['もも','fruit',{t:'peach'}],['りんご','fruit',{t:'apple',c:'#e8465a'}],
+ ['かき','fruit',{t:'orange',c:'#ff8a3a'}],['なし','fruit',{t:'orange',c:'#e8e07a'}],['くり','fruit',{t:'orange',c:'#a8683a'}],['いちご','fruit',{t:'berry',c:'#ff5a6a'}],['ぶどう','fruit',{t:'grape',c:'#9a6ad8'}],
+ ['メロン','fruit',{t:'orange',c:'#9be8a0'}],['レモン','fruit',{t:'lemon',c:'#ffe24a'}]]);
+A2('sweets',[['あめ','candy',{c:'#ff8fb0'}],['だんご','dango'],
+ ['ケーキ','cake',{t:'slice',c:'#ffe0a0'}],['ムース','cake',{t:'pudding',c:'#ffb0c8'}],['クッキー','cake',{t:'cookie'}],['ホットケーキ','cake',{t:'pancake'}],['チーズ','cake',{t:'cheese'}],
+ ['ミルク','bottle',{c:'#fff6e6',milk:1}],['アイス','ice',{c:'#ffc0d8'}],['コーヒー','cup',{c:'#8a5a3a'}]]);
+A2('books',[['ほん','book',{c:'#6a8ad8'}],['えんぴつ','pencil'],['あかり','lamp',{c:'#ffe27a'}],['ほんをよむ','book',{c:'#b08ae0',open:1}],['ノート','book',{c:'#5a8ad8',ring:1}],['ランプ','lamp',{c:'#f5b0c8'}]]);
+A2('music',[['ピアノ','piano',{c:'#b8a0e8'}],['オルガン','piano',{t:'organ',c:'#e8a0b0'}],['ギター','guitar',{c:'#e8a060'}],['ラッパ','trumpet'],['ベル','bell',{c:'#f3c850'}]]);
+A2('denki',[['カメラ','camera',{c:'#8fd0c0'}],['テレビ','tv',{c:'#e8a0b0'}]]);
+A2('nature',[['はな','flower',{c:'#ff9ab8'}],['さくら','flower',{c:'#ffd0e0'}],['むし','ladybug'],['わに','animal',{t:'croc',c:'#6fc88f'}],['へび','snake',{c:'#7fcf8f'}],['ねこ','animal',{t:'cat'}],
+ ['おに','animal',{t:'oni'}],['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['かれい','fish',{c:'#c8a878'}],['ゆきだるま','snowman']]);
+A2('home',[['やかん','kettle',{c:'#e0a0c0'}],['いす','chair'],['ほうき','broom'],['ろうそく','candle'],
+ ['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ヌードル','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}]]);
+const SLOT_OF_={hat:'head',ribbon:'head',crown:'head',tiara:'head',glasses:'face',tie:'neck',muffler:'neck',shirt:'body',yukata:'body',coat:'body',pajama:'body',skirt:'bottom',pants:'bottom',shoe:'feet',socks:'feet',geta:'feet',sandal:'feet',glove:'hand',bag:'bag',umbrella:'held'};
+const wearKind=it=>it[1]==='wi'?it[2].k:it[1];
+const isWear=it=>!!(it&&SLOT_OF_[wearKind(it)]);
+const slotOf=w=>{const it=BYW[w];return it?SLOT_OF_[wearKind(it)]:null;};
 const look=cl=>({hair:cl.hair,dress:cl.dress,hs:cl.hs,sk:cl.sk,fit:cl.fit,acc:cl.acc,c2:cl.c2});
 const BYW={};ITEMS.forEach(it=>BYW[it[0]]=it);
+/* なくなった ことばを セーブから とりのぞく */
+function cleanSave(){
+  save.owned=(save.owned||[]).filter(w=>BYW[w]);
+  save.placed=(save.placed||[]).filter(p=>BYW[p.w]&&!isWear(BYW[p.w]));
+  if(save.doll&&save.doll.wear){const nw={};for(const w of Object.values(save.doll.wear)){const sl=slotOf(w);if(sl)nw[sl]=w;}save.doll.wear=nw;}
+  for(const w in save.got)if(!BYW[w])delete save.got[w];
+  save.reqs=(save.reqs||[]).filter(r=>r&&r.items&&r.items.every(it=>BYW[it[0]]));
+}
 /* お客さん(裏設定: すきな店・にがてな店) */
 const CLIENTS=[
  {n:'まりー',hs:'long',acc:'ribbon',fit:'dress',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
@@ -539,6 +591,7 @@ const CLIENTS=[
 /* 保存 */
 let save={made:0,doll:{x:120,y:90,wear:{}},reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
 try{const s=JSON.parse(localStorage.getItem('maho-cleaner-3')||'null');if(s)save=Object.assign(save,s);}catch(e){}
+try{cleanSave();}catch(e){}
 const persist=()=>{try{localStorage.setItem('maho-cleaner-3',JSON.stringify(save));}catch(e){}};
 let soundOn=save.snd!==false;
 /* ========= 依頼づくり(むずかしさは裏で自動調整) ========= */
@@ -562,7 +615,7 @@ function pickItems(cat,n){
   const ok=ITEMS.filter(allowed),out=[],nov=new Set();
   const early=(save.made||0)<6;
   const add=it=>{if(out.includes(it))return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>(early?7:5))return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
-  const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0])).sort((a,b)=>early?(!!SLOT_OF[b[1]]-!!SLOT_OF[a[1]]):0);
+  const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0])).sort((a,b)=>early?(isWear(b)-isWear(a)):0);
   for(const it of pool){if(out.length>=n)break;add(it);}
   if(out.length<3)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;add(it);}
   if(out.length<3)for(const it of shuffle(ITEMS.filter(i=>!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;out.push(it);}
@@ -1128,11 +1181,13 @@ function renderBuy(){
   });
   bar.appendChild(b);
 }
+let shopTab='wear';
 onShow.shelf=()=>{
+  $$('.stab').forEach(b=>b.classList.toggle('on',b.dataset.st===shopTab));
   if(!save.shopSeen){save.shopSeen=true;persist();}
   const g=$('#sgrid'),zw=$('#shelf .zwrap'),keep=zw.scrollTop;g.innerHTML='';updateCoins();
   const kataOpen=knownN('hira')>=46;
-  [...ITEMS].filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
+  [...ITEMS].filter(it=>(shopTab==='wear')===isWear(it)).filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
     const w=it[0],sp=spr(it[1],it[2]),got=!!save.got[w],owned=save.owned.includes(w);
     const d=document.createElement('div');d.className='sc'+(got?' on':'')+(w===selW?' sel':'');d.appendChild(cvOf(got?sp.c:sp.g));
     if(owned)d.insertAdjacentHTML('beforeend','<span class="ok">♥</span>');
@@ -1148,23 +1203,17 @@ const M={sel:null,drag:null,parts:[],hop:0};
 const MSZ=36,DSZ=72;
 if(!Array.isArray(save.placed))save.placed=[];
 if(!save.doll)save.doll={x:120,y:90,wear:{}};
-const SLOT_OF={hat:'head',ribbon:'head',flower:'head',star:'head',shirt:'body',cloth:'body',tie:'neck',shoe:'feet',umbrella:'hand',balloon:'hand',candy:'hand',bell:'hand',pencil:'hand',glove:'hand',cup:'hand'};
-/* にんぎょうの どこに つけるか(24x24絵の中の座標 / 描く大きさ) */
-const SLOTS={feet:{z:0},body:{z:1},neck:{z:2},head:{z:3},hand:{z:4}};
-const slotOf=w=>{const it=BYW[w];return it?SLOT_OF[it[1]]:null;};
+const SLOT_OF=SLOT_OF_;
+const SLOTS={feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},face:{z:5},head:{z:6},hand:{z:7},held:{z:-1}};
 function drawDoll(ctx,x,y,t,hop){
   const bob=Math.round(Math.sin(t*2)*1)-(hop>0?Math.round(Math.abs(Math.sin(hop*9))*10):0),ox=Math.round(x-DSZ/2),oy=Math.round(y-DSZ/2+bob),k=DSZ/SP;
   ctx.fillStyle='rgba(80,50,80,.18)';ctx.fillRect(Math.round(x-14),Math.round(y+DSZ/2-6),28,3);
   const w=save.doll.wear||{};
-  const held=w.hand&&BYW[w.hand]&&BYW[w.hand][1]!=='glove'?BYW[w.hand]:null;
-  /* かさは うしろに もつ */
-  if(held&&held[1]==='umbrella')ctx.drawImage(spr(held[1],held[2]).c,Math.round(ox+11*k),Math.round(oy-5*k),Math.round(15*k),Math.round(15*k));
+  const held=w.held&&BYW[w.held];
+  if(held)ctx.drawImage(spr(held[1],held[2]).c,Math.round(ox+11*k),Math.round(oy-5*k),Math.round(15*k),Math.round(15*k));
   ctx.drawImage(spr('doll').c,ox,oy,DSZ,DSZ);
-  Object.keys(w).filter(sl=>SLOTS[sl]&&BYW[w[sl]]).sort((a,b)=>SLOTS[a].z-SLOTS[b].z).forEach(sl=>{
-    const it=BYW[w[sl]];
-    if(sl==='hand'&&it[1]!=='glove'){if(it[1]==='umbrella')return;
-      const sz=Math.round(11*k);ctx.drawImage(spr(it[1],it[2]).c,Math.round(ox+17.5*k-sz/2),Math.round(oy+15.5*k-sz/2),sz,sz);return;}
-    ctx.drawImage(spr('wear',Object.assign({k:it[1]},it[2])).c,ox,oy,DSZ,DSZ);
+  Object.keys(w).filter(sl=>sl!=='held'&&SLOTS[sl]&&BYW[w[sl]]).sort((a,b)=>SLOTS[a].z-SLOTS[b].z).forEach(sl=>{
+    const it=BYW[w[sl]];ctx.drawImage(spr('wear',Object.assign({},it[2],{k:wearKind(it)})).c,ox,oy,DSZ,DSZ);
   });
 }
 function renderMine(){
@@ -1176,13 +1225,13 @@ function renderMine(){
   };
   if(!save.owned.length){tr.innerHTML='<div class="info">おみせで かった ものを ここで つかえるよ</div>';}
   else{
-    const wear=save.owned.filter(w=>slotOf(w));
+    const wear=save.owned.filter(w=>isWear(BYW[w]));
     if(wear.length)row(spr('doll').c,wear,w=>{
       initAudio();const sl=slotOf(w);save.doll.wear=save.doll.wear||{};
       if(save.doll.wear[sl]===w)delete save.doll.wear[sl];else save.doll.wear[sl]=w;
       persist();chime(5);M.hop=.5;burst(M.parts,save.doll.x,save.doll.y-10,14);renderMine();
     },w=>save.doll.wear&&save.doll.wear[slotOf(w)]===w);
-    const free=save.owned.filter(w=>!save.placed.some(p=>p.w===w));
+    const free=save.owned.filter(w=>!isWear(BYW[w])&&!save.placed.some(p=>p.w===w));
     if(free.length)row(spr('chair').c,free,w=>{
       initAudio();const p={w,x:rnd(30,210),y:rnd(50,125)};save.placed.push(p);M.sel=p;persist();chime(2);burst(M.parts,p.x,p.y,10);renderMine();
     });
@@ -1221,6 +1270,7 @@ mcv.addEventListener('pointermove',e=>{
 });
 const endMine=()=>{if(M.drag){M.drag=null;persist();}};
 mcv.addEventListener('pointerup',endMine);mcv.addEventListener('pointercancel',endMine);
+$$('.stab').forEach((b,i)=>{b.querySelector('canvas').getContext('2d').drawImage(spr(i?'chair':'doll').c,0,0);b.addEventListener('click',()=>{initAudio();chime(2);shopTab=b.dataset.st;selW=null;S.unlockMsg=false;$('#shelf .zwrap').scrollTop=0;onShow.shelf();});});
 $('#bStow').addEventListener('click',()=>{if(!M.sel||M.sel===save.doll)return;save.placed=save.placed.filter(p=>p!==M.sel);M.sel=null;persist();renderMine();});
 $('#bMineBack').addEventListener('click',()=>show('home'));
 $('#bToMine').addEventListener('click',()=>{initAudio();chime(4);show('mine');});
@@ -1247,6 +1297,7 @@ function renderReqList(fresh){
 /* おきゃくさんを タップ → はなしを きいて えらぶ */
 function tapClient(id){
   const r=reqOf(id);if(!r||r.leaving)return;initAudio();
+  {const c=H.cs.find(c=>c.id===id);if(c)r.hx=c.x;}
   if(r.done.some(Boolean)){openRequest(id);return;}
   H.ask=id;const cl=CLIENTS[r.ci];portrait($('#hqC'),cl);
   $('#hqWho').textContent=cl.n;$('#hqText').textContent=greetText(r);
@@ -1271,7 +1322,7 @@ onShow.home=()=>{refreshLocks();
   save.reqs=save.reqs.filter(r=>r&&r.items&&r.items.length);
   let qi=0;
   H.cs=save.reqs.map(r=>{
-    if(r.leaving==='pay')return{id:r.id,x:slotX(Math.min(3,waitingReqs().length)),ph:'walk'};
+    if(r.leaving==='pay'){const x=r.hx!=null?r.hx:slotX(qi);qi++;return{id:r.id,x,ph:'walk'};}
     if(r.leaving==='no')return{id:r.id,x:200,ph:'out'};
     const x=slotX(qi++);return{id:r.id,x,tx:x};
   });
