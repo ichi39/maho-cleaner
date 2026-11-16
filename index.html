@@ -42,7 +42,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .card .star{position:absolute;top:4px;right:8px;font-size:22px;color:#f3b516;text-shadow:0 1px 0 #fff}
 /* room */
 #room{background:#2a2550}
-#rc,#hc{width:100%;max-height:62vh;max-height:62dvh;object-fit:contain;background:#2a2550;touch-action:none}
+#rc{width:100%;max-height:62vh;max-height:62dvh;object-fit:contain;background:#2a2550;touch-action:none}
 .info{color:#fff;text-align:center;padding:8px;font-size:15px}
 .dlg{position:absolute;left:10px;right:10px;bottom:12px;background:var(--cream);border:4px solid var(--gold);border-radius:18px;padding:12px;
  display:none;gap:12px;align-items:center;box-shadow:inset 0 0 0 3px #fff,0 6px 0 rgba(0,0,0,.25);flex-wrap:wrap;justify-content:center}
@@ -106,6 +106,22 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .sc.sel{outline:3px solid #f08aa8}
 .sc .pr{position:absolute;bottom:2px;right:4px;font-size:12px;color:#8a6a4a}
 .sc .ok{position:absolute;top:2px;right:4px;font-size:14px;color:#e8607a}
+.cvwrap{position:relative;width:min(100%,calc(62dvh * 1.6));margin:0 auto}
+.cvwrap canvas{width:100%;height:auto;display:block;background:#2a2550;touch-action:none}
+.arrow{position:absolute;left:6px;top:42%;width:46px;height:46px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(#fffaf0,#ffe9c8);color:var(--plum);font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #c79a3c;animation:nudge 1s infinite}
+@keyframes nudge{50%{transform:translateX(-5px)}}
+.sbub{position:absolute;display:none;max-width:62%;background:#fff;border:3px solid var(--gold);border-radius:14px;padding:6px 10px;font-size:clamp(12px,3.4vw,15px);line-height:1.45;color:var(--plum);pointer-events:none;bottom:36%;transform:translateX(-50%);animation:pop .3s}
+.sbub.on{display:block}
+.sbub::after{content:"";position:absolute;bottom:-11px;left:var(--tl,50%);width:14px;height:14px;background:#fff;border-right:3px solid var(--gold);border-bottom:3px solid var(--gold);transform:translateX(-50%) rotate(45deg)}
+.rbub{display:none;align-items:center;gap:10px;width:calc(100% - 20px);margin:8px 10px 0;background:var(--cream);border:4px solid var(--gold);border-radius:16px;padding:8px 10px;box-shadow:inset 0 0 0 3px #fff;font-size:clamp(14px,3.8vw,17px);line-height:1.5;position:relative}
+.rbub.on{display:flex}
+.rbub canvas{width:72px;height:72px;flex:none}
+.rbub .who{color:#d0607a;font-size:.85em}
+.rbub em{display:block;font-style:normal;color:#e8607a;margin-top:2px;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.35}}
+#mineTray{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;overflow:auto;width:100%;flex:1;align-content:flex-start;justify-content:center}
+#mineTray canvas{width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:10px;padding:2px;cursor:pointer}
+.sg{grid-template-columns:repeat(6,1fr)!important;gap:6px!important;max-width:540px!important}
 </style>
 </head>
 <body>
@@ -117,14 +133,14 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="home" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><button class="btn sm" data-go="title">◀</button><span id="homeInfo" style="color:#ffe27a"></span><button class="btn sm pink" data-go="shelf">かいもの</button></div>
-  <canvas id="hc" width="240" height="150"></canvas>
+  <div class="cvwrap"><canvas id="hc" width="240" height="150"></canvas><button id="bToMine" class="arrow" style="display:none">◀</button><div id="hbub" class="sbub"></div></div>
   <div id="reqList"></div>
  </section>
  <section id="room" class="screen">
   <div class="bar" style="background:#2a2550"><button class="btn sm" id="bRoomBack">◀ もどる</button><h2 id="roomName" style="color:#fff"></h2><span id="roomLeft" style="color:#ffe27a;min-width:64px;text-align:right"></span></div>
   <canvas id="rc" width="240" height="150"></canvas>
-  <div class="info">よごれた ものを タップしてね　<span id="coinR"></span></div>
-  <div class="dlg" id="dlgReq"><canvas id="dlgC" width="24" height="24"></canvas><p><span class="who" id="reqWho"></span><br><span id="reqText"></span></p><button class="btn" id="bAccept">はじめる ▶</button></div>
+  <div class="rbub" id="rbub"><canvas id="dlgC" width="24" height="24"></canvas><div><span class="who" id="reqWho"></span><br><span id="reqText"></span><em>▲ ぴかぴか ひかる ものを タップしてね</em></div></div>
+  <div class="info" id="rinfo">よごれた ものを タップしてね　<span id="coinR"></span></div>
   <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br><span id="clText"></span></p><div class="gift" id="coinGain"></div><button class="btn" id="bClNext">おみせに もどる ▶</button></div>
  </section>
  <section id="puzzle" class="screen">
@@ -132,6 +148,12 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <canvas id="pz" width="150" height="120"></canvas>
   <div id="slots"></div>
   <div id="tray"></div>
+ </section>
+ <section id="mine" class="screen" style="background:#2a2550">
+  <div class="bar" style="background:#2a2550"><button class="btn sm" id="bMineBack">◀ もどる</button><h2 style="color:#fff">じぶんの おへや</h2><button class="btn sm pink" id="bStow" style="visibility:hidden">しまう</button></div>
+  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas></div>
+  <div class="info" id="mineHint">ゆびで ひっぱって うごかせるよ</div>
+  <div id="mineTray"></div>
  </section>
  <section id="shelf" class="screen">
   <div class="bar"><button class="btn sm" data-go="back">◀ もどる</button><h2 id="sCoin"></h2><span style="width:64px"></span></div>
@@ -370,15 +392,24 @@ A('books',[['あかり','lamp',{c:'#ffe27a'}],['ホン','book',{c:'#e8a0b0'}]]);
 const BYW={};ITEMS.forEach(it=>BYW[it[0]]=it);
 /* お客さん(裏設定: すきな店・にがてな店) */
 const CLIENTS=[
- {n:'マリー',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。'},
- {n:'トム',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'サンキュー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。'},
- {n:'ルル',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。'},
- {n:'ジャン',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ボンジュール!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'メルシー! すてきだ!',tf:'ブラボー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。'},
- {n:'ミナ',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。'},
- {n:'フェリ',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。'},
- {n:'ソフィ',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 ラララ〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜'},
- {n:'オスカー',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。'},
- {n:'ヨネ',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。'}
+ {n:'まりー',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
+  fl:['きょうは まどから いいにおいが するわ。','あまいものを たべたい きぶんなの。','ならんで まつのも わるくないわね。']},
+ {n:'とむ',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'さんきゅー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。',
+  fl:['ひまだなあ。だれか あそぼうよ!','まだかなあ、まだかなあ!','ぼくの おもちゃ ぜんぶ ちらかっちゃった!']},
+ {n:'るる',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。',
+  fl:['ふぁあ…ねむい…。','ほんを よみながら まってるの…。','しずかな おみせは すてき…。']},
+ {n:'じゃん',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ぼんじゅーる!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'めるしー! すてきだ!',tf:'ぶらぼー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。',
+  fl:['きょうの ぼうし、どうかな?','おしゃれには がまんも ひつようさ。','まつ じかんも おしゃれに すごすのさ。']},
+ {n:'みな',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。',
+  fl:['あの…ここで まってて いいですか?','おはなの かおりが すると おちつくの…。','どきどき するなあ…。']},
+ {n:'ふぇり',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。',
+  fl:['おなか すいたなあ!','まだー? はやく はやくー!','きょうは なにを たべようかな!']},
+ {n:'そふぃ',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 らららら〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜',
+  fl:['らら〜 まってる あいだも うたっちゃう〜','きょうの かぜは いいおとね〜','ことりの こえが きこえるわ〜']},
+ {n:'おすかー',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。',
+  fl:['ふむ…じかんは せいかくに ほしい。','この おみせの しくみは おもしろいな。','まだか…いや、まつのも わるくない。']},
+ {n:'よね',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。',
+  fl:['あらあら、まつ あいだに おちゃを…。','おひさまが ぽかぽかで いいわねえ。','ゆっくり やって くださいねえ。']}
 ];
 /* 保存 */
 let save={reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
@@ -395,7 +426,7 @@ const hasDaku=w=>[...w].some(c=>!NOLEARN.includes(c)&&c!==norm(c));
 const hasSmall=w=>[...w].some(c=>'ッっャゃュゅョょァィゥェォぁぃぅぇぉ'.includes(c));
 function allowed(it){
   const w=it[0],s=scriptOf(w),k=knownN(s);
-  if(s==='kata'&&knownN('hira')<28)return false;
+  if(s==='kata'&&knownN('hira')<46)return false;
   if(w.includes('ー')&&k<12)return false;
   if(hasDaku(w)&&k<20)return false;
   if(hasSmall(w)&&k<26)return false;
@@ -478,10 +509,11 @@ function stepParts(ctx,arr,dt){
 const RW=240,RH=150;
 const POS=[[62,62],[178,62],[62,118],[178,118],[120,74]];
 const bgCache={};
+const MINE_THEME={wall:'#fde9dd',wall2:'#fff4ec',floor:'#e8cba6',floor2:'#dcbb92',acc:'#f08aa8',sky:'#c6e8f6'};
 const HOME_THEME={wall:'#e9e0f7',wall2:'#f4eefc',floor:'#d8b894',floor2:'#cfab86',acc:'#9a88e0',sky:'#c8e0f8'};
 function makeBg(idx){
   if(bgCache[idx])return bgCache[idx];
-  const home=idx==='home',T=home?HOME_THEME:THEMES[idx],rand=mulberry(home?5:idx*77+3);
+  const home=idx==='home'||idx==='mine',T=idx==='home'?HOME_THEME:idx==='mine'?MINE_THEME:THEMES[idx],rand=mulberry(home?5:idx*77+3);
   const cv=document.createElement('canvas');cv.width=RW;cv.height=RH;const x=cv.getContext('2d');
   const R=(c,a,b,w,h)=>{x.fillStyle=c;x.fillRect(a,b,w,h);};
   R(T.wall,0,0,RW,124);
@@ -505,7 +537,7 @@ function makeBg(idx){
   for(const sx of [76,154]){R(T.acc,sx,4,10,62);for(let k=1;k<10;k+=3)R(shade(T.acc,-.18),sx+k,4,1,62);R(shade(T.acc,.35),sx,66,10,2);R('#d9a845',sx,64,10,3);}
   /* 棚 */
   const shelf=(sx,sy,w)=>{x.globalAlpha=.12;R('#000000',sx,sy+4,w,3);x.globalAlpha=1;R('#c89a6a',sx,sy,w,4);R('#e0b88a',sx,sy,w,1);R('#a87a52',sx+8,sy+4,3,5);R('#a87a52',sx+w-11,sy+4,3,5);};
-  for(const sy of (home?[62]:[62,118])){shelf(14,sy,96);shelf(130,sy,96);}
+  for(const sy of (idx==='home'?[62]:[62,118])){shelf(14,sy,96);shelf(130,sy,96);}
   /* ガーランド */
   const fc=[T.acc,'#ffe27a','#9ad8c8','#b8a0e8','#ffffff'];
   for(let i=0;i<RW;i++)R('#b08a6a',i,1+Math.round(3*Math.abs(Math.sin(i/RW*Math.PI*3))),1,1);
@@ -546,6 +578,9 @@ function drawRoom(t,dt){
       rc.fillRect(sx-2,sy,5,1);rc.fillRect(sx,sy-2,1,5);rc.fillStyle='#fff';rc.fillRect(sx,sy,1,1);
     }
   });
+  if(S.hint){const j=S.done.findIndex(v=>!v);if(j>=0){const [px,py]=POS[r.pos[j]],by=py-58+Math.round(Math.abs(Math.sin(t*5))*4);
+    rc.fillStyle=INK;rc.fillRect(px-5,by,11,5);rc.fillRect(px-3,by+5,7,2);rc.fillRect(px-1,by+7,3,2);
+    rc.fillStyle='#ffe27a';rc.fillRect(px-4,by+1,9,3);rc.fillRect(px-2,by+4,5,2);rc.fillRect(px,by+6,1,2);}}
   if(rem>0){rc.fillStyle='#d8d4e8';for(const m of motes){rc.globalAlpha=.55*rem;rc.fillRect(Math.round((m.x+t*m.s*4)%RW),Math.round(m.y+Math.sin(t+m.x)*3),1,1);}rc.globalAlpha=1;}
   const cl=CLIENTS[r.ci];
   rc.drawImage(spr('person',{hair:cl.hair,dress:cl.dress}).c,96,104+(rem===0?Math.round(Math.sin(t*6)):0),48,48);
@@ -557,11 +592,11 @@ function roomPoint(cv,e,W,Hh){
   return{x:(e.clientX-r.left-ox)/sc,y:(e.clientY-r.top-oy)/sc};
 }
 rcv.addEventListener('pointerdown',e=>{
-  if($('#clear').classList.contains('on')||$('#dlgReq').classList.contains('on')||!S.r)return;
+  if($('#clear').classList.contains('on')||!S.r)return;
   initAudio();const p=roomPoint(rcv,e,RW,RH),r=S.r;
   for(let j=0;j<r.items.length;j++){const [px,py]=POS[r.pos[j]];
     if(p.x>px-26&&p.x<px+26&&p.y>py-52&&p.y<py+6){
-      if(S.done[j]){say(r.items[j][0]);S.pop[j]=.7;burst(roomParts,px,py-22,10);chime(j);}else openPuzzle(j);
+      if(S.done[j]){say(r.items[j][0]);S.pop[j]=.7;burst(roomParts,px,py-22,10);chime(j);}else{endHint();openPuzzle(j);}
       return;}}
 });
 const coinHTML=n=>`<span class="coin"></span><b>${n}</b>`;
@@ -574,13 +609,15 @@ function openRequest(id){
   initAudio();const r=save.reqs.find(q=>q.id===id);if(!r)return;
   S.r=r;S.done=r.done;S.pop=r.done.map(()=>0);S.tilt=r.done.map((_,j)=>(j%2?1:-1)*rnd(.25,.7));roomParts.length=0;
   show('room');updateRoomHud();$('#clear').classList.remove('on');
-  if(r.done.every(Boolean)){$('#dlgReq').classList.remove('on');setTimeout(()=>{if(screen==='room'&&S.r===r)showClear();},300);return;}
+  S.hint=false;
+  if(r.done.every(Boolean)){$('#rbub').classList.remove('on');setTimeout(()=>{if(screen==='room'&&S.r===r)showClear();},300);return;}
   if(r.done.every(v=>!v)){
     const cl=CLIENTS[r.ci];portrait($('#dlgC'),cl);
     $('#reqWho').textContent=cl.n;$('#reqText').textContent=greetText(r);
-    $('#dlgReq').classList.add('on');
-  }else $('#dlgReq').classList.remove('on');
+    $('#rbub').classList.add('on');$('#rinfo').style.display='none';S.hint=true;
+  }else{$('#rbub').classList.remove('on');$('#rinfo').style.display='';}
 }
+function endHint(){S.hint=false;$('#rbub').classList.remove('on');$('#rinfo').style.display='';}
 function showClear(){
   const r=S.r,cl=CLIENTS[r.ci];fanfare();portrait($('#clC'),cl);
   $('#clWho').textContent=cl.n;$('#clText').textContent=thanksText(r);
@@ -599,7 +636,7 @@ const pzv=$('#pz'),pc=pzv.getContext('2d');pc.imageSmoothingEnabled=false;
 const PW=150,PH=120,SC=4,HX=(PW-SP*SC)/2,HY=(PH-SP*SC)/2;
 const P={chars:[],filled:[],prog:[],fl:[],sp:null,done:false,cel:0,tok:0,word:'',j:0};
 const pzParts=[];
-function openPuzzle(j){
+function openPuzzle(j){S.hint=false;
   const r0=S.r,it=r0.items[j];
   P.tok++;P.j=j;P.word=it[0];P.chars=[...it[0]];const n=P.chars.length;
   P.filled=Array(n).fill(false);P.prog=Array(n).fill(0);P.sp=spr(it[1],it[2]);P.done=false;P.cel=0;pzParts.length=0;
@@ -731,28 +768,77 @@ const cvOf=src=>{const c=document.createElement('canvas');c.width=c.height=SP;c.
 const priceOf=w=>5+5*[...w].length;
 let selW=null;
 function renderBuy(){
-  const bar=$('#buyBar');bar.innerHTML='';if(!selW)return;
+  const bar=$('#buyBar');bar.innerHTML='';
+  if(S.unlockMsg){bar.innerHTML='<span style="font-size:15px;line-height:1.5;text-align:center">おへやが ひらいたよ!<br>おみせの ひだりの やじるしを タップしてね</span>';return;}
+  if(!selW){bar.innerHTML='<span style="font-size:14px">なおした ものを えらんでね</span>';return;}
   const it=BYW[selW],owned=save.owned.includes(selW),price=priceOf(selW);
   bar.appendChild(cvOf(spr(it[1],it[2]).c));
-  const b=document.createElement('button');b.className='btn';
-  if(owned){const on=save.shown.includes(selW);b.textContent=on?'おみせから はずす':'おみせに かざる';
-    b.addEventListener('click',()=>{save.shown=on?save.shown.filter(w=>w!==selW):[...save.shown,selW].slice(-3);persist();chime(3);onShow.shelf();});}
-  else{b.innerHTML=`<span class="coin"></span>${price} で かう`;b.disabled=save.coins<price;
-    b.addEventListener('click',()=>{if(save.coins<price)return;save.coins-=price;save.owned.push(selW);save.shown=[...save.shown,selW].slice(-3);persist();fanfare();onShow.shelf();});}
+  if(owned){const sp=document.createElement('span');sp.style.fontSize='15px';sp.innerHTML='もっているよ ♥<br>おへやに かざろう';bar.appendChild(sp);return;}
+  const b=document.createElement('button');b.className='btn';b.innerHTML=`<span class="coin"></span>${price} で かう`;b.disabled=save.coins<price;
+  b.addEventListener('click',()=>{
+    if(save.coins<price)return;save.coins-=price;save.owned.push(selW);
+    if(!save.mineUnlocked){save.mineUnlocked=true;S.unlockMsg=true;}
+    persist();fanfare();onShow.shelf();
+  });
   bar.appendChild(b);
 }
 onShow.shelf=()=>{
   const g=$('#sgrid'),zw=$('#shelf .zwrap'),keep=zw.scrollTop;g.innerHTML='';updateCoins();
-  [...ITEMS].sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
+  const kataOpen=knownN('hira')>=46;
+  [...ITEMS].filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
     const w=it[0],sp=spr(it[1],it[2]),got=!!save.got[w],owned=save.owned.includes(w);
     const d=document.createElement('div');d.className='sc'+(got?' on':'')+(w===selW?' sel':'');d.appendChild(cvOf(got?sp.c:sp.g));
     if(owned)d.insertAdjacentHTML('beforeend','<span class="ok">♥</span>');
-    else if(got)d.insertAdjacentHTML('beforeend',`<span class="pr"><span class="coin" style="width:10px;height:10px;border-width:1px"></span>${priceOf(w)}</span>`);
-    d.addEventListener('click',()=>{if(!got)return;initAudio();say(w);selW=w;onShow.shelf();});
+    else if(got)d.insertAdjacentHTML('beforeend',`<span class="pr"><span class="coin" style="width:9px;height:9px;border-width:1px;margin-right:1px"></span>${priceOf(w)}</span>`);
+    d.addEventListener('click',()=>{if(!got)return;initAudio();say(w);S.unlockMsg=false;selW=w;onShow.shelf();});
     g.appendChild(d);
   });
   renderBuy();zw.scrollTop=keep;
 };
+/* ========= じぶんの おへや ========= */
+const mcv=$('#mc'),mc=mcv.getContext('2d');mc.imageSmoothingEnabled=false;
+const M={sel:-1,drag:null,parts:[]};
+const MSZ=36;
+if(!Array.isArray(save.placed))save.placed=[];
+function renderMine(){
+  const tr=$('#mineTray');tr.innerHTML='';
+  const free=save.owned.filter(w=>!save.placed.some(p=>p.w===w));
+  free.forEach(w=>{const it=BYW[w];if(!it)return;const c=cvOf(spr(it[1],it[2]).c);
+    c.addEventListener('click',()=>{initAudio();save.placed.push({w,x:rnd(30,210),y:rnd(50,125)});M.sel=save.placed.length-1;persist();chime(2);burst(M.parts,save.placed[M.sel].x,save.placed[M.sel].y,10);renderMine();});
+    tr.appendChild(c);});
+  if(!save.owned.length)tr.innerHTML='<div class="info">おみせで かった ものを ここに おけるよ</div>';
+  $('#bStow').style.visibility=M.sel>=0?'visible':'hidden';
+  $('#mineHint').textContent=free.length?'したの ものを タップすると おけるよ':'ゆびで ひっぱって うごかせるよ';
+}
+onShow.mine=()=>{M.sel=-1;M.parts.length=0;renderMine();};
+function drawMine(t,dt){
+  mc.drawImage(makeBg('mine'),0,0);
+  const order=save.placed.map((p,i)=>i).sort((a,b)=>save.placed[a].y-save.placed[b].y);
+  for(const i of order){const p=save.placed[i],it=BYW[p.w];if(!it)continue;
+    mc.fillStyle='rgba(80,50,80,.18)';mc.fillRect(Math.round(p.x-10),Math.round(p.y+MSZ/2-5),20,3);
+    const lift=(M.drag&&M.drag.i===i)?-3:0;
+    mc.drawImage(spr(it[1],it[2]).c,Math.round(p.x-MSZ/2),Math.round(p.y-MSZ/2+lift),MSZ,MSZ);
+    if(i===M.sel){mc.fillStyle='#ffe27a';const x=Math.round(p.x-MSZ/2),y=Math.round(p.y-MSZ/2),w=MSZ,k=4+(Math.sin(t*6)>0?1:0);
+      for(const [a,b,dx,dy] of [[x,y,1,1],[x+w-1,y,-1,1],[x,y+w-1,1,-1],[x+w-1,y+w-1,-1,-1]]){mc.fillRect(Math.min(a,a+dx*k),b,k,1);mc.fillRect(a,Math.min(b,b+dy*k),1,k);}}
+  }
+  stepParts(mc,M.parts,dt);
+}
+mcv.addEventListener('pointerdown',e=>{
+  initAudio();const p=roomPoint(mcv,e,RW,RH);let hit=-1,best=1e9;
+  save.placed.forEach((q,i)=>{if(Math.abs(p.x-q.x)<MSZ/2&&Math.abs(p.y-q.y)<MSZ/2&&q.y<best+1e9){const d=Math.abs(p.y-q.y);if(hit<0||q.y>=save.placed[hit].y)hit=i;}});
+  if(hit>=0){mcv.setPointerCapture(e.pointerId);M.sel=hit;M.drag={i:hit,dx:save.placed[hit].x-p.x,dy:save.placed[hit].y-p.y,moved:false};say(save.placed[hit].w);}
+  else M.sel=-1;
+  renderMine();
+});
+mcv.addEventListener('pointermove',e=>{
+  if(!M.drag)return;const p=roomPoint(mcv,e,RW,RH),q=save.placed[M.drag.i];
+  q.x=Math.max(MSZ/2,Math.min(RW-MSZ/2,p.x+M.drag.dx));q.y=Math.max(MSZ/2,Math.min(RH-MSZ/2,p.y+M.drag.dy));M.drag.moved=true;
+});
+const endMine=()=>{if(M.drag){M.drag=null;persist();}};
+mcv.addEventListener('pointerup',endMine);mcv.addEventListener('pointercancel',endMine);
+$('#bStow').addEventListener('click',()=>{if(M.sel<0)return;save.placed.splice(M.sel,1);M.sel=-1;persist();renderMine();});
+$('#bMineBack').addEventListener('click',()=>show('home'));
+$('#bToMine').addEventListener('click',()=>{initAudio();chime(4);show('mine');});
 /* ========= おそうじ屋さん(依頼がたまる店) ========= */
 const hcv=$('#hc'),hc=hcv.getContext('2d');hc.imageSmoothingEnabled=false;
 const H={cs:[],queue:0,timer:0};
@@ -778,16 +864,25 @@ function spawnClient(){
 onShow.home=()=>{
   save.reqs=save.reqs.filter(r=>r&&r.items&&r.items.length);
   H.cs=save.reqs.map((r,i)=>({id:r.id,x:slotX(i),tx:slotX(i)}));
-  H.queue=Math.max(0,2-save.reqs.length);H.timer=H.queue>0?.5:rnd(8,15);renderReqList();
+  H.queue=Math.max(0,2-save.reqs.length);H.timer=H.queue>0?.5:rnd(8,15);H.bt=1.5;H.bi=0;H.bn=Math.random()*3|0;
+  $('#hbub').classList.remove('on');$('#bToMine').style.display=save.mineUnlocked?'':'none';renderReqList();
 };
 hcv.addEventListener('pointerdown',e=>{
   const p=roomPoint(hcv,e,RW,RH);
   for(let i=H.cs.length-1;i>=0;i--){const c=H.cs[i];
     if(Math.abs(c.tx-c.x)<4&&p.x>c.x&&p.x<c.x+48&&p.y>104&&p.y<152){openRequest(c.id);return;}}
 });
+function showBubble(){
+  const b=$('#hbub');if(!save.reqs.length){b.classList.remove('on');return;}
+  const i=H.bi%save.reqs.length,c=H.cs[i];
+  if(!c||Math.abs(c.tx-c.x)>3){b.classList.remove('on');return;}
+  const cl=CLIENTS[save.reqs[i].ci];H.bn++;b.textContent=cl.fl[H.bn%cl.fl.length];
+  const cx=(c.tx+24)/240*100,left=Math.max(32,Math.min(68,cx));b.style.left=left+'%';b.classList.add('on');
+  const w=b.offsetWidth/b.parentElement.offsetWidth*100;b.style.setProperty('--tl',Math.max(14,Math.min(86,50+(cx-left)/w*100))+'%');
+}
 function drawHome(t,dt){
   hc.drawImage(makeBg('home'),0,0);
-  save.shown.slice(-3).forEach((w,i)=>{const it=BYW[w];if(!it)return;const [px,py]=POS[[0,1,4][i]];hc.drawImage(spr(it[1],it[2]).c,px-24,py-44,48,48);});
+  [['bottle',{c:'#f5a0c8'},0],['book',{c:'#6a8ad8'},1],['lamp',{c:'#f5b0c8'},4]].forEach(([k,o,j])=>{const [px,py]=POS[j];hc.drawImage(spr(k,o).c,px-24,py-44,48,48);});
   hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+Math.round(Math.sin(t*2)),48,48);
   H.timer-=dt;
   if(H.timer<=0){
@@ -795,6 +890,8 @@ function drawHome(t,dt){
     else if(save.reqs.length<4){spawnClient();H.timer=rnd(20,35);}
     else H.timer=5;
   }
+  H.bt-=dt;
+  if(H.bt<=0){H.bt=4.5;showBubble();H.bi++;}
   H.cs.forEach((c,i)=>{
     const r=save.reqs[i];if(!r)return;c.tx=slotX(i);
     const dx=c.tx-c.x;c.x+=dx*Math.min(1,dt*2.5);if(Math.abs(dx)<.5)c.x=c.tx;
@@ -808,8 +905,7 @@ $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();show(b.da
 $('#bStart').addEventListener('click',()=>{initAudio();chime(2);show('home');});
 $('#bShelf').addEventListener('click',()=>{initAudio();show('shelf');});
 $('#bSnd').addEventListener('click',()=>{initAudio();setSound(!soundOn);});
-$('#bAccept').addEventListener('click',()=>{initAudio();chime(3);$('#dlgReq').classList.remove('on');});
-$('#bRoomBack').addEventListener('click',()=>{$('#dlgReq').classList.remove('on');$('#clear').classList.remove('on');show('home');});
+$('#bRoomBack').addEventListener('click',()=>{$('#rbub').classList.remove('on');$('#clear').classList.remove('on');show('home');});
 $('#bPzBack').addEventListener('click',()=>{P.tok++;show('room');updateRoomHud();});
 $('#bHear').addEventListener('click',()=>{initAudio();say(P.word);});
 $('#bClNext').addEventListener('click',()=>{initAudio();leaveClient();});
@@ -818,7 +914,7 @@ if('speechSynthesis' in window)speechSynthesis.getVoices();
 let last=0;
 function frame(ts){
   const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
-  if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);
+  if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='mine')drawMine(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
