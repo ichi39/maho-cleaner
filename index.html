@@ -220,6 +220,16 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .gpick:nth-child(2){animation-delay:.2s}.gpick:nth-child(3){animation-delay:.4s}
 .gpick canvas{width:100%;height:100%}
 .gpick.chosen{animation:pop .5s;background:#fff6a0}
+.dtabs{display:flex;gap:6px;justify-content:center;margin:0 30px 6px}
+.dtab{width:52px;height:44px;border:3px solid #c8a878;border-bottom-width:5px;border-radius:12px 12px 6px 6px;background:#f6ead4;padding:0;cursor:pointer;opacity:.6}
+.dtab.on{opacity:1;background:#fff6e0;border-color:#f3c850}
+.dtab canvas{width:34px;height:34px;margin-top:2px}
+.dgrid.days{grid-template-columns:repeat(4,1fr)}
+.dday2{display:flex;flex-direction:column;align-items:center;border:2px solid #e3d3b8;background:rgba(255,255,255,.7);border-radius:10px;padding:2px;font:inherit;color:#8a5a3a;cursor:pointer}
+.dday2 canvas{width:36px;height:36px;background:none!important}
+.dface{width:56px;height:56px}
+.dstars{margin:0;color:#e8b830;font-size:22px;letter-spacing:2px}
+.drow2{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}.drow2 canvas{width:40px;height:40px}
 </style>
 </head>
 <body>
@@ -269,7 +279,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
    <button class="btn big" id="bMorning">☀ あさに する</button></div></div>
  <div id="dawn"></div>
  <div class="modal" id="gift"><div class="mcard"><canvas id="gfC" width="24" height="24"></canvas><p id="gfText"></p><div class="gpicks" id="gfItems"></div></div></div>
- <div class="modal" id="diary"><div class="book"><button class="dx" id="dClose">✕</button><div class="dpage" id="dPage"></div>
+ <div class="modal" id="diary"><div class="book"><button class="dx" id="dClose">✕</button><div class="dtabs"><button class="dtab on" data-m="items"><canvas width="24" height="24"></canvas></button><button class="dtab" data-m="events"><canvas width="24" height="24"></canvas></button><button class="dtab" data-m="days"><canvas width="24" height="24"></canvas></button></div><div class="dpage" id="dPage"></div>
   <div class="dnav"><button class="back" id="dPrev">◀</button><span id="dNo"></span><button class="back fwd" id="dNext">▶</button></div></div></div>
  <div class="modal" id="tut"><div class="mcard"><div class="tpics" id="tPics"></div><p id="tText"></p><div class="dots" id="tDots"></div><button class="btn big" id="bTutNext">つぎへ ▶</button><button class="skip2" id="bTutSkip">とばす</button></div></div>
 </div>
@@ -1650,34 +1660,80 @@ const NOTE={
 'コップ':'すきな のみものを いれよう。','ナイフ':'ぱんを きる ナイフ。きを つけて つかおう。','サラダ':'しゃきしゃきの やさいが たっぷり。','ヌードル':'ずるずる すする あったかい ヌードル。','ワイン':'おとなが のむ むらさきの のみもの。'
 };
 const noteOf=w=>NOTE[w]||'ぴかぴかに なおしたよ。';
-const BOOK={i:0};
+const BOOK={i:0,mode:'items'};
+const SNOTE={'ほしのティアラ':'よぞらの ほしを あつめて つくった ティアラ。','にじいろドレス':'あめあがりの にじで そめた ドレス。','ようせいのはね':'つけると からだが ふわっと かるく なる。',
+ 'はなかんむり':'はるの のはらの はなで あんだ かんむり。','まほうのつえ':'ふると きらきらの ほしが こぼれる。','ガラスのくつ':'おひめさまが わすれていった くつ。','ほしぞらマント':'よるの そらを きりとった マント。'};
 function diaryList(){const n=save.day?save.day.n:1;return (save.diary||[]).map((e,i)=>{if(e.day>n)e.day=n;return{e,i};}).sort((a,b)=>a.e.day-b.e.day||a.i-b.i).map(x=>x.e);}
+const byDay=(a,f)=>(a||[]).map((e,i)=>({e,i})).sort((x,y)=>f(x.e)-f(y.e)||x.i-y.i).map(x=>x.e);
+const BLIST={items:diaryList,events:()=>byDay(save.events,e=>e.day),days:()=>byDay(save.dayLog,e=>e.n)};
 function openDiary(i){save.diaryNew=false;persist();BOOK.i=i==null?0:i;$('#diary').classList.add('on');renderDiary();chime(5);}
+function evIcon(e){if(e.type==='rank')return spr('star').c;const it=IT(e.k);return it?spr(it[1],it[2]).c:spr('star').c;}
+function evText(e){
+  const it=IT(e.k),nm=it?it[0]:'';
+  if(e.type==='stamp')return `スタンプが ぜんぶ たまって、とくべつな 「${nm}」を もらったよ。\n${SNOTE[nm]||''}`;
+  if(e.type==='gift'){const cl=CLIENTS[e.ci];return `${cl?cl.n+'さん':'おきゃくさん'}から 「${nm}」を もらったよ。\nなかよしの しるし だね。`;}
+  if(e.type==='rank')return `おみせの ほしが ${e.n}つに なったよ。\nおみせが すこし すてきに なった。`;
+  return '';
+}
+function dayText(e){
+  const a=[`きょうは ${e.met.length}にんの おきゃくさんが きたよ。`];
+  if(e.items.length)a.push(`${e.items.length}こ の ものを なおしたよ。`);
+  a.push(e.coins?`おかねを ${e.coins} もらったよ。`:'');
+  a.push(e.served>=e.met.length&&e.met.length?'みんな よろこんで くれたね。':'また あしたも がんばろう。');
+  return a.filter(Boolean).join('\n');
+}
 function renderDiary(){
-  const list=diaryList(),pg=$('#dPage');pg.innerHTML='';
-  const tot=ITEMS.filter(notSp).length;
+  $$('.dtab').forEach(b=>b.classList.toggle('on',b.dataset.m===BOOK.mode));
+  const list=BLIST[BOOK.mode](),pg=$('#dPage');pg.innerHTML='';
   if(BOOK.i===0){
-    pg.insertAdjacentHTML('beforeend',`<h3>まほうの にっき</h3><p class="dsub">なおした もの ${list.length} / ${tot}</p>`);
-    if(!list.length){pg.insertAdjacentHTML('beforeend','<p class="dtxt">まだ なにも かいて ないよ。<br>おそうじを すると ここに かかれるよ。</p>');}
     const g=document.createElement('div');g.className='dgrid';
-    list.forEach((e,k)=>{const it=IT(e.k)||IT(e.w);if(!it)return;const c=cvOf(spr(it[1],it[2]).c);c.addEventListener('click',()=>{BOOK.i=k+1;chime(2);renderDiary();});g.appendChild(c);});
+    if(BOOK.mode==='items'){
+      pg.insertAdjacentHTML('beforeend',`<h3>なおした もの</h3><p class="dsub">${list.length} / ${ITEMS.filter(notSp).length}</p>`);
+      list.forEach((e,k)=>{const it=IT(e.k)||IT(e.w);if(!it)return;const c=cvOf(spr(it[1],it[2]).c);c.addEventListener('click',()=>{BOOK.i=k+1;chime(2);renderDiary();});g.appendChild(c);});
+    }else if(BOOK.mode==='events'){
+      pg.insertAdjacentHTML('beforeend',`<h3>とくべつな こと</h3><p class="dsub">${list.length}</p>`);
+      list.forEach((e,k)=>{const c=cvOf(evIcon(e));c.addEventListener('click',()=>{BOOK.i=k+1;chime(2);renderDiary();});g.appendChild(c);});
+    }else{
+      pg.insertAdjacentHTML('beforeend',`<h3>まいにちの きろく</h3><p class="dsub">${list.length}にちぶん</p>`);
+      g.classList.add('days');
+      list.forEach((e,k)=>{const b=document.createElement('button');b.className='dday2';b.innerHTML=`<span>${e.n}</span>`;b.prepend(cvOf(spr('moon').c));b.addEventListener('click',()=>{BOOK.i=k+1;chime(2);renderDiary();});g.appendChild(b);});
+    }
+    if(!list.length)pg.insertAdjacentHTML('beforeend','<p class="dtxt">まだ なにも かいて ないよ。</p>');
     pg.appendChild(g);
   }else{
-    const e=list[BOOK.i-1],it=IT(e.k)||IT(e.w),cl=CLIENTS[e.ci];
-    pg.insertAdjacentHTML('beforeend',`<p class="dday">${e.day}にちめ</p>`);
-    if(it){const c=cvOf(spr(it[1],it[2]).c);c.className='dbig';pg.appendChild(c);}
-    pg.insertAdjacentHTML('beforeend',`<h3>${e.w}</h3><p class="dtxt">${noteOf(e.w)}</p>`);
-    if(cl){const row=document.createElement('div');row.className='dwho';row.appendChild(cvOf(spr('person',look(cl)).c));
-      row.insertAdjacentHTML('beforeend',`<span>${cl.n}さんの いらいで なおしたよ。${e.fav?'とても よろこんで いたよ。':'にこにこ して いたよ。'}</span>`);pg.appendChild(row);}
-    const h=document.createElement('button');h.className='btn sm pink';h.textContent='♪ きく';h.addEventListener('click',()=>{initAudio();say(e.w);});pg.appendChild(h);
+    const e=list[BOOK.i-1];
+    if(BOOK.mode==='items'){
+      const it=IT(e.k)||IT(e.w),cl=CLIENTS[e.ci];
+      pg.insertAdjacentHTML('beforeend',`<p class="dday">${e.day}にちめ</p>`);
+      if(it){const c=cvOf(spr(it[1],it[2]).c);c.className='dbig';pg.appendChild(c);}
+      pg.insertAdjacentHTML('beforeend',`<h3>${e.w}</h3><p class="dtxt">${noteOf(e.w)}</p>`);
+      if(cl){const row=document.createElement('div');row.className='dwho';row.appendChild(cvOf(spr('person',look(cl)).c));
+        row.insertAdjacentHTML('beforeend',`<span>${cl.n}さんの いらいで なおしたよ。${e.fav?'とても よろこんで いたよ。':'にこにこ して いたよ。'}</span>`);pg.appendChild(row);}
+      const h=document.createElement('button');h.className='btn sm pink';h.textContent='♪ きく';h.addEventListener('click',()=>{initAudio();say(e.w);});pg.appendChild(h);
+    }else if(BOOK.mode==='events'){
+      pg.insertAdjacentHTML('beforeend',`<p class="dday">${e.day}にちめ</p>`);
+      const c=cvOf(evIcon(e));c.className='dbig';pg.appendChild(c);
+      if(e.type==='gift'&&CLIENTS[e.ci]){const p=cvOf(spr('person',look(CLIENTS[e.ci])).c);p.className='dface';pg.appendChild(p);}
+      if(e.type==='rank')pg.insertAdjacentHTML('beforeend',`<p class="dstars">${'★'.repeat(e.n)}</p>`);
+      pg.insertAdjacentHTML('beforeend',`<p class="dtxt">${evText(e)}</p>`);
+    }else{
+      pg.insertAdjacentHTML('beforeend',`<h3>${e.n}にちめ</h3>`);
+      const f=document.createElement('div');f.className='drow2';(e.met||[]).forEach(ci=>{if(CLIENTS[ci])f.appendChild(cvOf(spr('person',look(CLIENTS[ci])).c));});pg.appendChild(f);
+      const it=document.createElement('div');it.className='drow2';(e.items||[]).forEach(k=>{const x=IT(k);if(x)it.appendChild(cvOf(spr(x[1],x[2]).c));});pg.appendChild(it);
+      pg.insertAdjacentHTML('beforeend',`<p class="dtxt">${dayText(e)}</p>`);
+      if(e.stars)pg.insertAdjacentHTML('beforeend',`<p class="dstars">${'★'.repeat(e.stars)}</p>`);
+    }
   }
   $('#dPrev').style.visibility=BOOK.i>0?'visible':'hidden';
   $('#dNext').style.visibility=BOOK.i<list.length?'visible':'hidden';
   $('#dNo').textContent=BOOK.i===0?'':`${BOOK.i} / ${list.length}`;
 }
+$$('.dtab').forEach((b,i)=>{b.querySelector('canvas').getContext('2d').drawImage(spr(['kettle','star','moon'][i],i?{}:{c:'#e0a0c0'}).c,0,0);
+  b.addEventListener('click',()=>{if(BOOK.mode===b.dataset.m&&BOOK.i===0)return;BOOK.mode=b.dataset.m;BOOK.i=0;sfx('c2');renderDiary();});});
 $('#dPrev').addEventListener('click',()=>{if(BOOK.i>0){BOOK.i--;sfx('c3');renderDiary();}});
-$('#dNext').addEventListener('click',()=>{if(BOOK.i<diaryList().length){BOOK.i++;sfx('c4');renderDiary();}});
+$('#dNext').addEventListener('click',()=>{if(BOOK.i<BLIST[BOOK.mode]().length){BOOK.i++;sfx('c4');renderDiary();}});
 $('#dClose').addEventListener('click',()=>{$('#diary').classList.remove('on');});
+function addEvent(ev){save.events=save.events||[];ev.day=save.day?save.day.n:1;save.events.push(ev);save.diaryNew=true;persist();}
 function addDiary(r,j){
   const it=r.items[j],w=it[0];save.diary=save.diary||[];
   if(save.diary.some(e=>e.w===w))return;
@@ -1698,7 +1754,7 @@ function onServed(r,c){
   let gift=false;if(save.friend[r.ci]>=FRIEND_MAX){save.friend[r.ci]-=FRIEND_MAX;save.pendingGift.push(r.ci);gift=true;}
   persist();
   if(c){H.hfx.push({x:c.x+24,y:104,age:0});}
-  if(rankOf(save.servedTotal)>before){setTimeout(()=>{if(screen==='home'){talk(WITCH,'おみせの ほしが ふえたよ! すてきに なったね。',4);burst(hparts,120,40,30,1.6);sfx('fan');}},1600);}
+  if(rankOf(save.servedTotal)>before){addEvent({type:'rank',n:rankOf(save.servedTotal)});setTimeout(()=>{if(screen==='home'){talk(WITCH,'おみせの ほしが ふえたよ! すてきに なったね。',4);burst(hparts,120,40,30,1.6);sfx('fan');}},1600);}
   updateCoins();
   return gift;
 }
@@ -1717,18 +1773,18 @@ function giftChoices(kind,ci){
   return out.slice(0,3);
 }
 let giftDone=null;
-function openGift(who,text,keys,done){
+function openGift(who,text,keys,done,tag){
   const c=$('#gfC').getContext('2d');c.clearRect(0,0,24,24);c.drawImage(who,0,0);
   $('#gfText').textContent=text;const box=$('#gfItems');box.innerHTML='';
   keys.forEach(k=>{const it=IT(k);if(!it)return;const b=document.createElement('button');b.className='gpick';b.appendChild(cvOf(spr(it[1],it[2]).c));
-    b.addEventListener('click',()=>{initAudio();if(!save.owned.includes(k))save.owned.push(k);if(!save.mineUnlocked)save.mineUnlocked=true;persist();
+    b.addEventListener('click',()=>{initAudio();if(!save.owned.includes(k))save.owned.push(k);if(tag)addEvent(Object.assign({k},tag));if(!save.mineUnlocked)save.mineUnlocked=true;persist();
       b.classList.add('chosen');fanfare();burst(hparts,120,90,20,1.4);setTimeout(()=>{$('#gift').classList.remove('on');refreshLocks();$('#bToMine').style.display='';const d=giftDone;giftDone=null;d&&d();},700);});
     box.appendChild(b);});
   giftDone=done;$('#gift').classList.add('on');chime(6);
 }
 function giveFriendGift(ci,done){
   save.pendingGift=save.pendingGift.filter((x,i,a)=>!(x===ci&&a.indexOf(x)===i));persist();
-  openGift(spr('person',look(CLIENTS[ci])).c,`${CLIENTS[ci].n}さん「いつも ありがとう! どれか ひとつ あげるね。」`,giftChoices('friend',ci),done);
+  openGift(spr('person',look(CLIENTS[ci])).c,`${CLIENTS[ci].n}さん「いつも ありがとう! どれか ひとつ あげるね。」`,giftChoices('friend',ci),done,{type:'gift',ci});
 }
 /* おみせの ほしで すこしずつ ごうかに(かざりは かべと ゆかに ちいさく) */
 function drawRankDecor(t){
@@ -1792,7 +1848,7 @@ function showDayEnd(){
   $('#dayCoins').innerHTML=`<span class="coin big"></span>+ ${D.coins}`;
   const it=$('#dayItems');it.innerHTML='';D.items.forEach(k=>{const x=IT(k);if(x)it.appendChild(cvOf(spr(x[1],x[2]).c));});
   if(!D.items.length)it.innerHTML='<span>きょうは おやすみ</span>';
-  let fresh=false;if(!D.stamped){D.stamped=true;save.stamps=Math.min(STAMP_MAX,save.stamps+1);persist();fresh=true;}renderStamps(fresh);
+  let fresh=false;if(!D.stamped){D.stamped=true;(save.dayLog=save.dayLog||[]).push({n:D.n,met:[...D.met],coins:D.coins,items:[...D.items],served:D.served,stars:rankOf(save.servedTotal)});save.diaryNew=true;save.stamps=Math.min(STAMP_MAX,save.stamps+1);persist();fresh=true;}renderStamps(fresh);
   $('#dayRank').innerHTML='★'.repeat(rankOf(save.servedTotal))+'<span class="rk0">'+'★'.repeat(5-rankOf(save.servedTotal))+'</span>';
   $('#dayEnd').classList.add('on');fanfare();
 }
@@ -1800,7 +1856,7 @@ $('#bCloseShop').addEventListener('click',()=>{initAudio();$('#bCloseShop').styl
 $('#bMorning').addEventListener('click',()=>{
   initAudio();
   if(save.stamps>=STAMP_MAX){$('#dayEnd').classList.remove('on');
-    openGift(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,'スタンプが ぜんぶ たまったよ! とくべつな ふくを ひとつ どうぞ。',giftChoices('stamp'),()=>{save.stamps=0;persist();goMorning();});return;}
+    openGift(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,'スタンプが ぜんぶ たまったよ! とくべつな ふくを ひとつ どうぞ。',giftChoices('stamp'),()=>{save.stamps=0;persist();goMorning();},{type:'stamp'});return;}
   goMorning();
 });
 function goMorning(){
