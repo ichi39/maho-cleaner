@@ -678,11 +678,16 @@ function pickItems(cat,n){
   const recentW=new Set(save.recentW||[]);
   const ok=ITEMS.filter(allowed),out=[],nov=new Set();
   const early=(save.made||0)<6;
-  const add=it=>{if(out.includes(it))return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>(early?7:5))return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
+  const hardOf=it=>[...it[0]].length>=4||hasDaku(it[0])||hasSmall(it[0])||it[0].includes('ー');
+  const maxHard=n>=4?2:1;
+  const add=it=>{if(out.includes(it))return false;if(hardOf(it)&&out.filter(hardOf).length>=maxHard)return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>(early?7:5))return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
   const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0])).sort((a,b)=>early?(isWear(b)-isWear(a)):0);
+  /* まだ なれて いない もじを ふくむ ものを ひとつ さきに(すべての もじに であえる ように) */
+  {const k=pool.findIndex(it=>novelOf(it[0]).length>0);if(k>0&&Math.random()<.8)pool.unshift(pool.splice(k,1)[0]);}
   for(const it of pool){if(out.length>=n)break;add(it);}
-  if(out.length<3)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;add(it);}
-  if(out.length<3)for(const it of shuffle(ITEMS.filter(i=>!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;out.push(it);}
+  const need=Math.min(n,3);
+  if(out.length<need)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;add(it);}
+  if(out.length<need)for(const it of shuffle(ITEMS.filter(i=>!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;out.push(it);}
   return out;
 }
 function pickColor(w,cl){
@@ -702,7 +707,7 @@ function makeRequest(){
   const cl=CLIENTS[ci],cats=Object.keys(CATS);
   const okCnt={};ITEMS.filter(allowed).forEach(it=>okCnt[it[3]]=(okCnt[it[3]]||0)+1);
   let avail=cats.filter(c=>(okCnt[c]||0)>=3);if(!avail.length)avail=cats;
-  const known=knownN('hira')+knownN('kata'),n=3+(known>=8?1:0)+(known>=20&&Math.random()<.5?1:0);
+  const known=knownN('hira')+knownN('kata'),n=known<8?3:pick([2,3,3,3,4]);
   let cat,items,key,tries=0;
   do{
     const r=Math.random();
@@ -775,6 +780,9 @@ for(let i=0;i<8;i++)SFX_DEFS['c'+i]=()=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8
 const SFX_EL={};
 function unlockPool(){
   if(apUnlocked||!IS_IOS)return;apUnlocked=true;
+  /* むおんを ずっと ながして おとの じゅんびを たもつ(ならす たびに とまらない ように) */
+  try{const ka=new Audio(wavURL([[440,0,1,'sine',0]]));ka.loop=true;ka.preload='auto';const p=ka.play();p&&p.catch&&p.catch(()=>{});window._keepAlive=ka;
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden){try{ka.play().catch(()=>{});}catch(e){}}});}catch(e){}
   for(const k in SFX_DEFS){
     REC=[];SFX_DEFS[k]();const n=REC;REC=null;
     const a=new Audio(wavURL(n));a.preload='auto';a.muted=true;SFX_EL[k]=a;
@@ -1081,7 +1089,7 @@ function arrive(L){
   const idx=L.slot,sl=P.slots[idx],ch=L.ch;
   L.st='placed';L.x=sl.x;L.y=sl.y;L.pop=1;
   lburst(sl.x,sl.y,22);lrings.push({x:sl.x,y:sl.y,age:0,c:L.col});lrings.push({x:sl.x,y:sl.y,age:-.12,c:'#fff6a0'});
-  chime(idx+P.arrived);P.arrived++;
+  if(!L.chimed)chime(idx+P.arrived);L.chimed=false;P.arrived++;
   try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}
   const f=P.fl[idx];burst(pzParts,f.hx+f.w/2,HY+SP*SC/2,16,1.6);
   if(!NOLEARN.includes(ch)){const k=norm(ch);save.seen[k]=(save.seen[k]||0)+1;}
@@ -1136,7 +1144,7 @@ function endDrag(){
   if(!moved){L.st='free';L.bx=L.x;L.by=L.y;L.tap=1;return;}
   /* ただしい ばしょが ちかければ すいこむ(ひろめに うけとめる) */
   let mi=-1,md=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k]||P.chars[k]!==L.ch)return;const d=Math.hypot(L.x-sl.x,L.y-sl.y);if(d<md){md=d;mi=k;}});
-  if(mi>=0&&md<P.sz*1.3){P.filled[mi]=true;L.slot=mi;L.st='snap';L.age=0;L.sx=L.x;L.sy=L.y;if(!save.tutDrag){save.tutDrag=true;stopFinger();}return;}
+  if(mi>=0&&md<P.sz*1.3){chime(mi+P.arrived);L.chimed=true;P.filled[mi]=true;L.slot=mi;L.st='snap';L.age=0;L.sx=L.x;L.sy=L.y;if(!save.tutDrag){save.tutDrag=true;stopFinger();}return;}
   let ni=-1,nd=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k])return;const d=Math.hypot(L.x-sl.x,L.y-sl.y);if(d<nd){nd=d;ni=k;}});
   if(ni>=0&&nd<P.sz*.8){boo();L.st='back';L.age=0;L.shake=1;L.sx=L.x;L.sy=L.y;L.tx=L.px0;L.ty=L.py0;return;}
   L.st='free';L.bx=L.x;L.by=L.y;
@@ -1186,7 +1194,7 @@ function drawPuzzle(t,dt){
       const sp2=Math.hypot(L.tx-L.x,L.ty-L.y);
       amp=5+Math.min(5,sp2*.25);rot=Math.sin(t*L.rf*3+L.rph)*.16+(L.tx-L.x)*.004;sx=1+Math.sin(t*L.sq*3+L.ph)*.12;sy=1/sx;sc=1.18;
     }else if(L.st==='snap'){
-      L.age+=dt;const p=Math.min(1,L.age/.13),e=1+2.2*Math.pow(p-1,3)+1.2*Math.pow(p-1,2),s=P.slots[L.slot];
+      L.age+=dt;const p=Math.min(1,L.age/.1),e=1+2.2*Math.pow(p-1,3)+1.2*Math.pow(p-1,2),s=P.slots[L.slot];
       L.x=L.sx+(s.x-L.sx)*e;L.y=L.sy+(s.y-L.sy)*e;amp=5*(1-p)+1;rot*=1-p;sc=1.18+.3*Math.sin(Math.PI*p);
       if(p>=1)arrive(L);
     }else if(L.st==='back'){
@@ -1599,7 +1607,7 @@ const NOTE={
 };
 const noteOf=w=>NOTE[w]||'ぴかぴかに なおしたよ。';
 const BOOK={i:0};
-function diaryList(){return save.diary||[];}
+function diaryList(){const n=save.day?save.day.n:1;return (save.diary||[]).map((e,i)=>{if(e.day>n)e.day=n;return{e,i};}).sort((a,b)=>a.e.day-b.e.day||a.i-b.i).map(x=>x.e);}
 function openDiary(i){save.diaryNew=false;persist();BOOK.i=i==null?0:i;$('#diary').classList.add('on');renderDiary();chime(5);}
 function renderDiary(){
   const list=diaryList(),pg=$('#dPage');pg.innerHTML='';
