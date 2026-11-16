@@ -110,7 +110,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .cvwrap canvas{width:100%;height:auto;display:block;background:#2a2550;touch-action:none}
 .arrow{position:absolute;left:6px;top:42%;width:46px;height:46px;border-radius:50%;border:3px solid #c08f3a;background:radial-gradient(circle at 35% 30%,#fff6a0,#ffd84a 65%,#e8b830);color:var(--plum);font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #c79a3c;animation:nudge 1s infinite}
 @keyframes nudge{50%{transform:translateX(-5px)}}
-.sbub{position:absolute;display:none;max-width:62%;background:#fff;border:3px solid var(--gold);border-radius:14px;padding:6px 10px;font-size:clamp(12px,3.4vw,15px);line-height:1.45;color:var(--plum);pointer-events:none;bottom:36%;transform:translateX(-50%);animation:pop .3s}
+.sbub{position:absolute;display:none;max-width:62%;background:#fff;border:3px solid var(--gold);border-radius:14px;padding:6px 10px;font-size:clamp(15px,4.2vw,19px);line-height:1.55;color:var(--plum);pointer-events:none;bottom:36%;transform:translateX(-50%);animation:pop .3s}
 .sbub.on{display:block}
 .sbub::after{content:"";position:absolute;bottom:-11px;left:var(--tl,50%);width:14px;height:14px;background:#fff;border-right:3px solid var(--gold);border-bottom:3px solid var(--gold);transform:translateX(-50%) rotate(45deg)}
 .rbub{display:none;align-items:center;gap:10px;width:calc(100% - 20px);margin:8px 10px 0;background:var(--cream);border:4px solid var(--gold);border-radius:16px;padding:8px 10px;box-shadow:inset 0 0 0 3px #fff;font-size:clamp(14px,3.8vw,17px);line-height:1.5;position:relative}
@@ -377,7 +377,41 @@ doll(d,o){const sk='#ffe0c8',h='#e8a0b0',bd='#fff2e6';
   d.p(9,8,E1);d.p(13,8,E1);d.p(7,10,PK);d.p(15,10,PK);d.p(11,11,'#d0607a');
   d.t(13,19,11,8,12,bd);d.r(5,14,2,5,sk);d.r(15,14,2,5,sk);d.r(8,19,2,2,sk);d.r(12,19,2,2,sk);d.r(7,21,3,1,'#e8b0a0');d.r(12,21,3,1,'#e8b0a0');},
 hand(d,o){const sk='#ffe0c8';d.r(9,2,3,10,sk);d.r(12,7,3,5,sk);d.r(15,9,2,4,sk);d.r(6,12,11,7,sk);d.r(7,19,9,2,sk);d.r(5,10,3,5,sk);d.p(10,3,shade(sk,.3));},
-person(d,o){const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',skin='#ffe0c8',y0=o.witch?5:0;
+person(d,o){
+  if(o.hs&&!o.witch){
+    const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',c2=o.c2||shade(dr,-.3),skin=o.sk||'#ffe0c8',hs=o.hs,fit=o.fit||'dress',acc=o.acc||'';
+    if(hs==='long'||hs==='braids'){const l=hs==='braids'?9:7;d.r(6,5,2,l,h);d.r(14,5,2,l,h);}
+    if(hs==='bob')d.e(11,7,6,5.5,h);
+    if(hs==='curly'){d.e(11,4.8,6.8,5.2,h);d.e(5.5,7,2.2,2.2,h);d.e(16.5,7,2.2,2.2,h);}
+    if(hs==='pony')d.e(17.5,8.5,2,3.8,h);
+    if(hs==='bun')d.e(11,1.4,2.6,2.2,h);
+    d.e(11,6,4.6,4.6,skin);
+    if(hs==='spiky'){d.e(11,3.8,5.2,3,h);d.t(0,3,8,1,3,h);d.t(0,3,11,1,3,h);d.t(0,3,14,1,3,h);}
+    else if(hs==='curly'){d.e(11,2.8,4.6,1.8,h);d.r(8,3,6,1,h);}
+    else if(hs==='bob'){d.e(11,3.6,5.4,2.8,h);d.r(7,4,8,2,h);}
+    else{d.e(11,3.8,5.2,3,h);d.r(7,4,3,2,h);}
+    if(hs==='pony')d.p(15,4,'#ff6a8a');
+    if(hs==='braids'){d.p(7,13,'#ff6a8a');d.p(14,13,'#ff6a8a');}
+    d.p(9,6,E1);d.p(13,6,E1);d.p(8,8,PK);d.p(14,8,PK);d.p(11,9,'#d0607a');
+    if(fit==='shirt'){d.r(7,11,8,5,dr);d.r(5,11,2,5,dr);d.r(15,11,2,5,dr);d.p(5,16,skin);d.p(16,16,skin);d.r(8,16,3,5,c2);d.r(12,16,3,5,c2);d.r(8,20,3,1,E1);d.r(12,20,3,1,E1);d.r(9,11,4,1,CR);}
+    else if(fit==='overalls'){d.r(7,11,8,4,CR);d.r(5,11,2,4,CR);d.r(15,11,2,4,CR);d.p(5,15,skin);d.p(16,15,skin);d.r(8,12,6,4,dr);d.r(7,16,8,5,dr);d.r(11,17,1,4,shade(dr,-.3));d.p(8,11,dr);d.p(13,11,dr);d.p(10,13,GOLD);d.p(12,13,GOLD);}
+    else{
+      d.t(11,20,11,fit==='robe'?8:fit==='coat'?8:7,fit==='robe'?15:fit==='coat'?14:13,dr);
+      if(fit==='coat'){d.p(11,13,GOLD);d.p(11,16,GOLD);d.r(9,11,4,1,CR);}
+      else if(fit==='robe'){d.r(8,15,6,1,GOLD);d.p(10,18,'#fff6a0');d.p(13,17,'#fff6a0');d.r(9,11,4,1,CR);}
+      else if(fit==='apron'){d.r(8,13,6,7,CR);d.p(8,12,CR);d.p(13,12,CR);d.p(11,16,PK);d.r(9,11,4,1,CR);}
+      else d.r(9,11,4,1,CR);
+    }
+    if(acc==='glasses'){const g='#e0a040';for(const x of [9,13]){d.r(x-1,5,3,1,g);d.r(x-1,7,3,1,g);d.p(x-1,6,g);d.p(x+1,6,g);}d.p(11,6,g);}
+    else if(acc==='cap'){d.r(6,2,10,2,'#e8606a');d.r(12,4,6,1,'#e8606a');d.p(11,1,'#e8606a');}
+    else if(acc==='beret'){d.e(10,2.5,5.5,2.2,'#e84a5a');d.p(10,0,'#e84a5a');}
+    else if(acc==='ribbon'){d.e(7,2.2,1.7,1.7,'#ff6a8a');d.e(11,2.2,1.7,1.7,'#ff6a8a');d.p(9,2,'#c0405a');}
+    else if(acc==='mustache'){d.r(8,8,6,1,'#4a3a2a');}
+    else if(acc==='crown'){d.r(8,0,6,2,GOLD);d.p(8,-1,GOLD);d.p(11,-1,GOLD);d.p(13,-1,GOLD);}
+    else if(acc==='flower'){d.e(16,3,1.8,1.8,'#ff9ab8');d.p(16,3,'#ffe27a');}
+    return;
+  }
+  const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',skin='#ffe0c8',y0=o.witch?5:0;
   if(o.witch){const hc=o.hat||'#6a5ac8';d.t(0,4,11,2,9,hc);d.r(4,5,14,2,hc);d.r(7,4,8,1,GOLD);d.p(11,0,hc);d.p(12,-1,hc);}
   d.r(6,y0+5,2,7,h);d.r(14,y0+5,2,7,h);d.e(11,y0+6,4.6,4.6,skin);d.e(11,y0+3.8,5.2,3,h);d.r(7,y0+4,3,2,h);
   d.p(9,y0+6,E1);d.p(13,y0+6,E1);d.p(8,y0+8,PK);d.p(14,y0+8,PK);d.p(11,y0+9,'#d0607a');
@@ -438,27 +472,34 @@ A('home',[['いす','chair'],['ほうき','broom'],['ろうそく','candle'],['�
 A('clothes',[['いと','yarn',{c:'#8fb8e8'}],['イト','yarn',{c:'#f0c870'}],['カサ','umbrella',{c:'#f5a0b8'}],['クツ','shoe',{c:'#7a9ad8'}],['フク','shirt',{c:'#f0a0c8'}],['ヌノ','cloth',{c:'#f0a0c8'}]]);
 A('fruit',[['めろん','fruit',{t:'orange',c:'#9be8a0'}],['かき','fruit',{t:'orange',c:'#ff8a3a'}],['なし','fruit',{t:'orange',c:'#e8e07a'}],['くり','fruit',{t:'orange',c:'#a8683a'}],['メロン','fruit',{t:'orange',c:'#9be8a0'}],['カキ','fruit',{t:'orange',c:'#ff8a3a'}],['ナシ','fruit',{t:'orange',c:'#e8e07a'}]]);
 A('books',[['あかり','lamp',{c:'#ffe27a'}],['ホン','book',{c:'#e8a0b0'}]]);
+const look=cl=>({hair:cl.hair,dress:cl.dress,hs:cl.hs,sk:cl.sk,fit:cl.fit,acc:cl.acc,c2:cl.c2});
 const BYW={};ITEMS.forEach(it=>BYW[it[0]]=it);
 /* お客さん(裏設定: すきな店・にがてな店) */
 const CLIENTS=[
- {n:'まりー',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
+ {n:'まりー',hs:'long',acc:'ribbon',fit:'dress',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
   fl:['きょうは まどから いいにおいが するわ。','あまいものを たべたい きぶんなの。','ならんで まつのも わるくないわね。']},
- {n:'とむ',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'さんきゅー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。',
+ {n:'とむ',hs:'spiky',fit:'shirt',c2:'#4a6ab0',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'さんきゅー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。',
   fl:['ひまだなあ。だれか あそぼうよ!','まだかなあ、まだかなあ!','ぼくの おもちゃ ぜんぶ ちらかっちゃった!']},
- {n:'るる',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。',
+ {n:'るる',hs:'bun',fit:'robe',sk:'#ffe4d0',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。',
   fl:['ふぁあ…ねむい…。','ほんを よみながら まってるの…。','しずかな おみせは すてき…。']},
- {n:'じゃん',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ぼんじゅーる!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'めるしー! すてきだ!',tf:'ぶらぼー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。',
+ {n:'じゃん',hs:'short',fit:'coat',acc:'beret',sk:'#fff0e0',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ぼんじゅーる!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'めるしー! すてきだ!',tf:'ぶらぼー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。',
   fl:['きょうの ぼうし、どうかな?','おしゃれには がまんも ひつようさ。','まつ じかんも おしゃれに すごすのさ。']},
- {n:'みな',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。',
+ {n:'みな',hs:'bob',fit:'dress',acc:'glasses',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。',
   fl:['あの…ここで まってて いいですか?','おはなの かおりが すると おちつくの…。','どきどき するなあ…。']},
- {n:'ふぇり',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。',
+ {n:'ふぇり',hs:'curly',fit:'overalls',sk:'#d9a070',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。',
   fl:['おなか すいたなあ!','まだー? はやく はやくー!','きょうは なにを たべようかな!']},
- {n:'そふぃ',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 らららら〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜',
+ {n:'そふぃ',hs:'pony',fit:'dress',acc:'flower',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 らららら〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜',
   fl:['らら〜 まってる あいだも うたっちゃう〜','きょうの かぜは いいおとね〜','ことりの こえが きこえるわ〜']},
- {n:'おすかー',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。',
+ {n:'おすかー',hs:'short',fit:'coat',acc:'glasses',sk:'#fff0e0',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。',
   fl:['ふむ…じかんは せいかくに ほしい。','この おみせの しくみは おもしろいな。','まだか…いや、まつのも わるくない。']},
- {n:'よね',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。',
-  fl:['あらあら、まつ あいだに おちゃを…。','おひさまが ぽかぽかで いいわねえ。','ゆっくり やって くださいねえ。']}
+ {n:'よね',hs:'bun',fit:'apron',acc:'glasses',sk:'#f6dcc4',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。',
+  fl:['あらあら、まつ あいだに おちゃを…。','おひさまが ぽかぽかで いいわねえ。','ゆっくり やって くださいねえ。']},
+ {n:'ぽろ',hair:'#e0903a',dress:'#7ab0e8',hs:'spiky',fit:'overalls',acc:'cap',fav:'sweets',dis:'denki',hi:'やっほー!',ask:'おねがい!',lk:'おかしが あると げんきが でるんだ!',dl:'びりびりは ちょっと こわい…。',tx:'やったー! ありがとう!',tf:'うわあ、おいしそう! たからものに する!',td:'きかいも わるく ないね!',
+  fl:['ぼくは まいにち おかしを たべるんだ!','おそうじ、みてても いい?','ちらかってると わくわくしない?']},
+ {n:'みどり',hair:'#3a7a5a',dress:'#f0b878',hs:'braids',fit:'coat',acc:'glasses',fav:'books',dis:'toy',hi:'こんにちは、おじゃまします。',ask:'おねがいします。',lk:'ほんが たくさん あると うれしいの。',dl:'おもちゃの おとは すこし にがて…。',tx:'ありがとう。とても みやすく なったわ。',tf:'まあ、ほんが ならんでる! しあわせ…。',td:'しずかで いいわね。ありがとう。',
+  fl:['ほんを よむ じかんが すきなの。','きょうは どんな おはなしかな。','ゆっくり まつのも たのしいわ。']},
+ {n:'だいち',hair:'#5a4a3a',dress:'#e8806a',c2:'#5a6a8a',hs:'short',fit:'shirt',acc:'mustache',sk:'#e0b088',fav:'home',dis:'sweets',hi:'おう、きたぞ!',ask:'たのんだぞ!',lk:'うちの なかが きれいだと きもちいいな!',dl:'あまいものは むねやけが するんだよなあ…。',tx:'ありがとな! たすかったぜ!',tf:'いやあ、さっぱりした! さいこうだ!',td:'あまいにおいも、わるくねえな!',
+  fl:['はらが へったなあ、はっはっは!','きょうも いい てんきだ!','はやく かたづけて ほしいなあ。']}
 ];
 /* 保存 */
 let save={made:0,doll:{x:120,y:90,wear:{}},reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
@@ -533,11 +574,34 @@ const PENT=[523,587,659,784,880,1047,1175,1319];
 const chime=i=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);};
 const fanfare=()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k]*(i>3?1:1),i*.11,.5));
 const boo=()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);};
+const _utt=[];
+function mkUtt(t){
+  const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=.8;u.pitch=1.15;u.volume=1;
+  const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;
+  _utt.push(u);if(_utt.length>30)_utt.shift();return u;
+}
 function say(t){
   if(!soundOn||!('speechSynthesis' in window)||!t)return;
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=.8;u.pitch=1.15;
-    const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}
+  try{const ss=speechSynthesis;const go=()=>{try{ss.resume&&ss.resume();ss.speak(mkUtt(t));}catch(e){}};
+    if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,90);}else go();}catch(e){}
 }
+/* つかんでいる間、おなじ もじを くりかえし よむ */
+let holdTok=0;
+function startHold(ch){
+  stopHold();
+  if(NOLEARN.includes(ch)||!soundOn||!('speechSynthesis' in window))return;
+  const tok=++holdTok,ss=speechSynthesis;
+  const loop=()=>{
+    if(tok!==holdTok)return;
+    const u=mkUtt(ch);let nxt=false;
+    const next=()=>{if(nxt||tok!==holdTok)return;nxt=true;setTimeout(loop,120);};
+    u.onend=next;u.onerror=next;
+    try{ss.resume&&ss.resume();ss.speak(u);}catch(e){return;}
+    setTimeout(()=>{if(!nxt&&tok===holdTok){try{ss.cancel();}catch(e){}next();}},1600);
+  };
+  if(ss.speaking||ss.pending){ss.cancel();setTimeout(loop,90);}else loop();
+}
+function stopHold(){holdTok++;}
 const sayChar=c=>{if(!NOLEARN.includes(c))say(c);};
 function setSound(on){soundOn=on;save.snd=on;persist();$('#bSnd').textContent='おと: '+(on?'ON':'OFF');if(!on&&'speechSynthesis' in window)speechSynthesis.cancel();}
 
@@ -611,7 +675,7 @@ function web(ctx,cx,cy,dx){
   for(const a of [0,.3,.6,.9,1.2,1.57])for(let r=0;r<17;r++)ctx.fillRect(Math.round(cx+dx*Math.cos(a)*r),Math.round(cy+Math.sin(a)*r),1,1);
   for(const r of [5,9,13])for(let a=0;a<1.57;a+=.12)ctx.fillRect(Math.round(cx+dx*Math.cos(a)*r),Math.round(cy+Math.sin(a)*r),1,1);
 }
-const portrait=(cv,cl)=>{const c=cv.getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('person',{hair:cl.hair,dress:cl.dress}).c,0,0);};
+const portrait=(cv,cl)=>{const c=cv.getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('person',look(cl)).c,0,0);};
 function drawRoom(t,dt){
   const r=S.r,n=r.items.length,pending=S.done.filter(v=>!v).length,rem=pending/n;
   rc.drawImage(makeBg(r.theme),0,0);
@@ -634,7 +698,7 @@ function drawRoom(t,dt){
     rc.fillStyle='#ffe27a';rc.fillRect(px-4,by+1,9,3);rc.fillRect(px-2,by+4,5,2);rc.fillRect(px,by+6,1,2);}}
   if(rem>0){rc.fillStyle='#d8d4e8';for(const m of motes){rc.globalAlpha=.55*rem;rc.fillRect(Math.round((m.x+t*m.s*4)%RW),Math.round(m.y+Math.sin(t+m.x)*3),1,1);}rc.globalAlpha=1;}
   const cl=CLIENTS[r.ci];
-  rc.drawImage(spr('person',{hair:cl.hair,dress:cl.dress}).c,96,104+(rem===0?Math.round(Math.sin(t*6)):0),48,48);
+  rc.drawImage(spr('person',look(cl)).c,96,104+(rem===0?Math.round(Math.sin(t*6)):0),48,48);
   if(rem===0&&Math.random()<.2)burst(roomParts,rnd(10,230),rnd(10,140),1,.3);
   stepParts(rc,roomParts,dt);
 }
@@ -791,8 +855,8 @@ function arrive(L){
 function completePuzzle(){
   const tok=P.tok;P.done=true;P.cel=0;P.doneT=0;
   P.L.forEach(l=>{if(l.slot<0)l.st='gone';});
-  setTimeout(()=>{if(tok===P.tok){say(P.word);fanfare();P.L.forEach((l,i)=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});}},650);
-  setTimeout(()=>{if(tok===P.tok)finishItem();},2900);
+  setTimeout(()=>{if(tok===P.tok){say(P.word);fanfare();P.L.forEach((l,i)=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});}},950);
+  setTimeout(()=>{if(tok===P.tok)finishItem();},3400);
 }
 function finishItem(){
   const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;save.coins+=3;persist();
@@ -803,7 +867,7 @@ function finishItem(){
 /* ドラッグ操作(タップでは はめられない) */
 let drag=null;
 const lpt=e=>{const r=lcv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
-function stopVoice(){if(P.voice){clearInterval(P.voice);P.voice=null;}}
+function stopVoice(){stopHold();}
 function nearSlot(L,maxD){
   let best=-1,bd=maxD;
   P.slots.forEach((s,i)=>{if(P.filled[i]||P.chars[i]!==L.ch)return;const d=Math.hypot(L.x-s.x,L.y-s.y);if(d<bd){bd=d;best=i;}});
@@ -815,7 +879,7 @@ lcv.addEventListener('pointerdown',e=>{
   P.L.forEach(L=>{if(L.st!=='free'&&L.st!=='back')return;const d=Math.hypot(p.x-L.x,p.y-L.y);if(d<bd){bd=d;best=L;}});
   if(!best)return;e.preventDefault();lcv.setPointerCapture(e.pointerId);stopFinger();
   P.L.splice(P.L.indexOf(best),1);P.L.push(best);
-  stopVoice();sayChar(best.ch);P.voice=setInterval(()=>{if(drag&&screen==='puzzle')sayChar(best.ch);else stopVoice();},720);
+  startHold(best.ch);
   best.st='drag';best.px0=best.x;best.py0=best.y;best.tx=best.x;best.ty=best.y;
   drag={L:best,ox:best.x-p.x,oy:best.y-p.y,sx:p.x,sy:p.y,moved:false};
 });
@@ -1057,7 +1121,7 @@ function renderReqList(fresh){
   save.reqs.forEach(r=>{
     const cl=CLIENTS[r.ci],d=document.createElement('div');d.className='rcard'+(r.id===fresh?' new':'');
     const top=document.createElement('div');top.className='top';
-    top.appendChild(cvOf(spr('person',{hair:cl.hair,dress:cl.dress}).c));top.appendChild(cvOf(spr(...CATS[r.cat].icon).c));d.appendChild(top);
+    top.appendChild(cvOf(spr('person',look(cl)).c));top.appendChild(cvOf(spr(...CATS[r.cat].icon).c));d.appendChild(top);
     const mini=document.createElement('div');mini.className='mini';
     r.items.forEach((it,j)=>{const sp=spr(it[1],it[2]);mini.appendChild(cvOf(r.done[j]?sp.c:sp.g));});
     d.appendChild(mini);d.addEventListener('click',()=>openRequest(r.id));el.appendChild(d);
@@ -1081,12 +1145,13 @@ hcv.addEventListener('pointerdown',e=>{
     if(Math.abs(c.tx-c.x)<4&&p.x>c.x&&p.x<c.x+48&&p.y>104&&p.y<152){openRequest(c.id);return;}}
 });
 function showBubble(){
-  const b=$('#hbub');if(!save.reqs.length){b.classList.remove('on');return;}
+  const b=$('#hbub');if(!save.reqs.length){b.classList.remove('on');return 1;}
   const i=H.bi%save.reqs.length,c=H.cs[i];
-  if(!c||Math.abs(c.tx-c.x)>3){b.classList.remove('on');return;}
+  if(!c||Math.abs(c.tx-c.x)>3){b.classList.remove('on');return 1;}
   const cl=CLIENTS[save.reqs[i].ci];H.bn++;b.textContent=cl.fl[H.bn%cl.fl.length];
   const cx=(c.tx+24)/240*100,left=Math.max(32,Math.min(68,cx));b.style.left=left+'%';b.classList.add('on');
   const w=b.offsetWidth/b.parentElement.offsetWidth*100;b.style.setProperty('--tl',Math.max(14,Math.min(86,50+(cx-left)/w*100))+'%');
+  return 3+b.textContent.length*.6;
 }
 function drawHome(t,dt){
   hc.drawImage(makeBg('home'),0,0);
@@ -1099,13 +1164,13 @@ function drawHome(t,dt){
     else H.timer=5;
   }
   H.bt-=dt;
-  if(H.bt<=0){H.bt=4.5;showBubble();H.bi++;}
+  if(H.bt<=0){const bb=$('#hbub');if(bb.classList.contains('on')){bb.classList.remove('on');H.bt=1;H.bi++;}else H.bt=showBubble();}
   H.cs.forEach((c,i)=>{
     const r=save.reqs[i];if(!r)return;c.tx=slotX(i);
     const dx=c.tx-c.x;c.x+=dx*Math.min(1,dt*2.5);if(Math.abs(dx)<.5)c.x=c.tx;
     const cl=CLIENTS[r.ci],walking=Math.abs(c.tx-c.x)>3;
     const by=walking?-Math.abs(Math.sin(t*12))*2:Math.round(Math.sin(t*2+i*1.7)*.8);
-    hc.drawImage(spr('person',{hair:cl.hair,dress:cl.dress}).c,Math.round(c.x),104+Math.round(by),48,48);
+    hc.drawImage(spr('person',look(cl)).c,Math.round(c.x),104+Math.round(by),48,48);
   });
 }
 /* ========= ボタン・メインループ ========= */
