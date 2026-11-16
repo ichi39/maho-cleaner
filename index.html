@@ -585,7 +585,7 @@ function tone(f,t0,dur,type='triangle',vol=.12){
 const PENT=[523,587,659,784,880,1047,1175,1319];
 /* iPhone は よみあげと Web Audio が いっしょに なれないので、こうかおんを wav に して audio で ならす */
 const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-const SFX={},APOOL=[];let apI=0,apUnlocked=false;
+let apUnlocked=false;
 function wavURL(notes){
   const sr=22050,len=Math.ceil(sr*(Math.max(...notes.map(n=>n[1]+n[2]))+.08)),buf=new Float32Array(len);
   for(const [f,t0,dur,type,vol] of notes){
@@ -603,24 +603,35 @@ function wavURL(notes){
   for(let i=0;i<len;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,buf[i]))*32767,true);
   return URL.createObjectURL(new Blob([dv],{type:'audio/wav'}));
 }
+const SFX_DEFS={
+  fan:()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k],i*.11,.5)),
+  boo:()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);},
+  hov:()=>tone(1568,0,.12,'sine',.05),
+  bell:()=>{tone(1319,0,.3,'sine',.1);tone(1047,.16,.5,'sine',.1);}
+};
+for(let i=0;i<8;i++)SFX_DEFS['c'+i]=()=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);};
+/* iPhone: さいしょの タップで ぜんぶの おとを よういして ロックを はずす(あとは play だけ) */
+const SFX_EL={};
 function unlockPool(){
   if(apUnlocked||!IS_IOS)return;apUnlocked=true;
-  const sil=wavURL([[440,0,.02,'sine',0]]);
-  for(let i=0;i<6;i++){const a=new Audio();a.preload='auto';a.src=sil;APOOL.push(a);try{const p=a.play();p&&p.then(()=>a.pause()).catch(()=>{});}catch(e){}}
+  for(const k in SFX_DEFS){
+    REC=[];SFX_DEFS[k]();const n=REC;REC=null;
+    const a=new Audio(wavURL(n));a.preload='auto';a.muted=true;SFX_EL[k]=a;
+    try{const p=a.play();const done=()=>{a.pause();a.currentTime=0;a.muted=false;};p&&p.then?p.then(done).catch(()=>{a.muted=false;}):done();}catch(e){a.muted=false;}
+  }
 }
 ['touchend','click'].forEach(ev=>document.addEventListener(ev,unlockPool,{capture:true}));
-function sfx(key,fn){
+function sfx(key){
   if(!soundOn)return;
-  if(!IS_IOS||!APOOL.length){fn();return;}
-  let url=SFX[key];if(!url){REC=[];try{fn();}finally{}const n=REC;REC=null;if(!n.length)return;url=SFX[key]=wavURL(n);}
-  const a=APOOL[apI++%APOOL.length];
-  try{a.pause();a.src=url;a.currentTime=0;a.volume=1;const p=a.play();p&&p.catch(()=>{});}catch(e){}
+  if(!IS_IOS){SFX_DEFS[key]();return;}
+  const a=SFX_EL[key];if(!a)return;
+  try{a.muted=false;if(!a.paused)a.pause();a.currentTime=0;const p=a.play();p&&p.catch&&p.catch(()=>{});}catch(e){}
 }
-const chime=i=>sfx('c'+(i%8),()=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);});
-const fanfare=()=>sfx('fan',()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k],i*.11,.5)));
-const boo=()=>sfx('boo',()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);});
-const hoverSfx=()=>sfx('hov',()=>tone(1568,0,.12,'sine',.05));
-const bellSfx=()=>sfx('bell',()=>{tone(1319,0,.3,'sine',.1);tone(1047,.16,.5,'sine',.1);});
+const chime=i=>sfx('c'+(i%8));
+const fanfare=()=>sfx('fan');
+const boo=()=>sfx('boo');
+const hoverSfx=()=>{if(!IS_IOS)sfx('hov');};
+const bellSfx=()=>sfx('bell');
 /* よみあげ: スマホは さいしょの タップの なかで いちど ならさないと こえが でない */
 const HAS_TTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 const _utt=[];let jaVoice=null,ttsUnlocked=false,voicesLoaded=false;
