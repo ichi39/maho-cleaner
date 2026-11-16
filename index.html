@@ -42,13 +42,13 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .card .star{position:absolute;top:4px;right:8px;font-size:22px;color:#f3b516;text-shadow:0 1px 0 #fff}
 /* room */
 #room{background:#2a2550}
-#rc{width:100%;max-height:62vh;max-height:62dvh;object-fit:contain;background:#2a2550;touch-action:none}
+#rc,#hc{width:100%;max-height:62vh;max-height:62dvh;object-fit:contain;background:#2a2550;touch-action:none}
 .info{color:#fff;text-align:center;padding:8px;font-size:15px}
 .dlg{position:absolute;left:10px;right:10px;bottom:12px;background:var(--cream);border:4px solid var(--gold);border-radius:18px;padding:12px;
  display:none;gap:12px;align-items:center;box-shadow:inset 0 0 0 3px #fff,0 6px 0 rgba(0,0,0,.25);flex-wrap:wrap;justify-content:center}
 .dlg.on{display:flex}
 .dlg canvas{width:96px;height:96px;flex:none}
-.dlg p{margin:0;flex:1;min-width:200px;line-height:1.6;font-size:clamp(14px,3.8vw,18px)}
+.dlg p{white-space:pre-line;margin:0;flex:1;min-width:200px;line-height:1.6;font-size:clamp(14px,3.8vw,18px)}
 .dlg .who{color:#d0607a;font-size:.85em}
 #clear .letters{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
 .chip{background:#fff;border:2px solid var(--gold);border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:24px}
@@ -89,17 +89,22 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div class="btns"><button class="btn" id="bStart">はじめる</button><button class="btn pink" id="bZukan">もじの ずかん</button><button class="btn sm" id="bSnd">おと: ON</button></div>
  </section>
  <section id="stages" class="screen">
-  <div class="bar"><button class="btn sm" data-go="title">もどる</button><h2>どの おみせを おそうじする?</h2><button class="btn sm pink" data-go="zukan">ずかん</button></div>
+  <div class="bar"><button class="btn sm" data-go="home">もどる</button><h2>おしごとの きろく</h2><button class="btn sm pink" data-go="zukan">ずかん</button></div>
   <div class="tabs"><button class="btn sm tab on" data-tab="hira">ひらがな</button><button class="btn sm tab" data-tab="kata">カタカナ</button></div>
   <div class="grid" id="grid"></div>
+ </section>
+ <section id="home" class="screen" style="background:#2a2550">
+  <div class="bar" style="background:#2a2550"><button class="btn sm" data-go="title">タイトル</button><button class="btn sm" data-go="stages">きろく</button><button class="btn sm pink" data-go="zukan">ずかん</button></div>
+  <canvas id="hc" width="240" height="150"></canvas>
+  <div class="info" id="homeInfo">まほうの おそうじやさん</div>
+  <div class="dlg" id="dlgHome"><canvas id="dlgC" width="24" height="24"></canvas><p><span class="who" id="reqWho"></span><br><span id="reqText"></span></p><button class="btn" id="bAccept">おうけする!</button></div>
  </section>
  <section id="room" class="screen">
   <div class="bar" style="background:#2a2550"><button class="btn sm" id="bRoomBack">もどる</button><h2 id="roomName" style="color:#fff"></h2><span id="roomLeft" style="color:#ffe27a;min-width:64px;text-align:right"></span></div>
   <canvas id="rc" width="240" height="150"></canvas>
   <div class="info">よごれた ものを タップしてね</div>
   <button class="btn" id="bNext">つぎの おそうじ ▶</button>
-  <div class="dlg" id="dlgReq"><canvas id="dlgC" width="24" height="24"></canvas><p><span class="who" id="reqWho"></span><br><span id="reqText"></span></p><button class="btn" id="bAccept">おうけする!</button></div>
-  <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br>ありがとう! ぴかぴかに なったわ。<br>きょう おぼえた もじ</p><div class="letters" id="clLetters"></div><button class="btn" id="bClNext">つぎの おみせへ</button><button class="btn sm" id="bClList">いちらん</button></div>
+  <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br>ありがとう! ぴかぴかに なったわ。<br>きょう おぼえた もじ</p><div class="letters" id="clLetters"></div><button class="btn" id="bClNext">つぎの おきゃくさん</button><button class="btn sm" id="bClList">いちらん</button></div>
  </section>
  <section id="puzzle" class="screen">
   <div class="bar"><button class="btn sm" id="bPzBack">もどる</button><h2 id="pzTitle">もじを もとに もどそう</h2><button class="btn sm pink" id="bHear">きく ♪</button></div>
@@ -108,7 +113,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="tray"></div>
  </section>
  <section id="zukan" class="screen">
-  <div class="bar"><button class="btn sm" data-go="title">もどる</button><h2 id="zCount">もじの ずかん</h2><span style="width:64px"></span></div>
+  <div class="bar"><button class="btn sm" data-go="back">もどる</button><h2 id="zCount">もじの ずかん</h2><span style="width:64px"></span></div>
   <div class="zwrap" id="zwrap"></div>
  </section>
 </div>
@@ -306,28 +311,29 @@ const CLIENTS=[
 ];
 const I=(w,k,o)=>[w,k,o||{}];
 const STAGES=[
- {s:'hira',name:'ふくやさん',items:[I('ぼうし','hat',{c:'#e8a0b8'}),I('くつ','shoe',{c:'#e8606a'}),I('かさ','umbrella',{c:'#8fb8e8'}),I('ふく','shirt',{c:'#a8d8b0'})]},
- {s:'hira',name:'おもちゃやさん',items:[I('くま','animal',{t:'bear',c:'#c8956a'}),I('たいこ','drum',{c:'#e8606a'}),I('ふうせん','balloon',{c:'#7fc8e8'}),I('ろぼっと','robot')]},
- {s:'hira',name:'おかしやさん',items:[I('あめ','candy',{c:'#ff8fb0'}),I('けーき','cake',{t:'slice'}),I('ぷりん','cake',{t:'pudding'}),I('ちーず','cake',{t:'cheese'})]},
- {s:'hira',name:'ほんやさん',items:[I('ほん','book',{c:'#6a8ad8'}),I('らんぷ','lamp',{c:'#f5b0c8'}),I('ねこ','animal',{t:'cat'}),I('えんぴつ','pencil')]},
- {s:'hira',name:'くだものやさん',items:[I('りんご','fruit',{t:'apple',c:'#e8465a'}),I('みかん','fruit',{t:'orange',c:'#ff9a3a'}),I('れもん','fruit',{t:'lemon',c:'#ffe24a'}),I('すいか','fruit',{t:'melon'})]},
- {s:'hira',name:'もりの おみせ',items:[I('はな','flower',{c:'#ff9ab8'}),I('ひよこ','animal',{t:'chick'}),I('へび','snake',{c:'#7fcf8f'}),I('むし','ladybug'),I('そら','cloud')]},
- {s:'hira',name:'おうちの おみせ',items:[I('やかん','kettle',{c:'#e0a0c0'}),I('ゆき','snowman'),I('わに','animal',{t:'croc',c:'#6fc88f'}),I('ぬの','cloth',{c:'#a8b8f0'})]},
- {s:'hira',name:'ふしぎな おみせ',items:[I('おに','animal',{t:'oni'}),I('てぶくろ','glove',{c:'#e8606a'}),I('よる','moon'),I('ほんをよむ','book',{c:'#b08ae0',open:1})]},
- {s:'kata',name:'ドレスの おみせ',items:[I('ドレス','shirt',{t:'dress',c:'#f0a0c8'}),I('リボン','ribbon',{c:'#e8606a'}),I('ブーツ','shoe',{c:'#9a6a5a',tall:1}),I('マント','shirt',{t:'cape',c:'#8a7ad8'}),I('ネクタイ','tie',{c:'#5a8ad8'})]},
- {s:'kata',name:'カフェ',items:[I('ケーキ','cake',{t:'slice',c:'#ffe0a0'}),I('コップ','cup',{c:'#8fb8e8'}),I('クッキー','cake',{t:'cookie'}),I('ミルク','bottle',{c:'#fff6e6',milk:1}),I('ホットケーキ','cake',{t:'pancake'})]},
- {s:'kata',name:'おんがくやさん',items:[I('ピアノ','piano',{c:'#b8a0e8'}),I('ギター','guitar',{c:'#e8a060'}),I('ラッパ','trumpet'),I('ベル','bell',{c:'#f3c850'}),I('オルガン','piano',{t:'organ',c:'#e8a0b0'})]},
- {s:'kata',name:'でんきやさん',items:[I('カメラ','camera',{c:'#8fd0c0'}),I('テレビ','tv',{c:'#e8a0b0'}),I('ロボット','robot',{c:'#f0c0a0'}),I('ハート','balloon',{h:1,c:'#ff6a8a'}),I('ヘルメット','hat',{t:'helmet',c:'#f3c850'})]},
- {s:'kata',name:'どうぶつの おみせ',items:[I('ヤギ','animal',{t:'goat'}),I('ヒヨコ','animal',{t:'chick'}),I('ユニコーン','animal',{t:'unicorn'}),I('ヨット','boat',{c:'#e8606a'}),I('モモ','fruit',{t:'peach'})]},
- {s:'kata',name:'レストラン',items:[I('ソファ','sofa',{c:'#e8a0b0'}),I('セーター','shirt',{t:'sweater',c:'#f0b878'}),I('サラダ','bowl',{t:'salad'}),I('シャツ','shirt',{c:'#9ac8f0'}),I('チーズ','cake',{t:'cheese'})]},
- {s:'kata',name:'キッチン',items:[I('ナイフ','knife'),I('ヌードル','bowl',{t:'noodle'}),I('ムース','cake',{t:'pudding',c:'#ffb0c8'}),I('ワイン','bottle',{c:'#a03060'}),I('エプロン','shirt',{t:'apron',c:'#f0a0c8'})]},
- {s:'kata',name:'ほしの おみせ',items:[I('ウール','yarn',{c:'#ff9ab8'}),I('ミルクヲノム','bottle',{c:'#fff6e6',milk:1}),I('ノート','book',{c:'#5a8ad8',ring:1})]}
+ {s:'hira',name:'ふくやさん',items:[I('くつ','shoe',{c:'#e8606a'}),I('かさ','umbrella',{c:'#8fb8e8'}),I('ふく','shirt',{c:'#a8d8b0'}),I('ぬの','cloth',{c:'#a8b8f0'})]},
+ {s:'hira',name:'おもちゃやさん',items:[I('くま','animal',{t:'bear',c:'#c8956a'}),I('たいこ','drum',{c:'#e8606a'}),I('ふうせん','balloon',{c:'#7fc8e8'}),I('ひよこ','animal',{t:'chick'})]},
+ {s:'hira',name:'くだものやさん',items:[I('みかん','fruit',{t:'orange',c:'#ff9a3a'}),I('れもん','fruit',{t:'lemon',c:'#ffe24a'}),I('すいか','fruit',{t:'melon'}),I('もも','fruit',{t:'peach'})]},
+ {s:'hira',name:'ほんやさん',items:[I('ほん','book',{c:'#6a8ad8'}),I('ねこ','animal',{t:'cat'}),I('よる','moon'),I('そら','cloud')]},
+ {s:'hira',name:'もりの おみせ',items:[I('はな','flower',{c:'#ff9ab8'}),I('むし','ladybug'),I('わに','animal',{t:'croc',c:'#6fc88f'}),I('おに','animal',{t:'oni'}),I('あめ','candy',{c:'#ff8fb0'})]},
+ {s:'hira',name:'おうちの おみせ',items:[I('やかん','kettle',{c:'#e0a0c0'}),I('ゆき','snowman'),I('ほんをよむ','book',{c:'#b08ae0',open:1})]},
+ {s:'hira',name:'のばす おとの おみせ',note:'のばす おと「ー」',items:[I('けーき','cake',{t:'slice'}),I('ちーず','cake',{t:'cheese'})]},
+ {s:'hira',name:'てんてんの おみせ',note:'てんてん「゛」の もじ',items:[I('りんご','fruit',{t:'apple',c:'#e8465a'}),I('へび','snake',{c:'#7fcf8f'}),I('てぶくろ','glove',{c:'#e8606a'}),I('ぼうし','hat',{c:'#e8a0b8'})]},
+ {s:'hira',name:'ちいさい っの おみせ',note:'ちいさい「っ」と まる「゜」',items:[I('ろぼっと','robot'),I('えんぴつ','pencil'),I('ぷりん','cake',{t:'pudding'}),I('らんぷ','lamp',{c:'#f5b0c8'})]},
+ {s:'kata',name:'よろずやさん',items:[I('ネクタイ','tie',{c:'#5a8ad8'}),I('マント','shirt',{t:'cape',c:'#8a7ad8'}),I('ミルク','bottle',{c:'#fff6e6',milk:1}),I('ワイン','bottle',{c:'#a03060'})]},
+ {s:'kata',name:'ふるどうぐやさん',items:[I('カメラ','camera',{c:'#8fd0c0'}),I('ナイフ','knife'),I('モモ','fruit',{t:'peach'}),I('ヒヨコ','animal',{t:'chick'})]},
+ {s:'kata',name:'のばす ーの おみせ',note:'のばす おと「ー」',items:[I('ケーキ','cake',{t:'slice',c:'#ffe0a0'}),I('ムース','cake',{t:'pudding',c:'#ffb0c8'}),I('ノート','book',{c:'#5a8ad8',ring:1}),I('ハート','balloon',{h:1,c:'#ff6a8a'}),I('ウール','yarn',{c:'#ff9ab8'})]},
+ {s:'kata',name:'ちいさい ッの おみせ',note:'ちいさい「ッ」「ャ」「ァ」',items:[I('ヨット','boat',{c:'#e8606a'}),I('シャツ','shirt',{c:'#9ac8f0'}),I('ソファ','sofa',{c:'#e8a0b0'}),I('クッキー','cake',{t:'cookie'}),I('ホットケーキ','cake',{t:'pancake'})]},
+ {s:'kata',name:'てんてんの おみせ',note:'てんてん「゛」「゜」の もじ',items:[I('ドレス','shirt',{t:'dress',c:'#f0a0c8'}),I('リボン','ribbon',{c:'#e8606a'}),I('ヤギ','animal',{t:'goat'}),I('サラダ','bowl',{t:'salad'}),I('テレビ','tv',{c:'#e8a0b0'})]},
+ {s:'kata',name:'もっと てんてんの おみせ',note:'てんてん「゛」「゜」の もじ',items:[I('ピアノ','piano',{c:'#b8a0e8'}),I('エプロン','shirt',{t:'apron',c:'#f0a0c8'}),I('オルガン','piano',{t:'organ',c:'#e8a0b0'}),I('ブーツ','shoe',{c:'#9a6a5a',tall:1}),I('ユニコーン','animal',{t:'unicorn'})]},
+ {s:'kata',name:'むずかしい おみせ',note:'いろいろな もじ',items:[I('ヌードル','bowl',{t:'noodle'}),I('ヘルメット','hat',{t:'helmet',c:'#f3c850'}),I('チーズ','cake',{t:'cheese'}),I('セーター','shirt',{t:'sweater',c:'#f0b878'}),I('ロボット','robot',{c:'#f0c0a0'})]},
+ {s:'kata',name:'しあげの おみせ',note:'ぜんぶ つかって みよう',items:[I('ミルクヲノム','bottle',{c:'#fff6e6',milk:1}),I('コップ','cup',{c:'#8fb8e8'}),I('ギター','guitar',{c:'#e8a060'}),I('ラッパ','trumpet'),I('ベル','bell',{c:'#f3c850'})]}
 ];
 STAGES.forEach((st,i)=>{st.id='s'+i;st.theme=THEMES[i%8];const c=CLIENTS[i%8];st.client=c[0];st.hair=c[1];st.dress=c[2];});
 /* 保存 */
 let save={prog:{},cleared:{},seen:{},snd:true};
-try{const s=JSON.parse(localStorage.getItem('maho-cleaner')||'null');if(s)save=Object.assign(save,s);}catch(e){}
-const persist=()=>{try{localStorage.setItem('maho-cleaner',JSON.stringify(save));}catch(e){}};
+try{const s=JSON.parse(localStorage.getItem('maho-cleaner-2')||'null');if(s)save=Object.assign(save,s);}catch(e){}
+const persist=()=>{try{localStorage.setItem('maho-cleaner-2',JSON.stringify(save));}catch(e){}};
 let soundOn=save.snd!==false;
 /* ========= 音・声 ========= */
 let AC=null;
@@ -368,9 +374,10 @@ function stepParts(ctx,arr,dt){
 const RW=240,RH=150;
 const POS=[[62,62],[178,62],[62,118],[178,118],[120,74]];
 const bgCache={};
+const HOME_THEME={wall:'#e9e0f7',wall2:'#f4eefc',floor:'#d8b894',floor2:'#cfab86',acc:'#9a88e0',sky:'#c8e0f8'};
 function makeBg(idx){
   if(bgCache[idx])return bgCache[idx];
-  const T=STAGES[idx].theme,rand=mulberry(idx*77+3);
+  const home=idx==='home',T=home?HOME_THEME:STAGES[idx].theme,rand=mulberry(home?5:idx*77+3);
   const cv=document.createElement('canvas');cv.width=RW;cv.height=RH;const x=cv.getContext('2d');
   const R=(c,a,b,w,h)=>{x.fillStyle=c;x.fillRect(a,b,w,h);};
   R(T.wall,0,0,RW,124);
@@ -394,7 +401,8 @@ function makeBg(idx){
   for(const sx of [76,154]){R(T.acc,sx,4,10,62);for(let k=1;k<10;k+=3)R(shade(T.acc,-.18),sx+k,4,1,62);R(shade(T.acc,.35),sx,66,10,2);R('#d9a845',sx,64,10,3);}
   /* 棚 */
   const shelf=(sx,sy,w)=>{x.globalAlpha=.12;R('#000000',sx,sy+4,w,3);x.globalAlpha=1;R('#c89a6a',sx,sy,w,4);R('#e0b88a',sx,sy,w,1);R('#a87a52',sx+8,sy+4,3,5);R('#a87a52',sx+w-11,sy+4,3,5);};
-  for(const sy of [62,118]){shelf(14,sy,96);shelf(130,sy,96);}
+  for(const sy of (home?[62]:[62,118])){shelf(14,sy,96);shelf(130,sy,96);}
+  if(home){for(const [k,o,j] of [['bottle',{c:'#f5a0c8'},0],['book',{c:'#6a8ad8'},1],['lamp',{c:'#f5b0c8'},4]]){const [px,py]=POS[j];x.drawImage(spr(k,o).c,px-24,py-44,48,48);}}
   /* ガーランド */
   const fc=[T.acc,'#ffe27a','#9ad8c8','#b8a0e8','#ffffff'];
   for(let i=0;i<RW;i++)R('#b08a6a',i,1+Math.round(3*Math.abs(Math.sin(i/RW*Math.PI*3))),1,1);
@@ -407,7 +415,8 @@ function makeBg(idx){
 /* ========= 画面管理 ========= */
 let screen='title';
 const onShow={};
-function show(n){screen=n;$$('.screen').forEach(e=>e.classList.toggle('on',e.id===n));onShow[n]&&onShow[n]();}
+let lastScreen='title';
+function show(n){if(n==='back')n=lastScreen;if(n!==screen)lastScreen=screen;screen=n;$$('.screen').forEach(e=>e.classList.toggle('on',e.id===n));onShow[n]&&onShow[n]();}
 const S={i:0,done:[],pop:[],tilt:[],hint:0};
 const rcv=$('#rc'),rc=rcv.getContext('2d');rc.imageSmoothingEnabled=false;
 const roomParts=[];
@@ -446,7 +455,7 @@ function roomPoint(e){
   return{x:(e.clientX-r.left-ox)/sc,y:(e.clientY-r.top-oy)/sc};
 }
 rcv.addEventListener('pointerdown',e=>{
-  if($('#dlgReq').classList.contains('on')||$('#clear').classList.contains('on'))return;
+  if($('#clear').classList.contains('on'))return;
   initAudio();const p=roomPoint(e),st=STAGES[S.i];
   for(let j=0;j<st.items.length;j++){const [px,py]=POS[j];
     if(p.x>px-26&&p.x<px+26&&p.y>py-52&&p.y<py+6){
@@ -465,12 +474,6 @@ function enterStage(i){
   S.done=d;S.pop=d.map(()=>0);S.tilt=d.map((_,j)=>(j%2?1:-1)*rnd(.25,.7));roomParts.length=0;
   show('room');updateRoomHud();
   $('#clear').classList.remove('on');
-  if(d.every(v=>!v)){
-    const c=$('#dlgC').getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('person',{hair:st.hair,dress:st.dress}).c,0,0);
-    $('#reqWho').textContent=st.client+' ('+st.name+')';
-    $('#reqText').textContent='いらっしゃい! おみせが ばらばらに なって しまったの。もじを ただしく ならべて、ものを もとに もどしてね!';
-    $('#dlgReq').classList.add('on');
-  }else $('#dlgReq').classList.remove('on');
 }
 function showClear(){
   const st=STAGES[S.i];save.cleared[st.id]=true;persist();fanfare();
@@ -478,8 +481,7 @@ function showClear(){
   $('#clWho').textContent=st.client+' ('+st.name+')';
   const set=[...new Set(st.items.flatMap(it=>[...it[0]]))].filter(ch=>!NOLEARN.includes(ch));
   $('#clLetters').innerHTML=set.map(ch=>`<span class="chip">${ch}</span>`).join('');
-  $('#bClNext').style.display=S.i<STAGES.length-1?'':'none';
-  $('#clear').classList.add('on');
+    $('#clear').classList.add('on');
 }
 /* ========= パズル ========= */
 const pzv=$('#pz'),pc=pzv.getContext('2d');pc.imageSmoothingEnabled=false;
@@ -645,25 +647,57 @@ function drawTitle(t){
   const bob=Math.round(Math.sin(t*2)*2);
   tc.drawImage(ws.c,Math.round(w/2-24),Math.round(h*.30)+bob,48,48);
 }
+/* ========= おそうじ屋さん(依頼を受ける場面) ========= */
+const hcv=$('#hc'),hc=hcv.getContext('2d');hc.imageSmoothingEnabled=false;
+const H={i:-1,x:262,phase:'none'};
+onShow.home=()=>{
+  H.i=STAGES.findIndex(s=>!save.cleared[s.id]);H.x=262;H.phase=H.i<0?'talk':'walk';
+  $('#dlgHome').classList.remove('on');
+  $('#homeInfo').textContent=H.i<0?'':'おきゃくさんが やってきた!';
+  if(H.i<0)openHomeDlg();else{tone(1319,0,.3,'sine',.1);tone(1047,.16,.5,'sine',.1);}
+};
+function openHomeDlg(){
+  const c=$('#dlgC').getContext('2d');c.clearRect(0,0,24,24);
+  if(H.i<0){
+    c.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,0,0);
+    $('#reqWho').textContent='まほうの おそうじやさん';$('#reqText').textContent='ぜんぶの おみせが ぴかぴかに なったよ! たくさんの もじを おぼえたね。';
+    $('#bAccept').textContent='きろくを みる';
+  }else{
+    const st=STAGES[H.i];c.drawImage(spr('person',{hair:st.hair,dress:st.dress}).c,0,0);
+    $('#reqWho').textContent=st.client+' ('+st.name+')';
+    $('#reqText').textContent='こんにちは! わたしの おみせが ばらばらに なって しまったの。もじを ただしく ならべて、ものを もとに もどしてください!'+(st.note?'\n【きょうの ポイント】'+st.note:'');
+    $('#bAccept').textContent='おうけする!';
+  }
+  $('#dlgHome').classList.add('on');
+}
+function drawHome(t,dt){
+  hc.drawImage(makeBg('home'),0,0);
+  hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+Math.round(Math.sin(t*2)),48,48);
+  if(H.i>=0){
+    const st=STAGES[H.i];let by=0;
+    if(H.phase==='walk'){H.x-=70*dt;by=-Math.abs(Math.sin(t*12))*2;if(H.x<=150){H.x=150;H.phase='talk';openHomeDlg();}}
+    hc.drawImage(spr('person',{hair:st.hair,dress:st.dress}).c,Math.round(H.x),104+Math.round(by),48,48);
+  }
+}
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();show(b.dataset.go);}));
 $$('.tab').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;renderStages();}));
-$('#bStart').addEventListener('click',()=>{initAudio();chime(2);show('stages');});
+$('#bStart').addEventListener('click',()=>{initAudio();chime(2);show('home');});
 $('#bZukan').addEventListener('click',()=>{initAudio();show('zukan');});
 $('#bSnd').addEventListener('click',()=>{initAudio();setSound(!soundOn);});
-$('#bAccept').addEventListener('click',()=>{initAudio();chime(3);$('#dlgReq').classList.remove('on');});
-$('#bRoomBack').addEventListener('click',()=>{$('#dlgReq').classList.remove('on');$('#clear').classList.remove('on');tab=STAGES[S.i].s;show('stages');});
+$('#bAccept').addEventListener('click',()=>{initAudio();chime(3);$('#dlgHome').classList.remove('on');if(H.i<0)show('stages');else enterStage(H.i);});
+$('#bRoomBack').addEventListener('click',()=>{$('#clear').classList.remove('on');show('home');});
 $('#bNext').addEventListener('click',()=>{initAudio();const j=S.done.findIndex(v=>!v);if(j>=0)openPuzzle(j);});
 $('#bPzBack').addEventListener('click',()=>{P.tok++;show('room');updateRoomHud();});
 $('#bHear').addEventListener('click',()=>{initAudio();say(P.word);});
-$('#bClNext').addEventListener('click',()=>{$('#clear').classList.remove('on');tab=STAGES[S.i+1].s;enterStage(S.i+1);});
+$('#bClNext').addEventListener('click',()=>{$('#clear').classList.remove('on');show('home');});
 $('#bClList').addEventListener('click',()=>{$('#clear').classList.remove('on');tab=STAGES[S.i].s;show('stages');});
 setSound(soundOn);
 if('speechSynthesis' in window)speechSynthesis.getVoices();
 let last=0;
 function frame(ts){
   const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
-  if(screen==='title')drawTitle(t);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);
+  if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
