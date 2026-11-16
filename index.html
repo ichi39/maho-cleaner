@@ -108,7 +108,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .sc .ok{position:absolute;top:2px;right:4px;font-size:14px;color:#e8607a}
 .cvwrap{position:relative;width:min(100%,calc(62dvh * 1.6));margin:0 auto}
 .cvwrap canvas{width:100%;height:auto;display:block;background:#2a2550;touch-action:none}
-.arrow{position:absolute;left:6px;top:42%;width:46px;height:46px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(#fffaf0,#ffe9c8);color:var(--plum);font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #c79a3c;animation:nudge 1s infinite}
+.arrow{position:absolute;left:6px;top:42%;width:46px;height:46px;border-radius:50%;border:3px solid #c08f3a;background:radial-gradient(circle at 35% 30%,#fff6a0,#ffd84a 65%,#e8b830);color:var(--plum);font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #c79a3c;animation:nudge 1s infinite}
 @keyframes nudge{50%{transform:translateX(-5px)}}
 .sbub{position:absolute;display:none;max-width:62%;background:#fff;border:3px solid var(--gold);border-radius:14px;padding:6px 10px;font-size:clamp(12px,3.4vw,15px);line-height:1.45;color:var(--plum);pointer-events:none;bottom:36%;transform:translateX(-50%);animation:pop .3s}
 .sbub.on{display:block}
@@ -134,6 +134,28 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;justify-content:flex-start;background:rgba(255,255,255,.1);border-radius:12px;padding:4px 6px}
 #mineTray canvas.ricon{width:40px;height:40px;background:#ffe27a;border-radius:50%;padding:3px}
 #mineTray canvas.worn{outline:3px solid #ffe27a;background:rgba(255,226,122,.3)}
+.modal{position:absolute;inset:0;background:rgba(20,15,50,.62);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+.modal.on{display:flex;animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+.mcard{background:var(--cream);border:4px solid var(--gold);border-radius:22px;padding:18px 16px;max-width:380px;width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:inset 0 0 0 3px #fff,0 8px 0 rgba(0,0,0,.25);text-align:center;position:relative}
+.mcard>canvas{width:120px;height:120px}
+.mtxt .who{color:#d0607a;font-size:.95em}
+.mtxt p,.mcard>p{margin:4px 0 0;white-space:pre-line;line-height:1.7;font-size:clamp(16px,4.4vw,20px)}
+.btn.big{font-size:clamp(18px,5vw,24px);padding:.6em 1.8em;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.arrow.right{left:auto;right:6px;animation:nudgeR 1s infinite}
+@keyframes nudgeR{50%{transform:translateX(5px)}}
+.arrow.right::before{clip-path:polygon(28% 6%,28% 94%,92% 50%)}
+#tut{z-index:60}
+.tpics{display:flex;align-items:center;justify-content:center;gap:10px;min-height:84px;flex-wrap:wrap}
+.tpics canvas{width:64px;height:64px}
+.tpics .tile,.tpics .slot{width:56px;height:56px;font-size:30px;cursor:default;animation:none}
+.tri{width:24px;height:24px;background:var(--gold);clip-path:polygon(15% 5%,15% 95%,95% 50%)}
+.dots{display:flex;gap:8px}.dots i{width:10px;height:10px;border-radius:50%;background:#e3d3b8}.dots i.on{background:var(--gold)}
+.skip2{position:absolute;top:6px;right:10px;background:none;border:0;color:#a08a8a;font:inherit;font-size:13px;padding:6px;cursor:pointer}
+#finger{position:absolute;left:0;top:0;width:48px;height:48px;z-index:40;pointer-events:none}
+#finger canvas{width:48px;height:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+.shopbtn.pulse{animation:pulse 1s infinite}
 </style>
 </head>
 <body>
@@ -145,16 +167,16 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf"><canvas class="ico" width="24" height="24" style="width:44px;height:44px;vertical-align:middle"></canvas></button><button class="btn sm" id="bSnd">おと: ON</button></div>
  </section>
  <section id="home" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><button class="back" data-go="title">◀</button><span id="homeInfo" style="color:#ffe27a"></span><button class="shopbtn" data-go="shelf"><canvas class="ico" width="24" height="24"></canvas></button></div>
+  <div class="bar" style="background:#2a2550"><span id="homeInfo" style="color:#ffe27a"></span><button class="shopbtn" data-go="shelf"><canvas class="ico" width="24" height="24"></canvas></button></div>
   <div class="cvwrap"><canvas id="hc" width="240" height="150"></canvas><button id="bToMine" class="arrow" style="display:none">◀</button><div id="hbub" class="sbub"></div></div>
   <div id="reqList"></div>
  </section>
  <section id="room" class="screen">
   <div class="bar" style="background:#2a2550"><button class="back" id="bRoomBack">◀</button><h2 id="roomName" style="color:#fff"></h2><span id="roomLeft" style="color:#ffe27a;min-width:64px;text-align:right"></span></div>
   <canvas id="rc" width="240" height="150"></canvas>
-  <div class="rbub" id="rbub"><canvas id="dlgC" width="24" height="24"></canvas><div><span class="who" id="reqWho"></span><br><span id="reqText"></span><em>▲ ぴかぴか ひかる ものを タップしてね</em></div></div>
   <div class="info" id="rinfo">よごれた ものを タップしてね　<span id="coinR"></span></div>
-  <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br><span id="clText"></span></p><div class="gift" id="coinGain"></div><button class="btn" id="bClNext">おみせに もどる ▶</button></div>
+  <div class="modal" id="rbub"><div class="mcard"><canvas id="dlgC" width="24" height="24"></canvas><div class="mtxt"><span class="who" id="reqWho"></span><p id="reqText"></p></div><button class="btn big" id="bAccept">はじめる ▶</button></div></div>
+  <div class="modal" id="clear"><div class="mcard"><canvas id="clC" width="24" height="24"></canvas><div class="mtxt"><span class="who" id="clWho"></span><p id="clText"></p></div><div class="gift" id="coinGain"></div><button class="btn big" id="bClNext">おみせに もどる ▶</button></div></div>
  </section>
  <section id="puzzle" class="screen">
   <div class="bar"><button class="back" id="bPzBack">◀</button><h2 id="pzTitle"></h2><button class="btn sm pink" id="bHear">♪ きく</button></div>
@@ -163,8 +185,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="tray"></div>
  </section>
  <section id="mine" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><button class="back" id="bMineBack">◀</button><h2 style="color:#fff">じぶんの おへや</h2><button class="btn sm pink" id="bStow" style="visibility:hidden">しまう</button></div>
-  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas></div>
+  <div class="bar" style="background:#2a2550"><span style="width:46px"></span><h2 style="color:#fff">じぶんの おへや</h2><button class="btn sm pink" id="bStow" style="visibility:hidden">しまう</button></div>
+  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas><button id="bMineBack" class="arrow right">▶</button></div>
   <div class="info" id="mineHint">ゆびで ひっぱって うごかせるよ</div>
   <div id="mineTray"></div>
  </section>
@@ -173,6 +195,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div class="zwrap"><div class="sg" id="sgrid"></div></div>
   <div id="buyBar"></div>
  </section>
+<div id="finger" style="display:none"><canvas width="24" height="24"></canvas></div>
+ <div class="modal" id="tut"><div class="mcard"><div class="tpics" id="tPics"></div><p id="tText"></p><div class="dots" id="tDots"></div><button class="btn big" id="bTutNext">つぎへ ▶</button><button class="skip2" id="bTutSkip">とばす</button></div></div>
 </div>
 <script>
 'use strict';
@@ -348,6 +372,7 @@ doll(d,o){const sk='#ffe0c8',h='#e8a0b0',bd='#fff2e6';
   d.e(4,6,2.6,2.6,h);d.e(18,6,2.6,2.6,h);d.e(11,7.5,6,5.5,sk);d.e(11,4,6.5,3.2,h);d.r(5,5,2,7,h);d.r(15,5,2,7,h);d.r(7,5,8,2,h);
   d.p(9,8,E1);d.p(13,8,E1);d.p(7,10,PK);d.p(15,10,PK);d.p(11,11,'#d0607a');
   d.t(13,19,11,8,12,bd);d.r(5,14,2,5,sk);d.r(15,14,2,5,sk);d.r(8,19,2,2,sk);d.r(12,19,2,2,sk);d.r(7,21,3,1,'#e8b0a0');d.r(12,21,3,1,'#e8b0a0');},
+hand(d,o){const sk='#ffe0c8';d.r(9,2,3,10,sk);d.r(12,7,3,5,sk);d.r(15,9,2,4,sk);d.r(6,12,11,7,sk);d.r(7,19,9,2,sk);d.r(5,10,3,5,sk);d.p(10,3,shade(sk,.3));},
 person(d,o){const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',skin='#ffe0c8',y0=o.witch?5:0;
   if(o.witch){const hc=o.hat||'#6a5ac8';d.t(0,4,11,2,9,hc);d.r(4,5,14,2,hc);d.r(7,4,8,1,GOLD);d.p(11,0,hc);d.p(12,-1,hc);}
   d.r(6,y0+5,2,7,h);d.r(14,y0+5,2,7,h);d.e(11,y0+6,4.6,4.6,skin);d.e(11,y0+3.8,5.2,3,h);d.r(7,y0+4,3,2,h);
@@ -391,6 +416,7 @@ const A=(cat,list)=>list.forEach(x=>ITEMS.push([x[0],x[1],x[2]||{},cat]));
 A('clothes',[['くつ','shoe',{c:'#e8606a'}],['かさ','umbrella',{c:'#8fb8e8'}],['ふく','shirt',{c:'#a8d8b0'}],['ぬの','cloth',{c:'#a8b8f0'}],['ぼうし','hat',{c:'#e8a0b8'}],['てぶくろ','glove',{c:'#e8606a'}],
  ['ネクタイ','tie',{c:'#5a8ad8'}],['マント','shirt',{t:'cape',c:'#8a7ad8'}],['ドレス','shirt',{t:'dress',c:'#f0a0c8'}],['リボン','ribbon',{c:'#e8606a'}],['ブーツ','shoe',{c:'#9a6a5a',tall:1}],
  ['シャツ','shirt',{c:'#9ac8f0'}],['セーター','shirt',{t:'sweater',c:'#f0b878'}],['エプロン','shirt',{t:'apron',c:'#f0a0c8'}],['ヘルメット','hat',{t:'helmet',c:'#f3c850'}],['ウール','yarn',{c:'#ff9ab8'}]]);
+A('clothes',[['ねくたい','tie',{c:'#e8606a'}],['まんと','shirt',{t:'cape',c:'#e8a0b8'}]]);
 A('toy',[['くま','animal',{t:'bear',c:'#c8956a'}],['たいこ','drum',{c:'#e8606a'}],['ふうせん','balloon',{c:'#7fc8e8'}],['ひよこ','animal',{t:'chick'}],['ろぼっと','robot'],
  ['ハート','balloon',{h:1,c:'#ff6a8a'}],['ユニコーン','animal',{t:'unicorn'}],['ヤギ','animal',{t:'goat'}],['ヒヨコ','animal',{t:'chick'}],['ヨット','boat',{c:'#e8606a'}]]);
 A('fruit',[['みかん','fruit',{t:'orange',c:'#ff9a3a'}],['れもん','fruit',{t:'lemon',c:'#ffe24a'}],['すいか','fruit',{t:'melon'}],['もも','fruit',{t:'peach'}],['りんご','fruit',{t:'apple',c:'#e8465a'}],['モモ','fruit',{t:'peach'}]]);
@@ -431,7 +457,7 @@ const CLIENTS=[
   fl:['あらあら、まつ あいだに おちゃを…。','おひさまが ぽかぽかで いいわねえ。','ゆっくり やって くださいねえ。']}
 ];
 /* 保存 */
-let save={doll:{x:120,y:90,wear:{}},reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
+let save={made:0,doll:{x:120,y:90,wear:{}},reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
 try{const s=JSON.parse(localStorage.getItem('maho-cleaner-3')||'null');if(s)save=Object.assign(save,s);}catch(e){}
 const persist=()=>{try{localStorage.setItem('maho-cleaner-3',JSON.stringify(save));}catch(e){}};
 let soundOn=save.snd!==false;
@@ -454,8 +480,9 @@ function allowed(it){
 function pickItems(cat,n){
   const recentW=new Set(save.recentW||[]);
   const ok=ITEMS.filter(allowed),out=[],nov=new Set();
-  const add=it=>{if(out.includes(it))return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>5)return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
-  const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0]));
+  const early=(save.made||0)<6;
+  const add=it=>{if(out.includes(it))return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>(early?7:5))return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
+  const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0])).sort((a,b)=>early?(!!SLOT_OF[b[1]]-!!SLOT_OF[a[1]]):0);
   for(const it of pool){if(out.length>=n)break;add(it);}
   if(out.length<3)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;add(it);}
   if(out.length<3)for(const it of shuffle(ITEMS.filter(i=>!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=3)break;out.push(it);}
@@ -474,9 +501,10 @@ function makeRequest(){
   do{
     const r=Math.random();
     const others=avail.filter(c=>c!==cl.fav&&c!==cl.dis);
-    cat=(r<.55&&avail.includes(cl.fav))?cl.fav:(r<.65&&avail.includes(cl.dis))?cl.dis:pick(others.length?others:avail);
+    cat=(save.made<2&&avail.includes('clothes'))?'clothes':(save.made<6&&r<.4&&avail.includes('clothes'))?'clothes':(r<.55&&avail.includes(cl.fav))?cl.fav:(r<.65&&avail.includes(cl.dis))?cl.dis:pick(others.length?others:avail);
     items=pickItems(cat,n);key=cat+':'+items.map(i=>i[0]).sort().join(',');tries++;
   }while(tries<12&&(save.recent.includes(key)||(tries<6&&save.reqs.some(r=>r.cat===cat))));
+  save.made=(save.made||0)+1;
   save.recent=[...save.recent,key].slice(-8);
   save.lastCl=[...save.lastCl,ci].slice(-4);
   save.recentW=[...save.recentW,...items.map(i=>i[0])].slice(-12);
@@ -611,7 +639,7 @@ function roomPoint(cv,e,W,Hh){
   return{x:(e.clientX-r.left-ox)/sc,y:(e.clientY-r.top-oy)/sc};
 }
 rcv.addEventListener('pointerdown',e=>{
-  if($('#clear').classList.contains('on')||!S.r)return;
+  if($('#clear').classList.contains('on')||$('#rbub').classList.contains('on')||!S.r)return;
   initAudio();const p=roomPoint(rcv,e,RW,RH),r=S.r;
   for(let j=0;j<r.items.length;j++){const [px,py]=POS[r.pos[j]];
     if(p.x>px-26&&p.x<px+26&&p.y>py-52&&p.y<py+6){
@@ -633,7 +661,7 @@ function openRequest(id){
   if(r.done.every(v=>!v)){
     const cl=CLIENTS[r.ci];portrait($('#dlgC'),cl);
     $('#reqWho').textContent=cl.n;$('#reqText').textContent=greetText(r);
-    $('#rbub').classList.add('on');$('#rinfo').style.display='none';S.hint=true;
+    $('#rbub').classList.add('on');S.hint=true;
   }else{$('#rbub').classList.remove('on');$('#rinfo').style.display='';}
 }
 function endHint(){S.hint=false;$('#rbub').classList.remove('on');$('#rinfo').style.display='';}
@@ -672,12 +700,23 @@ function openPuzzle(j){S.hint=false;
   const dec=shuffle(pool).slice(0,n<=2?3:2);
   $('#tray').innerHTML=shuffle([...P.chars,...dec]).map(c=>`<div class="tile">${c}</div>`).join('');
   show('puzzle');
+  if(!save.tutDrag)setTimeout(startFinger,450);
 }
 function slotEls(){return $$('#slots .slot');}
+function stopFinger(){const f=$('#finger');f.getAnimations().forEach(a=>a.cancel());f.style.display='none';}
+function startFinger(){
+  if(screen!=='puzzle'||save.tutDrag||P.done)return;
+  const tile=[...$$('#tray .tile')].find(t=>t.textContent===P.chars[0]&&!t.classList.contains('used')),slot=slotEls()[0];if(!tile||!slot)return;
+  const app=$('#app').getBoundingClientRect(),a=tile.getBoundingClientRect(),b=slot.getBoundingClientRect(),f=$('#finger');
+  const x1=a.left+a.width/2-app.left-24,y1=a.top+a.height/2-app.top-8,x2=b.left+b.width/2-app.left-24,y2=b.top+b.height/2-app.top-8;
+  f.getContext?0:0;f.style.display='block';
+  const c=f.querySelector('canvas').getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('hand').c,0,0);
+  f.animate([{transform:`translate(${x1}px,${y1+20}px)`,opacity:0},{transform:`translate(${x1}px,${y1}px)`,opacity:1,offset:.15},{transform:`translate(${x1}px,${y1}px)`,offset:.3},{transform:`translate(${x2}px,${y2}px)`,offset:.75},{transform:`translate(${x2}px,${y2}px)`,opacity:1,offset:.9},{transform:`translate(${x2}px,${y2}px)`,opacity:0}],{duration:2400,iterations:Infinity});
+}
 function placeTile(tile,idx){
   const ch=tile.textContent;
   if(idx<0||P.filled[idx]||P.chars[idx]!==ch){boo();tile.classList.remove('shake');void tile.offsetWidth;tile.classList.add('shake');return false;}
-  P.filled[idx]=true;tile.classList.add('used');
+  P.filled[idx]=true;tile.classList.add('used');if(!save.tutDrag){save.tutDrag=true;stopFinger();}
   const se=slotEls()[idx];se.classList.add('ok');se.textContent=ch;
   sayChar(ch);chime(idx);
   const f=P.fl[idx];burst(pzParts,f.hx+f.w/2,HY+SP*SC/2,16,1.6);
@@ -802,6 +841,7 @@ function renderBuy(){
   bar.appendChild(b);
 }
 onShow.shelf=()=>{
+  if(!save.shopSeen){save.shopSeen=true;persist();}
   const g=$('#sgrid'),zw=$('#shelf .zwrap'),keep=zw.scrollTop;g.innerHTML='';updateCoins();
   const kataOpen=knownN('hira')>=46;
   [...ITEMS].filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
@@ -954,11 +994,31 @@ function drawHome(t,dt){
 }
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();if(b.dataset.go==='shelf'&&!canShop()){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show(b.dataset.go);}));
-$('#bStart').addEventListener('click',()=>{initAudio();chime(2);show('home');});
+$('#bAccept').addEventListener('click',()=>{initAudio();chime(3);$('#rbub').classList.remove('on');});
+const TUT=[
+  {t:'おきゃくさんが きたら タップして、おしごとを うけよう',pics:()=>[cvOf(spr('person',{hair:'#c98a5a',dress:'#e58fa5'}).c),tri(),cvOf(spr('lamp',{c:'#f5b0c8'}).g)]},
+  {t:'ぴかぴか ひかる こわれた ものを タップして なおそう',pics:()=>[cvOf(spr('kettle',{c:'#e0a0c0'}).g),tri(),cvOf(spr('kettle',{c:'#e0a0c0'}).c)]},
+  {t:'もじを ひっぱって、したの わくに いれよう',pics:()=>[tileEl('あ','tile'),tri(),tileEl('あ','slot ok')]},
+  {t:'コインで かいものを して、おへやや にんぎょうを かざろう',pics:()=>[coinEl(),tri(),cvOf(spr('basket').c),tri(),cvOf(spr('doll').c)]}
+];
+const tri=()=>{const d=document.createElement('div');d.className='tri';return d;};
+const tileEl=(ch,cls)=>{const d=document.createElement('div');d.className=cls;d.textContent=ch;return d;};
+const coinEl=()=>{const d=document.createElement('span');d.className='coin big';return d;};
+let tutI=0,tutDone=null;
+function showTut(){
+  const st=TUT[tutI],pics=$('#tPics');pics.innerHTML='';st.pics().forEach(e=>pics.appendChild(e));
+  $('#tText').textContent=st.t;$('#tDots').innerHTML=TUT.map((_,i)=>`<i class="${i===tutI?'on':''}"></i>`).join('');
+  $('#bTutNext').textContent=tutI<TUT.length-1?'つぎへ ▶':'はじめる ▶';
+}
+function startTut(done){tutI=0;tutDone=done;$('#tut').classList.add('on');showTut();}
+function endTut(){$('#tut').classList.remove('on');save.tut=true;persist();tutDone&&tutDone();}
+$('#bTutNext').addEventListener('click',()=>{initAudio();chime(tutI+2);if(tutI<TUT.length-1){tutI++;showTut();}else endTut();});
+$('#bTutSkip').addEventListener('click',endTut);
+$('#bStart').addEventListener('click',()=>{initAudio();chime(2);if(!save.tut)startTut(()=>show('home'));else show('home');});
 $('#bShelf').addEventListener('click',()=>{initAudio();if(!canShop()){boo();const b=$('#bShelf');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show('shelf');});
 $('#bSnd').addEventListener('click',()=>{initAudio();setSound(!soundOn);});
 $('#bRoomBack').addEventListener('click',()=>{$('#rbub').classList.remove('on');$('#clear').classList.remove('on');show('home');});
-$('#bPzBack').addEventListener('click',()=>{P.tok++;show('room');updateRoomHud();});
+$('#bPzBack').addEventListener('click',()=>{stopFinger();P.tok++;show('room');updateRoomHud();});
 $('#bHear').addEventListener('click',()=>{initAudio();say(P.word);});
 $('#bClNext').addEventListener('click',()=>{initAudio();leaveClient();});
 const canShop=()=>Object.keys(save.got).length>0;
@@ -966,6 +1026,7 @@ function refreshLocks(){
   const ok=canShop();
   $$('canvas.ico').forEach(c=>{const x=c.getContext('2d');x.clearRect(0,0,24,24);x.drawImage(ok?spr('basket').c:spr('basket').g,0,0);if(!ok)x.drawImage(spr('lock').c,10,9,15,15);});
   $$('.shopbtn,#bShelf').forEach(b=>b.classList.toggle('locked',!ok));
+  $$('.shopbtn').forEach(b=>b.classList.toggle('pulse',ok&&!save.shopSeen));
 }
 onShow.title=refreshLocks;
 refreshLocks();
