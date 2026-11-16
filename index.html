@@ -565,8 +565,10 @@ function thanksText(r){const cl=CLIENTS[r.ci];return r.cat===cl.fav?cl.tf:r.cat=
 /* ========= 音・声 ========= */
 let AC=null;
 /* iPhone: よみあげの あと こうかおんが とまる(interrupted)ので、なんども おこす */
-function wakeAC(){if(AC&&AC.state!=='running'){try{AC.resume();}catch(e){}}}
+function wakeAC(){if(IS_IOS_A)return;if(AC&&AC.state!=='running'){try{AC.resume();}catch(e){}}}
+const IS_IOS_A=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function initAudio(){
+  if(IS_IOS_A)return;/* iPhone は audio で ならすので Web Audio は つかわない(よみあげと ぶつかって とまるため) */
   if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();AC.onstatechange=()=>{if(AC.state!=='running')setTimeout(wakeAC,60);};
     const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);}catch(e){}}
   wakeAC();
@@ -631,7 +633,7 @@ function pickVoice(){
 function updateVoiceNote(){const n=document.getElementById('voiceNote');if(!n)return;n.style.display=(!HAS_TTS||(voicesLoaded&&!jaVoice))?'':'none';}
 if(HAS_TTS){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice);}catch(e){speechSynthesis.onvoiceschanged=pickVoice;}}
 function mkUtt(t){
-  const u=new SpeechSynthesisUtterance(t);u.lang=jaVoice?jaVoice.lang:'ja-JP';u.rate=.85;u.pitch=1.15;u.volume=1;
+  const u=new SpeechSynthesisUtterance(t.trim()&&!/[。!?、]$/.test(t)?t+'。':t);u.lang=jaVoice?jaVoice.lang:'ja-JP';u.rate=.85;u.pitch=1.15;u.volume=1;
   if(jaVoice)u.voice=jaVoice;
   _utt.push(u);if(_utt.length>30)_utt.shift();return u;
 }
@@ -648,7 +650,7 @@ function speakNow(t,onDone){
   /* iPhone は cancel の すぐあとの こえを すてるので、すこし まってから よむ */
   const busy=!!(curU&&ss.speaking);
   if(busy){try{ss.cancel();}catch(e){}setTimeout(go,130);}else go();
-  setTimeout(()=>{if(!started&&!done){try{ss.cancel();}catch(e){}setTimeout(go,130);}},busy?1000:900);
+  setTimeout(()=>{if(!started&&!done&&!ss.speaking&&!ss.pending){setTimeout(go,60);}},busy?1500:1400);
 }
 function say(t){if(!soundOn||!HAS_TTS||!t)return;speakNow(t);}
 /* つかんでいる間、おなじ もじを くりかえし よむ */
@@ -919,8 +921,9 @@ function arrive(L){
 function completePuzzle(){
   const tok=P.tok;P.done=true;P.cel=0;P.doneT=0;
   P.L.forEach(l=>{if(l.slot<0)l.st='gone';});
-  setTimeout(()=>{if(tok===P.tok){say(P.word);fanfare();P.L.forEach((l,i)=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});}},950);
-  setTimeout(()=>{if(tok===P.tok)finishItem();},3400);
+  setTimeout(()=>{if(tok===P.tok){fanfare();P.L.forEach((l,i)=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});}},900);
+  setTimeout(()=>{if(tok===P.tok)say(P.word);},2100);
+  setTimeout(()=>{if(tok===P.tok)finishItem();},3900);
 }
 function finishItem(){
   const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;save.coins+=3;persist();
