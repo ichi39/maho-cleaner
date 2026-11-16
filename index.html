@@ -486,6 +486,15 @@ wear(d,o){const c=o.c||'#e8a0b8',k=o.k,t=o.t;
   if(k==='geta'){const w='#d8a870';d.r(8,21,3,1,w);d.r(13,21,3,1,w);d.p(9,20,c);d.p(10,20,c);d.p(13,20,c);d.p(14,20,c);return;}
   if(k==='sandal'){d.r(8,21,3,1,c);d.r(13,21,3,1,c);d.p(9,20,c);d.p(14,20,c);d.p(8,20,shade(c,.4));d.p(15,20,shade(c,.4));return;}
   if(k==='bag'){d.l(8,14,15,17,'#8a5a3a');d.r(15,17,5,4,c);d.r(15,17,5,1,shade(c,-.25));d.p(17,18,GOLD);d.p(16,19,shade(c,.35));return;}
+  if(k==='startiara'){const Y='#ffd84a',s='#e8ecf8';d.r(7,3,10,1,s);d.p(7,2,s);d.p(16,2,s);d.r(11,0,2,1,Y);d.r(10,1,4,1,Y);d.r(9,2,6,1,Y);d.r(10,3,4,1,Y);d.p(11,1,'#fff');d.p(8,2,'#ff8fb0');d.p(15,2,'#7fc8e8');return;}
+  if(k==='flowercrown'){const fc=['#ff8fb0','#ffe24a','#ffffff','#b8a0f0','#ff8fb0'];[6,8.5,11.5,14.5,17].forEach((x,i)=>{d.e(x,3,1.4,1.3,fc[i]);});for(const x of [7,10,13,16])d.p(x,4,'#6fcf8f');d.p(11,3,'#ffd84a');return;}
+  if(k==='rainbowdress'){const rb=['#ff6a8a','#ffa850','#ffe24a','#7fd08a','#6ab0f0'];d.r(9,14,6,2,'#ffffff');d.e(8,14.6,1.4,1.2,'#ffffff');d.e(15,14.6,1.4,1.2,'#ffffff');
+    rb.forEach((col,i)=>{const y=16+i,w=Math.round(8+i*1.25);d.r(Math.round(11.5-w/2),y,w,1,col);});d.p(11,14,'#ff8fb0');d.p(12,14,'#ff8fb0');d.p(8,18,'#fff');d.p(15,17,'#fff');d.p(11,19,'#fff');return;}
+  if(k==='starcape'){const nv='#2e2e70';d.t(14,19,11.5,9,15,nv);d.r(11,15,2,5,null);d.l(11,15,10,19,shade(nv,.25));d.l(12,15,13,19,shade(nv,.25));
+    for(const [x,y] of [[6,18],[8,16],[15,17],[17,19],[9,19],[14,15]])d.p(x,y,'#ffe27a');d.r(10,14,4,1,'#f3c850');d.p(11,14,'#7fc8e8');d.p(12,14,'#7fc8e8');return;}
+  if(k==='wings'){const a='#d8f0ff',b='#f0d8ff';d.e(4.2,11.5,3.4,4.6,a);d.e(18.8,11.5,3.4,4.6,a);d.e(5.2,16.5,2.4,2.4,b);d.e(17.8,16.5,2.4,2.4,b);d.p(3,10,'#fff');d.p(19,10,'#fff');d.p(4,12,'#fff');d.p(18,12,'#fff');return;}
+  if(k==='wand'){d.l(16,19,18,13,'#c89a6a');d.l(17,19,19,13,'#c89a6a');const Y='#ffd84a';d.p(19,8,Y);d.r(18,9,3,1,Y);d.r(17,10,5,1,Y);d.r(18,11,3,1,Y);d.p(18,12,Y);d.p(20,12,Y);d.p(19,10,'#fff');d.p(21,7,'#fff');d.p(16,8,'#ff8fb0');return;}
+  if(k==='glassshoe'){const g='#d8f4ff';d.r(8,20,3,2,g);d.r(13,20,3,2,g);d.p(9,20,'#fff');d.p(14,20,'#fff');d.p(10,20,'#ff8fb0');d.p(15,20,'#ff8fb0');d.p(8,19,'#fff');d.p(13,19,'#fff');return;}
   if(k==='ribbon'){d.e(15.6,2.6,1.9,1.6,c);d.e(19.4,2.6,1.9,1.6,c);d.p(17,2,shade(c,-.3));d.p(17,3,shade(c,-.3));d.p(15,2,shade(c,.4));return;}
   if(k==='flower'){for(const [x,y] of [[17.5,1.4],[19,2.8],[17.5,4.2],[16,2.8]])d.e(x,y,1.2,1.2,c);d.p(17,2,GOLD);d.p(17,3,GOLD);return;}
   if(k==='star'){const s=o.c||'#ffd84a';d.p(11,0,s);d.r(10,1,3,1,s);d.r(8,2,7,1,s);d.r(10,3,3,1,s);d.p(9,4,s);d.p(13,4,s);d.p(11,1,'#fff');return;}
@@ -509,7 +518,7 @@ car(d,o){const c=o.c;d.t(5,10,11,8,14,c);d.r(7,7,3,2,'#bfe8ff');d.r(12,7,3,2,'#b
 dango(d){for(const t of [0,1])d.l(10+t,1,10+t,21,'#c89a6a');d.e(11,5,4.5,3.8,'#ffb0c8');d.e(11,11,4.5,3.8,'#fff6e6');d.e(11,17,4.5,3.8,'#9be8a0');d.p(9,4,'#fff');d.p(9,10,'#fff');d.p(9,16,'#fff');},
 ice(d,o){const c=o.c;d.t(11,21,11,10,2,'#e0a860');d.l(7,12,11,19,shade('#e0a860',-.25));d.l(15,12,11,19,shade('#e0a860',-.25));d.e(11,8,6.2,5,c);d.e(7,11,1.6,1.3,c);d.e(14,11.5,1.4,1.4,c);
   d.e(11,2.5,1.8,1.8,'#e8465a');d.p(10,2,'#fff');d.p(8,6,'#fff');d.p(13,7,'#ffe27a');d.p(10,9,'#9be8a0');},
-wi(d,o){const t=new D();K.wear(t,o);if(['socks','geta','sandal'].includes(o.k))t.r(12,0,10,22,null);if(o.k==='bag')t.r(0,0,13,22,null);let x0=99,y0=99,x1=-1,y1=-1;
+wi(d,o){const t=new D();K.wear(t,o);if(['socks','geta','sandal','glassshoe','wings'].includes(o.k))t.r(12,0,10,22,null);if(o.k==='bag')t.r(0,0,13,22,null);let x0=99,y0=99,x1=-1,y1=-1;
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(t.g[y][x]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
   if(x1<0)return;const w=x1-x0+1,h=y1-y0+1,s=Math.max(1,Math.floor(Math.min(20/w,20/h)));const ox=Math.floor((N-w*s)/2),oy=Math.floor((N-h*s)/2);
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(t.g[y][x])d.r(ox+(x-x0)*s,oy+(y-y0)*s,s,s,t.g[y][x]);},
@@ -616,11 +625,14 @@ A2('nature',[['はな','flower',{c:'#ff9ab8'}],['さくら','flower',{c:'#ffd0e0
  ['おに','animal',{t:'oni'}],['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['かれい','fish',{c:'#c8a878'}],['ゆきだるま','snowman']]);
 A2('home',[['やかん','kettle',{c:'#e0a0c0'}],['いす','chair'],['ほうき','broom'],['ろうそく','candle'],
  ['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ヌードル','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}]]);
-const SLOT_OF_={hat:'head',ribbon:'head',crown:'head',tiara:'head',glasses:'face',tie:'neck',muffler:'neck',shirt:'body',yukata:'body',coat:'body',pajama:'body',skirt:'bottom',pants:'bottom',shoe:'feet',socks:'feet',geta:'feet',sandal:'feet',glove:'hand',bag:'bag',umbrella:'held'};
+const SLOT_OF_={startiara:'head',flowercrown:'head',rainbowdress:'body',starcape:'body',wings:'back',wand:'wand',glassshoe:'feet',hat:'head',ribbon:'head',crown:'head',tiara:'head',glasses:'face',tie:'neck',muffler:'neck',shirt:'body',yukata:'body',coat:'body',pajama:'body',skirt:'bottom',pants:'bottom',shoe:'feet',socks:'feet',geta:'feet',sandal:'feet',glove:'hand',bag:'bag',umbrella:'held'};
 const wearKind=it=>it[1]==='wi'?it[2].k:it[1];
 const isWear=it=>!!(it&&SLOT_OF_[wearKind(it)]);
 const slotOf=w=>{const it=IT(w);return it?SLOT_OF_[wearKind(it)]:null;};
 const look=cl=>({hair:cl.hair,dress:cl.dress,hs:cl.hs,sk:cl.sk,fit:cl.fit,acc:cl.acc,c2:cl.c2});
+/* スタンプの ごほうびだけで てに はいる とくべつな ふく */
+A2('special',[['ほしのティアラ',W('startiara')],['にじいろドレス',W('rainbowdress')],['ようせいのはね',W('wings')],['はなかんむり',W('flowercrown')],['まほうのつえ',W('wand')],['ガラスのくつ',W('glassshoe')],['ほしぞらマント',W('starcape')]]);
+const notSp=it=>it[3]!=='special';
 const BYW={};ITEMS.forEach(it=>BYW[it[0]]=it);
 const COLS=[['#e8606a'],['#f5a0c0'],['#ffa850'],['#ffd84a'],['#7fcf8f'],['#8fd0f0'],['#6a8ad8'],['#a88ae0'],['#f3c850',1],['#d8dce8',1]];
 const NCOL=8;
@@ -684,6 +696,7 @@ const novelOf=w=>[...new Set([...w].filter(c=>!NOLEARN.includes(c)).map(norm))].
 const hasDaku=w=>[...w].some(c=>!NOLEARN.includes(c)&&c!==norm(c));
 const hasSmall=w=>[...w].some(c=>'ッっャゃュゅョょァィゥェォぁぃぅぇぉ'.includes(c));
 function allowed(it){
+  if(it[3]==='special')return false;
   const w=it[0],s=scriptOf(w),k=knownN(s);
   if(s==='kata'&&knownN('hira')<46)return false;
   if(w.includes('ー')&&k<12)return false;
@@ -704,7 +717,7 @@ function pickItems(cat,n){
   for(const it of pool){if(out.length>=n)break;add(it);}
   const need=Math.min(n,3);
   if(out.length<need)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;add(it);}
-  if(out.length<need)for(const it of shuffle(ITEMS.filter(i=>!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;out.push(it);}
+  if(out.length<need)for(const it of shuffle(ITEMS.filter(i=>notSp(i)&&!out.includes(i))).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;out.push(it);}
   return out;
 }
 function pickColor(w,cl){
@@ -1314,7 +1327,7 @@ onShow.shelf=()=>{
   if(!save.shopSeen){save.shopSeen=true;persist();}
   const g=$('#sgrid'),zw=$('#shelf .zwrap'),keep=zw.scrollTop;g.innerHTML='';updateCoins();
   const kataOpen=knownN('hira')>=46;
-  [...ITEMS].filter(it=>(shopTab==='wear')===isWear(it)).filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
+  [...ITEMS].filter(notSp).filter(it=>(shopTab==='wear')===isWear(it)).filter(it=>scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]).sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
     const w=it[0],keys=buyKeys(w),got=keys.length>0,shown=got?IT(keys.find(k=>!save.owned.includes(k))||keys[0]):it,sp=spr(shown[1],shown[2]);
     const nOwned=keys.filter(k=>save.owned.includes(k)).length,allOwned=got&&nOwned===keys.length;
     const d=document.createElement('div');d.className='sc'+(got?' on':'')+(w===selW?' sel':'');d.appendChild(cvOf(got?sp.c:sp.g));
@@ -1333,15 +1346,16 @@ const MSZ=36,DSZ=72;
 if(!Array.isArray(save.placed))save.placed=[];
 if(!save.doll)save.doll={x:120,y:90,wear:{}};
 const SLOT_OF=SLOT_OF_;
-const SLOTS={feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},face:{z:5},head:{z:6},hand:{z:7},held:{z:-1}};
+const SLOTS={back:{z:-2},wand:{z:8},feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},face:{z:5},head:{z:6},hand:{z:7},held:{z:-1}};
 function drawDoll(ctx,x,y,t,hop){
   const bob=Math.round(Math.sin(t*2)*1)-(hop>0?Math.round(Math.abs(Math.sin(hop*9))*10):0),ox=Math.round(x-DSZ/2),oy=Math.round(y-DSZ/2+bob),k=DSZ/SP;
   ctx.fillStyle='rgba(80,50,80,.18)';ctx.fillRect(Math.round(x-14),Math.round(y+DSZ/2-6),28,3);
   const w=save.doll.wear||{};
   const held=w.held&&IT(w.held);
+  const back=w.back&&IT(w.back);if(back)ctx.drawImage(spr('wear',Object.assign({},back[2],{k:wearKind(back)})).c,ox,oy,DSZ,DSZ);
   if(held)ctx.drawImage(spr(held[1],held[2]).c,Math.round(ox+11*k),Math.round(oy-5*k),Math.round(15*k),Math.round(15*k));
   ctx.drawImage(spr('doll').c,ox,oy,DSZ,DSZ);
-  Object.keys(w).filter(sl=>sl!=='held'&&SLOTS[sl]&&IT(w[sl])).sort((a,b)=>SLOTS[a].z-SLOTS[b].z).forEach(sl=>{
+  Object.keys(w).filter(sl=>sl!=='held'&&sl!=='back'&&SLOTS[sl]&&IT(w[sl])).sort((a,b)=>SLOTS[a].z-SLOTS[b].z).forEach(sl=>{
     const it=IT(w[sl]);ctx.drawImage(spr('wear',Object.assign({},it[2],{k:wearKind(it)})).c,ox,oy,DSZ,DSZ);
   });
 }
@@ -1576,7 +1590,7 @@ function drawHome(t,dt){
         const hi=$('#homeInfo');hi.classList.remove('coinpop');void hi.offsetWidth;hi.classList.add('coinpop');
         H.pops.push({x:70,y:96,n:r.gain||0,age:0});chime(5);setTimeout(()=>chime(7),120);}
       if(c.pt>2.8){
-        if(c.gift&&!c.gave){c.gave=true;c.ph='gift';talk(c,'いつも ありがとう! これ、えらんでね!',2.5);
+        if(c.gift&&!c.gave){c.gave=true;c.ph='gift';talk(c,'いつも ありがとう! どれか あげるね!',2.5);
           setTimeout(()=>{if(screen!=='home'){c.ph='out';return;}giveFriendGift(r.ci,()=>{c.ph='out';talk(c,'またね!',2);});},900);}
         else{c.ph='out';talk(c,'またね!',2);}}
     }
@@ -1641,7 +1655,7 @@ function diaryList(){const n=save.day?save.day.n:1;return (save.diary||[]).map((
 function openDiary(i){save.diaryNew=false;persist();BOOK.i=i==null?0:i;$('#diary').classList.add('on');renderDiary();chime(5);}
 function renderDiary(){
   const list=diaryList(),pg=$('#dPage');pg.innerHTML='';
-  const tot=ITEMS.length;
+  const tot=ITEMS.filter(notSp).length;
   if(BOOK.i===0){
     pg.insertAdjacentHTML('beforeend',`<h3>まほうの にっき</h3><p class="dsub">なおした もの ${list.length} / ${tot}</p>`);
     if(!list.length){pg.insertAdjacentHTML('beforeend','<p class="dtxt">まだ なにも かいて ないよ。<br>おそうじを すると ここに かかれるよ。</p>');}
@@ -1692,13 +1706,14 @@ function onServed(r,c){
 function giftChoices(kind,ci){
   const own=new Set(save.owned),out=[];
   const wear=shuffle(ITEMS.filter(hasColor));
-  if(kind==='stamp'){for(const it of wear){for(const ci2 of shuffle([8,9])){const k=it[0]+'#'+ci2;if(!own.has(k)&&!out.includes(k)){out.push(k);break;}}if(out.length>=3)break;}}
+  if(kind==='stamp'){for(const it of shuffle(ITEMS.filter(i=>i[3]==='special')))if(!own.has(it[0])&&out.length<3)out.push(it[0]);
+    if(out.length<3)for(const it of wear){for(const ci2 of shuffle([8,9])){const k=it[0]+'#'+ci2;if(!own.has(k)&&!out.includes(k)){out.push(k);break;}}if(out.length>=3)break;}}
   else{
     const fc=CLIENTS[ci].favC;
     for(const it of wear){const k=it[0]+'#'+fc;if(!own.has(k)){out.push(k);}if(out.length>=2)break;}
     for(const it of shuffle(ITEMS.filter(i=>!isWear(i)))){if(!own.has(it[0])){out.push(it[0]);break;}}
   }
-  for(const it of shuffle(ITEMS)){if(out.length>=3)break;const k=hasColor(it)?it[0]+'#'+(Math.random()*NCOL|0):it[0];if(!own.has(k)&&!out.includes(k))out.push(k);}
+  for(const it of shuffle(ITEMS.filter(notSp))){if(out.length>=3)break;const k=hasColor(it)?it[0]+'#'+(Math.random()*NCOL|0):it[0];if(!own.has(k)&&!out.includes(k))out.push(k);}
   return out.slice(0,3);
 }
 let giftDone=null;
@@ -1713,7 +1728,7 @@ function openGift(who,text,keys,done){
 }
 function giveFriendGift(ci,done){
   save.pendingGift=save.pendingGift.filter((x,i,a)=>!(x===ci&&a.indexOf(x)===i));persist();
-  openGift(spr('person',look(CLIENTS[ci])).c,`${CLIENTS[ci].n}さん「いつも ありがとう! おれいに すきな ものを ひとつ どうぞ。」`,giftChoices('friend',ci),done);
+  openGift(spr('person',look(CLIENTS[ci])).c,`${CLIENTS[ci].n}さん「いつも ありがとう! どれか ひとつ あげるね。」`,giftChoices('friend',ci),done);
 }
 /* おみせの ほしで すこしずつ ごうかに(かざりは かべと ゆかに ちいさく) */
 function drawRankDecor(t){
@@ -1785,7 +1800,7 @@ $('#bCloseShop').addEventListener('click',()=>{initAudio();$('#bCloseShop').styl
 $('#bMorning').addEventListener('click',()=>{
   initAudio();
   if(save.stamps>=STAMP_MAX){$('#dayEnd').classList.remove('on');
-    openGift(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,'スタンプが ぜんぶ たまったよ! ごほうびを ひとつ えらんでね。',giftChoices('stamp'),()=>{save.stamps=0;persist();goMorning();});return;}
+    openGift(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,'スタンプが ぜんぶ たまったよ! とくべつな ふくを ひとつ どうぞ。',giftChoices('stamp'),()=>{save.stamps=0;persist();goMorning();});return;}
   goMorning();
 });
 function goMorning(){
