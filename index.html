@@ -830,7 +830,7 @@ function makeBg(idx){
 /* ========= 画面管理 ========= */
 let screen='title',lastScreen='title';
 const onShow={};
-function show(n){if(n==='back')n=lastScreen;if(n!==screen)lastScreen=screen;screen=n;$$('.screen').forEach(e=>e.classList.toggle('on',e.id===n));onShow[n]&&onShow[n]();}
+function show(n){if(n==='back')n=lastScreen;if(screen==='home'&&n!=='home'&&typeof settleHome==='function')settleHome();if(n!==screen)lastScreen=screen;screen=n;$$('.screen').forEach(e=>e.classList.toggle('on',e.id===n));onShow[n]&&onShow[n]();}
 const S={r:null,done:[],pop:[],tilt:[]};
 const rcv=$('#rc'),rc=rcv.getContext('2d');rc.imageSmoothingEnabled=false;
 const roomParts=[];
@@ -1318,8 +1318,19 @@ function spawnClient(){
   H.cs.push({id:r.id,x:262,tx:262});
   bellSfx();renderReqList(r.id);
 }
+/* みせを はなれる とき、かえりかけの おきゃくさんは しはらいを すませて いなくなる */
+function settleHome(){
+  let ch=false;
+  save.reqs=save.reqs.filter(r=>{
+    if(!r.leaving)return true;
+    if(r.leaving==='pay'){const c=H.cs.find(c=>c.id===r.id);if(!c||c.ph==='walk'||c.ph==='pay'){if(!(c&&c.paid))save.coins+=r.gain||0;}}
+    ch=true;return false;
+  });
+  if(ch){persist();updateCoins();}
+  H.cs=H.cs.filter(c=>reqOf(c.id));$('#hbub').classList.remove('on');H.talk=null;
+}
 onShow.home=()=>{refreshLocks();
-  save.reqs=save.reqs.filter(r=>r&&r.items&&r.items.length);
+  save.reqs=save.reqs.filter(r=>r&&r.items&&r.items.length&&r.leaving!=='paid'&&r.leaving!=='no');
   let qi=0;
   H.cs=save.reqs.map(r=>{
     if(r.leaving==='pay'){const x=r.hx!=null?r.hx:slotX(qi);qi++;return{id:r.id,x,ph:'walk'};}
