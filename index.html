@@ -230,6 +230,13 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .dface{width:56px;height:56px}
 .dstars{margin:0;color:#e8b830;font-size:22px;letter-spacing:2px}
 .drow2{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}.drow2 canvas{width:40px;height:40px}
+.dpanels{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:4px}
+.spanel{display:flex;align-items:center;gap:10px;background:#fff6ec;border:3px dashed #ff8fb0;border-radius:14px;padding:6px 10px;justify-content:center}
+.rpanel{display:flex;align-items:center;gap:10px;background:rgba(255,226,122,.12);border:2px solid rgba(243,200,80,.6);border-radius:14px;padding:4px 10px;justify-content:center}
+.pico{width:40px;height:40px;flex:none}
+.spanel .stamp{border-color:#f0c0d0;background:#fff;width:40px;height:40px}
+.spanel .stamp.on{border:none;background:none;transform:rotate(-10deg)}
+.spanel .stamp canvas{width:44px;height:44px}
 </style>
 </head>
 <body>
@@ -274,8 +281,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
    <p class="dl">きょうの おきゃくさん</p><div class="drow" id="dayFaces"></div>
    <p class="dl">もらった おかね</p><div class="gift" id="dayCoins"></div>
    <p class="dl">なおした もの</p><div class="drow" id="dayItems"></div>
-   <p class="dl">スタンプ</p><div class="stamps" id="dayStamps"></div>
-   <div class="dayrank" id="dayRank"></div>
+   <div class="dpanels"><div class="spanel"><div class="stamps" id="dayStamps"></div></div>
+   <div class="rpanel"><canvas class="pico" id="icoShop" width="24" height="24"></canvas><div class="dayrank" id="dayRank"></div></div></div>
    <button class="btn big" id="bMorning">☀ あさに する</button></div></div>
  <div id="dawn"></div>
  <div class="modal" id="gift"><div class="mcard"><canvas id="gfC" width="24" height="24"></canvas><p id="gfText"></p><div class="gpicks" id="gfItems"></div></div></div>
@@ -533,6 +540,9 @@ wi(d,o){const t=new D();K.wear(t,o);if(['socks','geta','sandal','glassshoe','win
   if(x1<0)return;const w=x1-x0+1,h=y1-y0+1,s=Math.max(1,Math.floor(Math.min(20/w,20/h)));const ox=Math.floor((N-w*s)/2),oy=Math.floor((N-h*s)/2);
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(t.g[y][x])d.r(ox+(x-x0)*s,oy+(y-y0)*s,s,s,t.g[y][x]);},
 hand(d,o){const sk='#ffe0c8';d.r(9,2,3,10,sk);d.r(12,7,3,5,sk);d.r(15,9,2,4,sk);d.r(6,12,11,7,sk);d.r(7,19,9,2,sk);d.r(5,10,3,5,sk);d.p(10,3,shade(sk,.3));},
+hanamaru(d){const c='#ff5a7a';for(let a=0;a<8;a++){const r=a/8*6.283;d.e(11+Math.cos(r)*7.4,11+Math.sin(r)*7.4,2.6,2.6,c,false);}d.e(11,11,7.4,7.4,c,false);
+  d.e(11,11,5.6,5.6,'#ffffff',false);d.e(11,11,4.4,4.4,c,false);d.e(11,11,2.8,2.8,'#ffffff',false);d.e(11.5,10.5,1.4,1.4,c,false);},
+shopicon(d){d.t(2,7,11,4,20,'#e88fa8');for(let x=1;x<21;x+=4)d.r(x,7,2,2,'#ffffff');d.r(3,9,16,11,'#fff6e6');d.r(6,12,4,8,'#c8956a');d.p(9,16,GOLD);d.r(12,12,5,4,'#bfe3f7');d.r(12,14,5,1,'#fff6e6');d.r(2,20,18,1,'#c8956a');},
 person(d,o){
   if(o.hs&&!o.witch){
     const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',c2=o.c2||shade(dr,-.3),skin=o.sk||'#ffe0c8',hs=o.hs,fit=o.fit||'dress',acc=o.acc||'';
@@ -666,29 +676,29 @@ function cleanSave(){
 }
 /* お客さん(裏設定: すきな店・にがてな店) */
 const CLIENTS=[
- {n:'まりー',favC:1,hs:'long',acc:'ribbon',fit:'dress',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
+ {n:'まりー',need:3,favC:1,hs:'long',acc:'ribbon',fit:'dress',hair:'#c98a5a',dress:'#e58fa5',fav:'sweets',dis:'nature',hi:'こんにちは。',ask:'おねがいできますか?',lk:'あまい かおりが すると しあわせなの。',dl:'ちょっぴり むしが にがてだけど…。',tx:'ありがとう。とても たすかりました。',tf:'まあ、あまい かおり! すてきな おしごとね。',td:'ふう…がんばって よかった。ありがとう。',
   fl:['きょうは まどから いいにおいが するわ。','あまいものを たべたい きぶんなの。','ならんで まつのも わるくないわね。']},
- {n:'とむ',favC:6,hs:'spiky',fit:'shirt',c2:'#4a6ab0',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'さんきゅー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。',
+ {n:'とむ',need:2,favC:6,hs:'spiky',fit:'shirt',c2:'#4a6ab0',hair:'#7a5a4a',dress:'#8fb8e8',fav:'toy',dis:'home',hi:'やあ! きたよ!',ask:'たのむぜ!',lk:'ぼく、あそぶのが だいすきなんだ!',dl:'おそうじは ちょっと にがてなんだ…。',tx:'さんきゅー! かっこいい!',tf:'さいこう! また あそびに くるよ!',td:'やるじゃん! いえも わるくないな。',
   fl:['ひまだなあ。だれか あそぼうよ!','まだかなあ、まだかなあ!','ぼくの おもちゃ ぜんぶ ちらかっちゃった!']},
- {n:'るる',favC:7,hs:'bun',fit:'robe',sk:'#ffe4d0',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。',
+ {n:'るる',need:4,favC:7,hs:'bun',fit:'robe',sk:'#ffe4d0',hair:'#f0c870',dress:'#bfa0e8',fav:'books',dis:'toy',hi:'ふぁあ…こんにちは。',ask:'おねがい…ね。',lk:'かみの においって おちつくの…。',dl:'うるさい おもちゃは ちょっと にがて…。',tx:'ありがとう…ねむく なっちゃった。',tf:'ふふ…とっても いごこち いい。',td:'しずかに なったね…ありがとう。',
   fl:['ふぁあ…ねむい…。','ほんを よみながら まってるの…。','しずかな おみせは すてき…。']},
- {n:'じゃん',favC:0,hs:'short',fit:'coat',acc:'beret',sk:'#fff0e0',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ぼんじゅーる!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'めるしー! すてきだ!',tf:'ぶらぼー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。',
+ {n:'じゃん',need:3,favC:0,hs:'short',fit:'coat',acc:'beret',sk:'#fff0e0',hair:'#4a3a5a',dress:'#7fc8a0',fav:'clothes',dis:'sweets',hi:'ぼんじゅーる!',ask:'たのんだよ!',lk:'おしゃれは ぼくの いのちさ!',dl:'あまいものは むねやけが…。',tx:'めるしー! すてきだ!',tf:'ぶらぼー! かんぺきな おしゃれだ!',td:'うーん…あまい においも まあ いいか。',
   fl:['きょうの ぼうし、どうかな?','おしゃれには がまんも ひつようさ。','まつ じかんも おしゃれに すごすのさ。']},
- {n:'みな',favC:4,hs:'bob',fit:'dress',acc:'glasses',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。',
+ {n:'みな',need:5,favC:4,hs:'bob',fit:'dress',acc:'glasses',hair:'#e8a0b0',dress:'#f3c850',fav:'nature',dis:'music',hi:'あの…こんにちは。',ask:'おねがい します…。',lk:'おはなや むしさんが すきなの。',dl:'おおきな おとは すこし こわい…。',tx:'ありがとう…うれしい。',tf:'わあ…もりの かぜが ふいてる!',td:'しずかに なって ほっとした…。',
   fl:['あの…ここで まってて いいですか?','おはなの かおりが すると おちつくの…。','どきどき するなあ…。']},
- {n:'ふぇり',favC:2,hs:'curly',fit:'overalls',sk:'#d9a070',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。',
+ {n:'ふぇり',need:2,favC:2,hs:'curly',fit:'overalls',sk:'#d9a070',hair:'#a8c8a0',dress:'#e8606a',fav:'fruit',dis:'clothes',hi:'おーい!',ask:'たのむー!',lk:'くだものは ぼくの ごはんだよ!',dl:'きがえは めんどうで にがて…。',tx:'ありがと! ぴかぴかだ!',tf:'おいしそう! ひとつ たべて いい?',td:'きれいに なると きもちいいな。',
   fl:['おなか すいたなあ!','まだー? はやく はやくー!','きょうは なにを たべようかな!']},
- {n:'そふぃ',favC:7,hs:'pony',fit:'dress',acc:'flower',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 らららら〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜',
+ {n:'そふぃ',need:3,favC:7,hs:'pony',fit:'dress',acc:'flower',hair:'#d8a070',dress:'#8a7ad8',fav:'music',dis:'fruit',hi:'ごきげんよう〜',ask:'おねがいね〜',lk:'おとが きこえると わくわくするの〜',dl:'すっぱいものは ちょっと にがて…。',tx:'ありがとう〜 らららら〜',tf:'すてき! うたいたく なっちゃう〜',td:'ふふ、すっぱい においも きえたわ〜',
   fl:['らら〜 まってる あいだも うたっちゃう〜','きょうの かぜは いいおとね〜','ことりの こえが きこえるわ〜']},
- {n:'おすかー',favC:5,hs:'short',fit:'coat',acc:'glasses',sk:'#fff0e0',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。',
+ {n:'おすかー',need:4,favC:5,hs:'short',fit:'coat',acc:'glasses',sk:'#fff0e0',hair:'#9aa0d8',dress:'#f0a0c8',fav:'denki',dis:'books',hi:'ふん、きたぞ。',ask:'よろしく たのむ。',lk:'しくみを しらべるのが すきでな。',dl:'ほんは ねむく なるから にがてだ…。',tx:'うむ。かんしゃする。',tf:'ほう…ぴったり もとどおりだ!',td:'ほんも わるく ない…かもな。',
   fl:['ふむ…じかんは せいかくに ほしい。','この おみせの しくみは おもしろいな。','まだか…いや、まつのも わるくない。']},
- {n:'よね',favC:3,hs:'bun',fit:'apron',acc:'glasses',sk:'#f6dcc4',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。',
+ {n:'よね',need:3,favC:3,hs:'bun',fit:'apron',acc:'glasses',sk:'#f6dcc4',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。',
   fl:['あらあら、まつ あいだに おちゃを…。','おひさまが ぽかぽかで いいわねえ。','ゆっくり やって くださいねえ。']},
- {n:'ぽろ',favC:3,hair:'#e0903a',dress:'#7ab0e8',hs:'spiky',fit:'overalls',acc:'cap',fav:'sweets',dis:'denki',hi:'やっほー!',ask:'おねがい!',lk:'おかしが あると げんきが でるんだ!',dl:'びりびりは ちょっと こわい…。',tx:'やったー! ありがとう!',tf:'うわあ、おいしそう! たからものに する!',td:'きかいも わるく ないね!',
+ {n:'ぽろ',need:2,favC:3,hair:'#e0903a',dress:'#7ab0e8',hs:'spiky',fit:'overalls',acc:'cap',fav:'sweets',dis:'denki',hi:'やっほー!',ask:'おねがい!',lk:'おかしが あると げんきが でるんだ!',dl:'びりびりは ちょっと こわい…。',tx:'やったー! ありがとう!',tf:'うわあ、おいしそう! たからものに する!',td:'きかいも わるく ないね!',
   fl:['ぼくは まいにち おかしを たべるんだ!','おそうじ、みてても いい?','ちらかってると わくわくしない?']},
- {n:'みどり',favC:4,hair:'#3a7a5a',dress:'#f0b878',hs:'braids',fit:'coat',acc:'glasses',fav:'books',dis:'toy',hi:'こんにちは、おじゃまします。',ask:'おねがいします。',lk:'ほんが たくさん あると うれしいの。',dl:'おもちゃの おとは すこし にがて…。',tx:'ありがとう。とても みやすく なったわ。',tf:'まあ、ほんが ならんでる! しあわせ…。',td:'しずかで いいわね。ありがとう。',
+ {n:'みどり',need:4,favC:4,hair:'#3a7a5a',dress:'#f0b878',hs:'braids',fit:'coat',acc:'glasses',fav:'books',dis:'toy',hi:'こんにちは、おじゃまします。',ask:'おねがいします。',lk:'ほんが たくさん あると うれしいの。',dl:'おもちゃの おとは すこし にがて…。',tx:'ありがとう。とても みやすく なったわ。',tf:'まあ、ほんが ならんでる! しあわせ…。',td:'しずかで いいわね。ありがとう。',
   fl:['ほんを よむ じかんが すきなの。','きょうは どんな おはなしかな。','ゆっくり まつのも たのしいわ。']},
- {n:'だいち',favC:0,hair:'#5a4a3a',dress:'#e8806a',c2:'#5a6a8a',hs:'short',fit:'shirt',acc:'mustache',sk:'#e0b088',fav:'home',dis:'sweets',hi:'おう、きたぞ!',ask:'たのんだぞ!',lk:'うちの なかが きれいだと きもちいいな!',dl:'あまいものは むねやけが するんだよなあ…。',tx:'ありがとな! たすかったぜ!',tf:'いやあ、さっぱりした! さいこうだ!',td:'あまいにおいも、わるくねえな!',
+ {n:'だいち',need:3,favC:0,hair:'#5a4a3a',dress:'#e8806a',c2:'#5a6a8a',hs:'short',fit:'shirt',acc:'mustache',sk:'#e0b088',fav:'home',dis:'sweets',hi:'おう、きたぞ!',ask:'たのんだぞ!',lk:'うちの なかが きれいだと きもちいいな!',dl:'あまいものは むねやけが するんだよなあ…。',tx:'ありがとな! たすかったぜ!',tf:'いやあ、さっぱりした! さいこうだ!',td:'あまいにおいも、わるくねえな!',
   fl:['はらが へったなあ、はっはっは!','きょうも いい てんきだ!','はやく かたづけて ほしいなあ。']}
 ];
 /* 保存 */
@@ -780,7 +790,7 @@ function initAudio(){
   wakeAC();
 }
 ['touchstart','touchend','pointerdown','click'].forEach(ev=>document.addEventListener(ev,()=>{if(AC)wakeAC();},{capture:true,passive:true}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)wakeAC();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)wakeAC();else if(typeof P!=='undefined'&&P.dirty){P.dirty=false;persist();}});
 let REC=null;
 function tone(f,t0,dur,type='triangle',vol=.12){
   if(REC){REC.push([f,t0,dur,type,vol]);return;}
@@ -840,7 +850,9 @@ function sfx(key){
   const a=list.find(x=>x._ready&&(x.paused||x.ended));if(!a)return;
   a._ready=false;
   const go=()=>{try{const p=a.play();p&&p.catch&&p.catch(()=>{a._ready=true;});}catch(e){a._ready=true;}};
-  requestAnimationFrame(()=>setTimeout(go,0));
+  const t0=performance.now();
+  const tryGo=()=>{if(HAS_TTS&&speechSynthesis.speaking&&performance.now()-t0<450){setTimeout(tryGo,40);return;}go();};
+  requestAnimationFrame(()=>setTimeout(tryGo,0));
 }
 const chime=i=>sfx('c'+(i%8));
 const fanfare=()=>sfx('fan');
@@ -1139,7 +1151,7 @@ function arrive(L){
   try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}
   const f=P.fl[idx];burst(pzParts,f.hx+f.w/2,HY+SP*SC/2,16,1.6);
   if(!NOLEARN.includes(ch)){const k=norm(ch);save.seen[k]=(save.seen[k]||0)+1;}
-  persistSoon();
+  P.dirty=true;
   if(P.filled.every(Boolean)&&P.L.every(l=>l.slot<0||l.st==='placed'))completePuzzle();
 }
 function completePuzzle(){
@@ -1150,7 +1162,7 @@ function completePuzzle(){
   setTimeout(()=>{if(tok===P.tok)finishItem();},3900);
 }
 function finishItem(){
-  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
+  P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
@@ -1181,7 +1193,8 @@ lcv.addEventListener('pointermove',e=>{
   const m=P.sz*.5;tx=Math.max(m,Math.min(P.W-m,tx));ty=Math.max(m,Math.min(P.H-m,ty));
   const i=nearSlot({ch:L.ch,x:tx,y:ty},P.sz*1.5);
   if(i>=0){const s=P.slots[i],d=Math.hypot(tx-s.x,ty-s.y),pull=Math.max(0,1-d/(P.sz*1.5))*.35;tx+=(s.x-tx)*pull;ty+=(s.y-ty)*pull;}
-  if(i!==P.hot){P.hot=i;if(i>=0)hoverSfx();}
+  if(i!==P.hot){P.hot=i;if(i>=0){hoverSfx();if(IS_IOS&&!drag.quiet){drag.quiet=true;stopHold(false);}}
+    else if(drag.quiet){drag.quiet=false;startHold(L.ch);}}
   L.tx=tx;L.ty=ty;
 });
 function endDrag(){
@@ -1746,12 +1759,17 @@ save.friend=save.friend||{};save.stamps=save.stamps||0;save.servedTotal=save.ser
 const FRIEND_MAX=3,STAMP_MAX=5,RANKS=[0,4,10,18,28];
 const rankOf=n=>RANKS.filter(v=>n>=v).length;
 const hearts=ci=>save.friend[ci]||0;
-function heartsHTML(ci){const h=hearts(ci);let s='';for(let i=0;i<FRIEND_MAX;i++)s+=`<i class="${i<h?'on':''}">♥</i>`;return `<span class="hearts">${s}</span>`;}
+const needOf=ci=>(CLIENTS[ci]&&CLIENTS[ci].need)||FRIEND_MAX;
+function heartsHTML(ci){const h=Math.min(hearts(ci),needOf(ci));let s='';for(let i=0;i<needOf(ci);i++)s+=`<i class="${i<h?'on':''}">♥</i>`;return `<span class="hearts">${s}</span>`;}
 /* しはらいの とき: なかよし と おみせの ほし */
 function onServed(r,c){
   const before=rankOf(save.servedTotal);save.servedTotal++;
-  const cl=CLIENTS[r.ci];save.friend[r.ci]=hearts(r.ci)+(r.cat===cl.fav?2:1);
-  let gift=false;if(save.friend[r.ci]>=FRIEND_MAX){save.friend[r.ci]-=FRIEND_MAX;save.pendingGift.push(r.ci);gift=true;}
+  const cl=CLIENTS[r.ci],need=needOf(r.ci);
+  /* ふつうは ハート1つ。すきな おみせなら +1、たまに とても よろこんで +1 */
+  save.friend[r.ci]=Math.min(need,hearts(r.ci)+1+(r.cat===cl.fav?1:0)+(Math.random()<.25?1:0));
+  /* プレゼントは 1にち ひとりまで(いっぺんに ならない ように) */
+  let gift=false;const D=save.day;
+  if(save.friend[r.ci]>=need&&!(D&&D.gifted)){save.friend[r.ci]=0;save.pendingGift.push(r.ci);gift=true;if(D)D.gifted=true;}
   persist();
   if(c){H.hfx.push({x:c.x+24,y:104,age:0});}
   if(rankOf(save.servedTotal)>before){addEvent({type:'rank',n:rankOf(save.servedTotal)});setTimeout(()=>{if(screen==='home'){talk(WITCH,'おみせの ほしが ふえたよ! すてきに なったね。',4);burst(hparts,120,40,30,1.6);sfx('fan');}},1600);}
@@ -1806,7 +1824,7 @@ function drawHeartsFx(dt){
 /* スタンプカード */
 function renderStamps(fresh){
   const el=$('#dayStamps');el.innerHTML='';
-  for(let i=0;i<STAMP_MAX;i++){const d=document.createElement('span');d.className='stamp'+(i<save.stamps?' on':'')+(fresh&&i===save.stamps-1?' new':'');d.textContent=i<save.stamps?'★':'';el.appendChild(d);}
+  for(let i=0;i<STAMP_MAX;i++){const d=document.createElement('span');d.className='stamp'+(i<save.stamps?' on':'')+(fresh&&i===save.stamps-1?' new':'');if(i<save.stamps)d.appendChild(cvOf(spr('hanamaru').c));el.appendChild(d);}
 }
 /* ========= 1にちの ながれ(あさ → よる → へいてん → けっか → あさ) ========= */
 function newDay(n,next){return{n,quota:n===1?3:4,spawned:0,done:0,served:0,coins:0,items:[],met:[],next:next||[],closed:false};}
@@ -1849,6 +1867,7 @@ function showDayEnd(){
   const it=$('#dayItems');it.innerHTML='';D.items.forEach(k=>{const x=IT(k);if(x)it.appendChild(cvOf(spr(x[1],x[2]).c));});
   if(!D.items.length)it.innerHTML='<span>きょうは おやすみ</span>';
   let fresh=false;if(!D.stamped){D.stamped=true;(save.dayLog=save.dayLog||[]).push({n:D.n,met:[...D.met],coins:D.coins,items:[...D.items],served:D.served,stars:rankOf(save.servedTotal)});save.diaryNew=true;save.stamps=Math.min(STAMP_MAX,save.stamps+1);persist();fresh=true;}renderStamps(fresh);
+  [['#icoShop','shopicon']].forEach(([q,k])=>{const c=$(q).getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr(k).c,0,0);});
   $('#dayRank').innerHTML='★'.repeat(rankOf(save.servedTotal))+'<span class="rk0">'+'★'.repeat(5-rankOf(save.servedTotal))+'</span>';
   $('#dayEnd').classList.add('on');fanfare();
 }
@@ -1891,7 +1910,7 @@ $('#bStart').addEventListener('click',()=>{initAudio();chime(2);if(!save.tut)sta
 $('#bShelf').addEventListener('click',()=>{initAudio();if(!canShop()){boo();const b=$('#bShelf');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show('shelf');});
 $('#bSnd').addEventListener('click',()=>{initAudio();unlockTTS();setSound(!soundOn);if(soundOn)say('おとが でるよ');});
 $('#bRoomBack').addEventListener('click',()=>{$('#clear').classList.remove('on');show('home');});
-$('#bPzBack').addEventListener('click',()=>{stopFinger();stopVoice(true);drag=null;P.tok++;show('room');updateRoomHud();});
+$('#bPzBack').addEventListener('click',()=>{if(P.dirty){P.dirty=false;persist();}stopFinger();stopVoice(true);drag=null;P.tok++;show('room');updateRoomHud();});
 $('#bHear').addEventListener('click',()=>{initAudio();say(P.word);});
 $('#bClNext').addEventListener('click',()=>{initAudio();leaveClient();});
 const canShop=()=>Object.keys(save.got).length>0;
