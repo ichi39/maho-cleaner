@@ -96,6 +96,16 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .sc canvas{width:100%;height:100%;opacity:.45}
 .sc.on canvas{opacity:1}
 .sc.bump{animation:pop .4s}
+.coin{display:inline-block;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6b0,#f3c850 60%,#d9a845);border:2px solid #c08f3a;vertical-align:-3px;margin-right:3px}
+.coin.big{width:26px;height:26px}
+.gift{font-size:20px;color:#c08f3a}
+#buyBar{width:100%;min-height:92px;padding:8px 12px;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--cream);border-top:3px solid var(--gold)}
+#buyBar canvas{width:64px;height:64px}
+#buyBar .btn[disabled]{opacity:.5}
+.sc{position:relative;flex-direction:column}
+.sc.sel{outline:3px solid #f08aa8}
+.sc .pr{position:absolute;bottom:2px;right:4px;font-size:12px;color:#8a6a4a}
+.sc .ok{position:absolute;top:2px;right:4px;font-size:14px;color:#e8607a}
 </style>
 </head>
 <body>
@@ -103,19 +113,19 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  <section id="title" class="screen on">
   <canvas id="cTitle"></canvas>
   <div class="box"><div class="sub">まほうの おそうじ ものがたり</div><h1>魔法のお掃除屋さん</h1><div class="tag">ばらばらの ものを なおして、おみせを ぴかぴかに!</div></div>
-  <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf">★ たからもの</button><button class="btn sm" id="bSnd">おと: ON</button></div>
+  <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf">かいもの</button><button class="btn sm" id="bSnd">おと: ON</button></div>
  </section>
  <section id="home" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><button class="btn sm" data-go="title">◀</button><span id="homeInfo" style="color:#ffe27a"></span><button class="btn sm pink" data-go="shelf">★ たからもの</button></div>
+  <div class="bar" style="background:#2a2550"><button class="btn sm" data-go="title">◀</button><span id="homeInfo" style="color:#ffe27a"></span><button class="btn sm pink" data-go="shelf">かいもの</button></div>
   <canvas id="hc" width="240" height="150"></canvas>
   <div id="reqList"></div>
  </section>
  <section id="room" class="screen">
   <div class="bar" style="background:#2a2550"><button class="btn sm" id="bRoomBack">◀ もどる</button><h2 id="roomName" style="color:#fff"></h2><span id="roomLeft" style="color:#ffe27a;min-width:64px;text-align:right"></span></div>
   <canvas id="rc" width="240" height="150"></canvas>
-  <div class="info">よごれた ものを タップしてね</div>
+  <div class="info">よごれた ものを タップしてね　<span id="coinR"></span></div>
   <div class="dlg" id="dlgReq"><canvas id="dlgC" width="24" height="24"></canvas><p><span class="who" id="reqWho"></span><br><span id="reqText"></span></p><button class="btn" id="bAccept">はじめる ▶</button></div>
-  <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br><span id="clText"></span></p><div class="gift"><canvas id="giftC" width="24" height="24"></canvas><span>おれいに もらったよ!</span></div><button class="btn" id="bClNext">おみせに もどる ▶</button></div>
+  <div class="dlg" id="clear"><canvas id="clC" width="24" height="24"></canvas><p><span class="who" id="clWho"></span><br><span id="clText"></span></p><div class="gift" id="coinGain"></div><button class="btn" id="bClNext">おみせに もどる ▶</button></div>
  </section>
  <section id="puzzle" class="screen">
   <div class="bar"><button class="btn sm" id="bPzBack">◀ もどる</button><h2 id="pzTitle"></h2><button class="btn sm pink" id="bHear">♪ きく</button></div>
@@ -124,8 +134,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="tray"></div>
  </section>
  <section id="shelf" class="screen">
-  <div class="bar"><button class="btn sm" data-go="back">◀ もどる</button><h2 id="sCount">★</h2><span style="width:64px"></span></div>
+  <div class="bar"><button class="btn sm" data-go="back">◀ もどる</button><h2 id="sCoin"></h2><span style="width:64px"></span></div>
   <div class="zwrap"><div class="sg" id="sgrid"></div></div>
+  <div id="buyBar"></div>
  </section>
 </div>
 <script>
@@ -290,6 +301,12 @@ bowl(d,o){d.e(11,12,9,8,CR);d.r(0,0,22,11,null);d.r(2,10,18,1,'#e8d0b8');d.r(8,1
   else{d.e(6,8,3.5,2.5,'#7fd08a');d.e(11,6,4,3,'#6fcf8f');d.e(16,8,3.5,2.5,'#9be8a0');d.e(9,8,1.6,1.6,'#e8465a');d.e(14,7,1.6,1.6,'#e8465a');d.e(11,8,1.4,1.2,'#ffe27a');}},
 knife(d){for(const t of [0,1,2])d.l(10+t,15,17+t,3,'#dfe6f0');d.l(12,3,19,3,'#c0c8d8');d.r(8,15,6,2,GOLD);for(const t of [0,1,2])d.l(3+t,20,8+t,16,'#c89a6a');d.p(2,20,'#c89a6a');},
 yarn(d,o){const c=o.c;d.l(15,20,20,3,'#c89a6a');d.l(16,20,21,3,'#c89a6a');d.e(11,12,8,8,c);d.l(5,9,17,15,shade(c,-.2));d.l(4,12,16,8,shade(c,.35));d.l(6,16,15,18,shade(c,-.2));d.r(1,18,4,1,c);d.r(1,19,2,1,c);},
+star(d,o){const c=o.c||'#ffd84a';d.t(1,9,11,2,8,c);d.r(2,9,18,3,c);d.t(12,19,7,7,2,c);d.t(12,19,15,7,2,c);d.p(9,10,E1);d.p(13,10,E1);d.p(7,12,PK);d.p(15,12,PK);d.p(11,12,'#d0607a');},
+fish(d,o){const c=o.c||'#7fc8e8';d.r(16,9,1,4,c);d.r(17,8,1,6,c);d.r(18,7,1,8,c);d.r(19,6,1,10,c);d.e(10,11,7.5,5.2,c);d.e(10,14,3,1.8,shade(c,.45),false);d.e(11,6,3,1.8,shade(c,-.15));d.p(6,10,'#fff');d.p(6,11,E1);d.p(9,8,shade(c,.4));d.p(12,8,shade(c,.4));d.p(15,11,shade(c,-.2));},
+mushroom(d,o){const c=o.c||'#e8465a';d.e(11,10,9.5,7.5,c);d.r(0,12,22,10,null);d.r(7,12,8,7,CR);d.e(11,19,4.5,1.6,CR);d.r(7,12,8,1,shade(CR,-.12));d.e(7,8,1.6,1.6,'#fff',false);d.e(12,6,2,2,'#fff',false);d.e(16,9,1.4,1.4,'#fff',false);d.p(9,15,E1);d.p(13,15,E1);d.p(8,17,PK);d.p(14,17,PK);},
+chair(d,o){const c=o.c||'#e8a0b0';d.r(5,2,12,9,c);d.r(8,3,1,6,shade(c,.4));d.r(11,3,1,6,shade(c,.4));d.r(14,3,1,6,shade(c,.4));d.r(3,10,16,3,shade(c,.2));d.r(4,13,2,8,BR);d.r(16,13,2,8,BR);d.r(5,2,12,1,shade(c,-.2));},
+candle(d,o){d.e(11,4.5,2,3,'#ffd84a');d.e(11,5.5,1,1.6,'#ff9a3a',false);d.r(8,8,6,11,CR);d.r(8,8,2,5,'#fff8f0');d.r(13,8,1,11,shade(CR,-.12));d.p(11,7,E1);d.r(10,12,2,3,shade(CR,-.1));d.r(5,19,12,2,GOLD);d.e(11,19,6,1.5,GOLD);},
+broom(d,o){for(const t of [0,1])d.l(19+t,1,10+t,14,BR);d.t(13,20,8,5,12,'#e8c070');d.r(5,13,6,2,'#e8606a');d.l(5,16,4,20,shade('#e8c070',-.3));d.l(8,15,8,20,shade('#e8c070',-.3));d.l(11,15,12,20,shade('#e8c070',-.3));},
 person(d,o){const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',skin='#ffe0c8',y0=o.witch?5:0;
   if(o.witch){const hc=o.hat||'#6a5ac8';d.t(0,4,11,2,9,hc);d.r(4,5,14,2,hc);d.r(7,4,8,1,GOLD);d.p(11,0,hc);d.p(12,-1,hc);}
   d.r(6,y0+5,2,7,h);d.r(14,y0+5,2,7,h);d.e(11,y0+6,4.6,4.6,skin);d.e(11,y0+3.8,5.2,3,h);d.r(7,y0+4,3,2,h);
@@ -343,6 +360,13 @@ A('music',[['ピアノ','piano',{c:'#b8a0e8'}],['オルガン','piano',{t:'organ
 A('denki',[['カメラ','camera',{c:'#8fd0c0'}],['テレビ','tv',{c:'#e8a0b0'}],['ロボット','robot',{c:'#f0c0a0'}]]);
 A('nature',[['はな','flower',{c:'#ff9ab8'}],['むし','ladybug'],['わに','animal',{t:'croc',c:'#6fc88f'}],['へび','snake',{c:'#7fcf8f'}],['ねこ','animal',{t:'cat'}],['ゆき','snowman'],['おに','animal',{t:'oni'}]]);
 A('home',[['やかん','kettle',{c:'#e0a0c0'}],['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ヌードル','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}],['ミルクヲノム','bottle',{c:'#fff6e6',milk:1}]]);
+
+A('nature',[['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['ユリ','flower',{c:'#fff0f6'}],['ネコ','animal',{t:'cat',c:'#d8c8b8'}],['ムシ','ladybug'],['ワニ','animal',{t:'croc',c:'#8fd09f'}],['ハナ','flower',{c:'#ffb36a'}],['ユキ','snowman'],['ホシ','star',{c:'#ffe9a0'}],['ツキ','moon'],['クモ','cloud',{c:'#e8f4ff'}],['サカナ','fish',{c:'#f0a0c0'}],['キノコ','mushroom',{c:'#b8a0e8'}],['ソラ','cloud',{c:'#d8ecff'}]]);
+A('toy',[['ふね','boat',{c:'#7fc8e8'}],['フネ','boat',{c:'#f0b878'}],['クマ','animal',{t:'bear',c:'#e0b890'}]]);
+A('home',[['いす','chair'],['ほうき','broom'],['ろうそく','candle'],['イス','chair',{c:'#8fb8e8'}],['ホウキ','broom'],['ロウソク','candle'],['ヤカン','kettle',{c:'#8fb8e8'}]]);
+A('clothes',[['いと','yarn',{c:'#8fb8e8'}],['イト','yarn',{c:'#f0c870'}],['カサ','umbrella',{c:'#f5a0b8'}],['クツ','shoe',{c:'#7a9ad8'}],['フク','shirt',{c:'#f0a0c8'}],['ヌノ','cloth',{c:'#f0a0c8'}]]);
+A('fruit',[['めろん','fruit',{t:'orange',c:'#9be8a0'}],['かき','fruit',{t:'orange',c:'#ff8a3a'}],['なし','fruit',{t:'orange',c:'#e8e07a'}],['くり','fruit',{t:'orange',c:'#a8683a'}],['メロン','fruit',{t:'orange',c:'#9be8a0'}],['カキ','fruit',{t:'orange',c:'#ff8a3a'}],['ナシ','fruit',{t:'orange',c:'#e8e07a'}]]);
+A('books',[['あかり','lamp',{c:'#ffe27a'}],['ホン','book',{c:'#e8a0b0'}]]);
 const BYW={};ITEMS.forEach(it=>BYW[it[0]]=it);
 /* お客さん(裏設定: すきな店・にがてな店) */
 const CLIENTS=[
@@ -357,7 +381,7 @@ const CLIENTS=[
  {n:'ヨネ',hair:'#d8d8e0',dress:'#a8b8f0',fav:'home',dis:'denki',hi:'あらあら、こんにちは。',ask:'よろしくねえ。',lk:'おうちが いちばん おちつくわあ。',dl:'きかいは ちんぷんかんぷんで…。',tx:'ありがとうねえ。',tf:'ああ、ほっと するわあ。おちゃでも どうぞ。',td:'きかいも ぴかぴか。たすかったわあ。'}
 ];
 /* 保存 */
-let save={reqs:[],got:{},gifts:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
+let save={reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
 try{const s=JSON.parse(localStorage.getItem('maho-cleaner-3')||'null');if(s)save=Object.assign(save,s);}catch(e){}
 const persist=()=>{try{localStorage.setItem('maho-cleaner-3',JSON.stringify(save));}catch(e){}};
 let soundOn=save.snd!==false;
@@ -540,7 +564,9 @@ rcv.addEventListener('pointerdown',e=>{
       if(S.done[j]){say(r.items[j][0]);S.pop[j]=.7;burst(roomParts,px,py-22,10);chime(j);}else openPuzzle(j);
       return;}}
 });
-function updateRoomHud(){
+const coinHTML=n=>`<span class="coin"></span><b>${n}</b>`;
+function updateCoins(){['#homeInfo','#coinR','#sCoin'].forEach(q=>{const e=$(q);if(e)e.innerHTML=coinHTML(save.coins);});}
+function updateRoomHud(){updateCoins();
   const r=S.r;$('#roomName').textContent=CATS[r.cat].name;
   $('#roomLeft').textContent='●'.repeat(S.done.filter(v=>!v).length)+'○'.repeat(S.done.filter(v=>v).length);
 }
@@ -558,12 +584,13 @@ function openRequest(id){
 function showClear(){
   const r=S.r,cl=CLIENTS[r.ci];fanfare();portrait($('#clC'),cl);
   $('#clWho').textContent=cl.n;$('#clText').textContent=thanksText(r);
-  S.gift=pick(r.items);const g=$('#giftC').getContext('2d');g.clearRect(0,0,24,24);g.drawImage(spr(S.gift[1],S.gift[2]).c,0,0);
+  S.gain=2*r.items.length+(r.cat===cl.fav?4:0);
+  $('#coinGain').innerHTML=`<span class="coin big"></span>+ ${S.gain}`;
   $('#clear').classList.add('on');
 }
 function leaveClient(){
   const r=S.r;if(!r)return;
-  save.gifts=[...save.gifts.filter(w=>w!==S.gift[0]),S.gift[0]].slice(-6);
+  save.coins+=S.gain||0;
   save.reqs=save.reqs.filter(q=>q.id!==r.id);persist();S.r=null;
   $('#clear').classList.remove('on');show('home');
 }
@@ -609,7 +636,7 @@ function completePuzzle(){
   setTimeout(()=>{if(tok===P.tok)finishItem();},2600);
 }
 function finishItem(){
-  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;persist();
+  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
@@ -701,15 +728,30 @@ function drawTitle(t){
 }
 /* ========= たからもの棚 ========= */
 const cvOf=src=>{const c=document.createElement('canvas');c.width=c.height=SP;c.getContext('2d').drawImage(src,0,0);return c;};
+const priceOf=w=>5+5*[...w].length;
+let selW=null;
+function renderBuy(){
+  const bar=$('#buyBar');bar.innerHTML='';if(!selW)return;
+  const it=BYW[selW],owned=save.owned.includes(selW),price=priceOf(selW);
+  bar.appendChild(cvOf(spr(it[1],it[2]).c));
+  const b=document.createElement('button');b.className='btn';
+  if(owned){const on=save.shown.includes(selW);b.textContent=on?'おみせから はずす':'おみせに かざる';
+    b.addEventListener('click',()=>{save.shown=on?save.shown.filter(w=>w!==selW):[...save.shown,selW].slice(-3);persist();chime(3);onShow.shelf();});}
+  else{b.innerHTML=`<span class="coin"></span>${price} で かう`;b.disabled=save.coins<price;
+    b.addEventListener('click',()=>{if(save.coins<price)return;save.coins-=price;save.owned.push(selW);save.shown=[...save.shown,selW].slice(-3);persist();fanfare();onShow.shelf();});}
+  bar.appendChild(b);
+}
 onShow.shelf=()=>{
-  const g=$('#sgrid');g.innerHTML='';let n=0;
-  ITEMS.forEach(it=>{
-    const sp=spr(it[1],it[2]),got=!!save.got[it[0]];if(got)n++;
-    const c=cvOf(got?sp.c:sp.g);const d=document.createElement('div');d.className='sc'+(got?' on':'');d.appendChild(c);
-    d.addEventListener('click',()=>{if(got){initAudio();say(it[0]);d.classList.remove('bump');void d.offsetWidth;d.classList.add('bump');chime(n%8);}});
+  const g=$('#sgrid'),zw=$('#shelf .zwrap'),keep=zw.scrollTop;g.innerHTML='';updateCoins();
+  [...ITEMS].sort((a,b)=>!!save.got[b[0]]-!!save.got[a[0]]).forEach(it=>{
+    const w=it[0],sp=spr(it[1],it[2]),got=!!save.got[w],owned=save.owned.includes(w);
+    const d=document.createElement('div');d.className='sc'+(got?' on':'')+(w===selW?' sel':'');d.appendChild(cvOf(got?sp.c:sp.g));
+    if(owned)d.insertAdjacentHTML('beforeend','<span class="ok">♥</span>');
+    else if(got)d.insertAdjacentHTML('beforeend',`<span class="pr"><span class="coin" style="width:10px;height:10px;border-width:1px"></span>${priceOf(w)}</span>`);
+    d.addEventListener('click',()=>{if(!got)return;initAudio();say(w);selW=w;onShow.shelf();});
     g.appendChild(d);
   });
-  $('#sCount').textContent=`★ ${n} / ${ITEMS.length}`;
+  renderBuy();zw.scrollTop=keep;
 };
 /* ========= おそうじ屋さん(依頼がたまる店) ========= */
 const hcv=$('#hc'),hc=hcv.getContext('2d');hc.imageSmoothingEnabled=false;
@@ -726,7 +768,7 @@ function renderReqList(fresh){
     r.items.forEach((it,j)=>{const sp=spr(it[1],it[2]);mini.appendChild(cvOf(r.done[j]?sp.c:sp.g));});
     d.appendChild(mini);d.addEventListener('click',()=>openRequest(r.id));el.appendChild(d);
   });
-  $('#homeInfo').textContent='おきゃくさん '+save.reqs.length;
+  updateCoins();
 }
 function spawnClient(){
   const r=makeRequest();save.reqs.push(r);persist();
@@ -745,7 +787,7 @@ hcv.addEventListener('pointerdown',e=>{
 });
 function drawHome(t,dt){
   hc.drawImage(makeBg('home'),0,0);
-  save.gifts.slice(-3).forEach((w,i)=>{const it=BYW[w];if(!it)return;const [px,py]=POS[[0,1,4][i]];hc.drawImage(spr(it[1],it[2]).c,px-24,py-44,48,48);});
+  save.shown.slice(-3).forEach((w,i)=>{const it=BYW[w];if(!it)return;const [px,py]=POS[[0,1,4][i]];hc.drawImage(spr(it[1],it[2]).c,px-24,py-44,48,48);});
   hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+Math.round(Math.sin(t*2)),48,48);
   H.timer-=dt;
   if(H.timer<=0){
