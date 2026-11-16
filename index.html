@@ -194,6 +194,18 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .dwho canvas{width:48px;height:48px;flex:none}
 .dnav{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
 .back.fwd::before{clip-path:polygon(28% 6%,28% 94%,92% 50%)}
+.closebtn{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(#4a4a9a,#2e2e70);color:#ffe9a0;border-color:#f3c850;box-shadow:0 4px 0 #1c1c50,inset 0 0 0 2px #6a6ac0}
+.closebtn.big{animation:pulse2 1.2s infinite}
+@keyframes pulse2{50%{transform:translateX(-50%) scale(1.06)}}
+.nightcard{background:linear-gradient(#2e2e70,#4a3a8a);color:#fff6e6;border-color:#f3c850;box-shadow:inset 0 0 0 3px #6a6ac0,0 8px 0 rgba(0,0,0,.3)}
+.nightcard h2{margin:0;color:#ffe9a0;font-size:clamp(22px,6vw,30px)}
+.nightcard .dl{margin:4px 0 0;font-size:15px;color:#d8d0ff}
+.drow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;background:rgba(255,255,255,.1);border-radius:12px;padding:4px 8px;min-height:44px;align-items:center;max-width:100%}
+.drow canvas{width:44px;height:44px}
+.nightcard .gift{color:#ffe27a}
+#dawn{position:absolute;inset:0;pointer-events:none;z-index:70;background:radial-gradient(circle at 50% 30%,#fffbe0,#ffe6b0);opacity:0}
+#dawn.go{animation:dawn 1.6s ease-out}
+@keyframes dawn{0%{opacity:0}25%{opacity:.95}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -206,7 +218,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="home" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><span id="homeInfo" style="color:#ffe27a"></span><button class="shopbtn" data-go="shelf"><canvas class="ico" width="24" height="24"></canvas></button></div>
-  <div class="cvwrap"><canvas id="hc" width="240" height="150"></canvas><button id="bToMine" class="arrow" style="display:none">◀</button><div id="hbub" class="sbub"></div></div>
+  <div class="cvwrap"><canvas id="hc" width="240" height="150"></canvas><button id="bToMine" class="arrow" style="display:none">◀</button><div id="hbub" class="sbub"></div><button id="bCloseShop" class="btn big closebtn" style="display:none">🌙 おみせを しめる</button></div>
   <div id="reqList"></div>
   <div class="modal" id="hreq"><div class="mcard"><canvas id="hqC" width="24" height="24"></canvas><div class="mtxt"><span class="who" id="hqWho"></span><p id="hqText"></p></div><div class="hqitems" id="hqItems"></div>
    <button class="btn big" id="hqOk">うける ▶</button><div class="hqrow"><button class="btn sm" id="hqLater">あとで</button><button class="btn sm gray" id="hqNo">ことわる</button></div></div></div>
@@ -234,6 +246,12 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="buyBar"></div>
  </section>
 <div id="finger" style="display:none"><canvas width="24" height="24"></canvas></div>
+ <div class="modal" id="dayEnd"><div class="mcard nightcard"><h2 id="dayN"></h2>
+   <p class="dl">きょうの おきゃくさん</p><div class="drow" id="dayFaces"></div>
+   <p class="dl">もらった おかね</p><div class="gift" id="dayCoins"></div>
+   <p class="dl">なおした もの</p><div class="drow" id="dayItems"></div>
+   <button class="btn big" id="bMorning">☀ あさに する</button></div></div>
+ <div id="dawn"></div>
  <div class="modal" id="diary"><div class="book"><button class="dx" id="dClose">✕</button><div class="dpage" id="dPage"></div>
   <div class="dnav"><button class="back" id="dPrev">◀</button><span id="dNo"></span><button class="back fwd" id="dNext">▶</button></div></div></div>
  <div class="modal" id="tut"><div class="mcard"><div class="tpics" id="tPics"></div><p id="tText"></p><div class="dots" id="tDots"></div><button class="btn big" id="bTutNext">つぎへ ▶</button><button class="skip2" id="bTutSkip">とばす</button></div></div>
@@ -669,7 +687,10 @@ function makeRequest(){
   let cs=all.filter(i=>!waiting.includes(i)&&!save.lastCl.slice(-2).includes(i));
   if(!cs.length)cs=all.filter(i=>!waiting.includes(i));
   if(!cs.length)cs=all;
-  const ci=pick(cs),cl=CLIENTS[ci],cats=Object.keys(CATS);
+  let ci,again=false;
+  {const D=save.day,nx=D&&D.next?D.next.filter(i=>!waiting.includes(i)):[];
+   if(nx.length){ci=nx[0];D.next=D.next.filter(i=>i!==ci);again=true;}else ci=pick(cs);}
+  const cl=CLIENTS[ci],cats=Object.keys(CATS);
   const okCnt={};ITEMS.filter(allowed).forEach(it=>okCnt[it[3]]=(okCnt[it[3]]||0)+1);
   let avail=cats.filter(c=>(okCnt[c]||0)>=3);if(!avail.length)avail=cats;
   const known=knownN('hira')+knownN('kata'),n=3+(known>=8?1:0)+(known>=20&&Math.random()<.5?1:0);
@@ -686,11 +707,11 @@ function makeRequest(){
   save.recentW=[...save.recentW,...items.map(i=>i[0])].slice(-12);
   const used=save.reqs.map(r=>r.theme);let theme;
   for(let k=0;k<6;k++){theme=Math.random()*8|0;if(!used.includes(theme))break;}
-  return{id:Date.now()+Math.random(),ci,cat,items:items.map(i=>hasColor(i)?[i[0],i[1],Object.assign({},i[2],(()=>{const ci=pickColor(i[0],cl);return{c:COLS[ci][0],ci};})())]:[i[0],i[1],i[2]]),pos:shuffle([0,1,2,3,4]).slice(0,items.length),done:items.map(()=>false),theme};
+  return{id:Date.now()+Math.random(),again,ci,cat,items:items.map(i=>hasColor(i)?[i[0],i[1],Object.assign({},i[2],(()=>{const ci=pickColor(i[0],cl);return{c:COLS[ci][0],ci};})())]:[i[0],i[1],i[2]]),pos:shuffle([0,1,2,3,4]).slice(0,items.length),done:items.map(()=>false),theme};
 }
 function greetText(r){
   const cl=CLIENTS[r.ci],x=r.cat===cl.fav?cl.lk:r.cat===cl.dis?cl.dl:'';
-  return `${cl.hi}\n${CATS[r.cat].name}が ちらかって しまったの。${x}${cl.ask}`;
+  return `${r.again?'また きたよ!':cl.hi}\n${CATS[r.cat].name}が ちらかって しまったの。${x}${cl.ask}`;
 }
 function thanksText(r){const cl=CLIENTS[r.ci];return r.cat===cl.fav?cl.tf:r.cat===cl.dis?cl.td:cl.tx;}
 /* ========= 音・声 ========= */
@@ -1063,7 +1084,7 @@ function completePuzzle(){
   setTimeout(()=>{if(tok===P.tok)finishItem();},3900);
 }
 function finishItem(){
-  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
+  const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
@@ -1348,7 +1369,7 @@ const reqOf=id=>save.reqs.find(r=>r.id===id);
 const waitingReqs=()=>save.reqs.filter(r=>!r.leaving);
 function renderReqList(fresh){
   const el=$('#reqList');el.innerHTML='';const list=waitingReqs();
-  if(!list.length){el.innerHTML='<div class="info" style="width:100%;color:#ffe27a">おきゃくさんを まっているよ…</div>';updateCoins();return;}
+  if(!list.length){el.innerHTML='<div class="info" style="width:100%;color:#ffe27a">'+(save.day&&save.day.closed?'きょうは おしまい。おつかれさま!':'おきゃくさんを まっているよ…')+'</div>';updateCoins();return;}
   list.forEach(r=>{
     const cl=CLIENTS[r.ci],d=document.createElement('div');d.className='rcard'+(r.id===fresh?' new':'');
     const top=document.createElement('div');top.className='top';
@@ -1374,12 +1395,13 @@ $('#hqOk').addEventListener('click',()=>{initAudio();chime(3);$('#hreq').classLi
 $('#hqLater').addEventListener('click',()=>{initAudio();$('#hreq').classList.remove('on');const c=H.cs.find(c=>c.id===H.ask);if(c)talk(c,'まってるね!',2.5);});
 $('#hqNo').addEventListener('click',()=>{initAudio();$('#hreq').classList.remove('on');declineReq(H.ask);});
 function declineReq(id){
-  const r=reqOf(id);if(!r)return;r.leaving='no';persist();
+  const r=reqOf(id);if(!r)return;r.leaving='no';dayHandled(r,false);
   const c=H.cs.find(c=>c.id===id);if(c){c.ph='out';talk(c,'そっかあ…また こんど おねがいね。',3);}
   boo();renderReqList();
 }
 function spawnClient(){
-  const r=makeRequest();save.reqs.push(r);persist();
+  const D=DAY();if(D.closed||D.spawned>=D.quota)return;
+  const r=makeRequest();save.reqs.push(r);D.spawned++;D.met.push(r.ci);persist();
   H.cs.push({id:r.id,x:262,tx:262});
   bellSfx();renderReqList(r.id);
 }
@@ -1388,7 +1410,7 @@ function settleHome(){
   let ch=false;
   save.reqs=save.reqs.filter(r=>{
     if(!r.leaving)return true;
-    if(r.leaving==='pay'){const c=H.cs.find(c=>c.id===r.id);if(!c||c.ph==='walk'||c.ph==='pay'){if(!(c&&c.paid))save.coins+=r.gain||0;}}
+    if(r.leaving==='pay'){const c=H.cs.find(c=>c.id===r.id);if(!c||c.ph==='walk'||c.ph==='pay'){if(!(c&&c.paid)){save.coins+=r.gain||0;dayHandled(r,true);}}}
     ch=true;return false;
   });
   if(ch){persist();updateCoins();}
@@ -1404,6 +1426,7 @@ onShow.home=()=>{refreshLocks();
   });
   H.coins.length=0;H.pops.length=0;H.talk=null;
   H.queue=Math.max(0,2-waitingReqs().length);H.timer=H.queue>0?.5:rnd(8,15);H.bt=1.5;H.bi=0;H.bn=Math.random()*3|0;
+  {const D=DAY();$('#bCloseShop').style.display=D.closed?'':'none';if(D.closed){lampOn=true;H.queue=0;}}
   $('#hbub').classList.remove('on');$('#hreq').classList.remove('on');$('#bToMine').style.display=save.mineUnlocked?'':'none';renderReqList();
 };
 hcv.addEventListener('pointerdown',e=>{
@@ -1477,15 +1500,17 @@ function drawCoin(x,y,s){x=Math.round(x);y=Math.round(y);
   hc.fillStyle='#f3c850';hc.fillRect(x-2,y-2,5,5);hc.fillStyle='#fff6b0';hc.fillRect(x-1,y-2,2,1);hc.fillRect(x-2,y-1,1,2);}
 function drawHome(t,dt){
   H.t=t;
-  hc.drawImage(makeBg('home'),0,0);
-  drawDecor(t,dt);
+  hc.drawImage(makeBg('home'),0,0);drawSky(t);drawNightRoom();
+  drawDecor(t,dt);checkClose();
   const paying=H.cs.some(c=>c.ph==='pay');
   hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+(paying?-Math.round(Math.abs(Math.sin(t*8))*2):Math.round(Math.sin(t*2))),48,48);
-  H.timer-=dt;
+  H.timer-=dt;{const D=DAY();if(!D.closed&&D.spawned<D.quota&&!waitingReqs().length&&H.timer>4)H.timer=4;}
   if(H.timer<=0){
     const w=waitingReqs().length;
-    if(H.queue>0){H.queue--;spawnClient();H.timer=2.5;}
-    else if(w<4){spawnClient();H.timer=rnd(20,35);}
+    const D=DAY();
+    if(D.closed||D.spawned>=D.quota)H.timer=3;
+    else if(H.queue>0){H.queue--;spawnClient();H.timer=2.5;}
+    else if(w<4){spawnClient();H.timer=w===0?rnd(4,7):rnd(18,30);}
     else H.timer=5;
   }
   /* ふきだし: だれかが はなしている あいだは ほかの ふきだしを ださない */
@@ -1501,7 +1526,7 @@ function drawHome(t,dt){
       c.pt+=dt;
       const want=Math.min(6,Math.ceil(r.gain/3));
       while(c.nc<want&&c.pt>c.nc*.16){c.nc++;H.coins.push({sx:c.x+20,sy:120,ex:74,ey:118,age:-c.nc*.02});}
-      if(!c.paid&&c.pt>1.1){c.paid=true;save.coins+=r.gain||0;r.leaving='paid';persist();updateCoins();
+      if(!c.paid&&c.pt>1.1){c.paid=true;save.coins+=r.gain||0;r.leaving='paid';dayHandled(r,true);persist();updateCoins();
         const hi=$('#homeInfo');hi.classList.remove('coinpop');void hi.offsetWidth;hi.classList.add('coinpop');
         H.pops.push({x:70,y:96,n:r.gain||0,age:0});chime(5);setTimeout(()=>chime(7),120);}
       if(c.pt>2.8){c.ph='out';talk(c,'またね!',2);}
@@ -1591,9 +1616,59 @@ function addDiary(r,j){
   const it=r.items[j],w=it[0];save.diary=save.diary||[];
   if(save.diary.some(e=>e.w===w))return;
   const k=it[2].ci!=null?w+'#'+it[2].ci:w,cl=CLIENTS[r.ci];
-  save.diary.push({w,k,ci:r.ci,day:(save.days||0)+1,fav:r.cat===cl.fav});
+  save.diary.push({w,k,ci:r.ci,day:save.day?save.day.n:1,fav:r.cat===cl.fav});
   save.diaryNew=true;
 }
+/* ========= 1にちの ながれ(あさ → よる → へいてん → けっか → あさ) ========= */
+function newDay(n,next){return{n,quota:n===1?3:4,spawned:0,done:0,served:0,coins:0,items:[],met:[],next:next||[],closed:false};}
+if(!save.day||typeof save.day!=='object')save.day=newDay(1);
+const DAY=()=>save.day;
+function dayHandled(r,paid){const D=DAY();D.done++;if(paid){D.served++;D.coins+=r.gain||0;}persist();}
+/* そらの いろ: すすみぐあいで あさ → ゆうがた → よる */
+const GL=91,GT=11,GW=58,GH=60;
+function drawSky(t){
+  const D=DAY(),p=Math.min(1,D.done/D.quota),night=D.closed;
+  const eve=night?0:Math.max(0,(p-.45)/.55);
+  hc.save();hc.beginPath();hc.rect(GL,GT,GW,GH);hc.clip();
+  if(night){
+    hc.fillStyle='rgba(28,30,86,.82)';hc.fillRect(GL,GT,GW,GH);
+    const r=mulberry(D.n*13);for(let i=0;i<16;i++){const x=GL+(r()*GW|0),y=GT+(r()*34|0);if(Math.sin(t*2+i)>-.5){hc.fillStyle='#fff6c0';hc.fillRect(x,y,1,1);}}
+    hc.fillStyle='#ffe9a0';hc.beginPath();hc.arc(GL+44,GT+10,5,0,6.3);hc.fill();hc.fillStyle='rgba(28,30,86,1)';hc.beginPath();hc.arc(GL+46.5,GT+8.5,4.5,0,6.3);hc.fill();
+    hc.fillStyle='rgba(255,226,122,.85)';for(const [x,y] of [[6,46],[22,40],[38,48],[50,42]])hc.fillRect(GL+x,GT+y,2,2);
+  }else{
+    if(eve>0){hc.fillStyle=`rgba(255,140,90,${.42*eve})`;hc.fillRect(GL,GT,GW,GH);hc.fillStyle=`rgba(120,80,160,${.25*eve})`;hc.fillRect(GL,GT,GW,22);}
+    const sx=GL+8+p*42,sy=GT+7+Math.pow(p,1.6)*22;
+    hc.fillStyle=eve>.3?'#ffb36a':'#fff2a0';hc.beginPath();hc.arc(sx,sy,4.5,0,6.3);hc.fill();
+    hc.globalAlpha=.35;hc.beginPath();hc.arc(sx,sy,7,0,6.3);hc.fill();hc.globalAlpha=1;
+  }
+  hc.restore();
+  hc.fillStyle=CR;hc.fillRect(119,GT,2,GH);hc.fillRect(GL,GT+28,GW,2);
+}
+function drawNightRoom(){if(DAY().closed){hc.fillStyle='rgba(30,22,80,.32)';hc.fillRect(0,0,RW,RH);}
+  else{const D=DAY(),p=Math.min(1,D.done/D.quota),e=Math.max(0,(p-.45)/.55);if(e>0){hc.fillStyle=`rgba(255,150,90,${.1*e})`;hc.fillRect(0,0,RW,RH);}}}
+function checkClose(){
+  const D=DAY();if(D.closed)return;
+  if(D.spawned>=D.quota&&!save.reqs.length){D.closed=true;persist();lampOn=true;
+    setTimeout(()=>{if(screen==='home'){talk(WITCH,'よるに なったね。きょうは もう おしまい。おみせを しめよう!',5);}},400);
+    $('#bCloseShop').style.display='';sfx('c1');renderReqList();}
+}
+function showDayEnd(){
+  const D=DAY();$('#dayN').textContent=`${D.n}にちめ おしまい`;
+  const f=$('#dayFaces');f.innerHTML='';D.met.forEach(ci=>f.appendChild(cvOf(spr('person',look(CLIENTS[ci])).c)));
+  if(!D.met.length)f.innerHTML='<span>だれも こなかったね</span>';
+  $('#dayCoins').innerHTML=`<span class="coin big"></span>+ ${D.coins}`;
+  const it=$('#dayItems');it.innerHTML='';D.items.forEach(k=>{const x=IT(k);if(x)it.appendChild(cvOf(spr(x[1],x[2]).c));});
+  if(!D.items.length)it.innerHTML='<span>きょうは おやすみ</span>';
+  $('#dayEnd').classList.add('on');fanfare();
+}
+$('#bCloseShop').addEventListener('click',()=>{initAudio();$('#bCloseShop').style.display='none';$('#hbub').classList.remove('on');H.talk=null;showDayEnd();});
+$('#bMorning').addEventListener('click',()=>{
+  initAudio();const D=DAY();
+  save.day=newDay(D.n+1,shuffle([...new Set(D.met)]).slice(0,3));lampOn=false;persist();
+  $('#dayEnd').classList.remove('on');
+  const fl=$('#dawn');fl.classList.remove('go');void fl.offsetWidth;fl.classList.add('go');
+  sfx('fan');onShow.home();setTimeout(()=>talk(WITCH,'おはよう! きょうも がんばろうね。',3.5),300);
+});
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();if(b.dataset.go==='shelf'&&!canShop()){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show(b.dataset.go);}));
 const TUT=[
