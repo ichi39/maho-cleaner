@@ -1392,10 +1392,56 @@ onShow.home=()=>{refreshLocks();
 hcv.addEventListener('pointerdown',e=>{
   if($('#hreq').classList.contains('on'))return;
   const p=roomPoint(hcv,e,RW,RH);
+  if(tapDecor(p))return;
   for(let i=H.cs.length-1;i>=0;i--){const c=H.cs[i];
     if(!c.ph&&Math.abs(c.tx-c.x)<4&&p.x>c.x&&p.x<c.x+48&&p.y>104&&p.y<152){tapClient(c.id);return;}}
 });
 /* ふきだし */
+/* みせの かざり: さわると うごく。はいけいに なじむ よう すこし うすく、ちいさく えがく */
+const WITCH={id:'witch',x:46};
+const DECO=[
+  {k:'bottle',o:{c:'#f5a0c8'},x:62,y:62,say:['まほうの くすりよ。ぽこぽこ!','さわると あわが でるの。']},
+  {k:'book',o:{c:'#6a8ad8'},x:178,y:62,say:['まほうの ほんよ。','きらきらの おはなしが のってるの。']},
+  {k:'lamp',o:{c:'#f5b0c8'},x:120,y:74,say:['あかりを つけたよ。','あかりを けしたよ。']}
+];
+const softCache={};
+function soft(k,o,open){
+  const key=k+JSON.stringify(o)+(open?1:0);if(softCache[key])return softCache[key];
+  const src=open?spr('book',Object.assign({},o,{open:1})).c:spr(k,o).c,c=document.createElement('canvas');c.width=c.height=SP;const x=c.getContext('2d');
+  x.drawImage(src,0,0);x.globalCompositeOperation='source-atop';x.globalAlpha=.32;x.fillStyle=HOME_THEME.wall;x.fillRect(0,0,SP,SP);
+  return softCache[key]=c;
+}
+const decoParts=[];let lampOn=false;
+function drawDecor(t,dt){
+  if(lampOn){const g=hc.createRadialGradient(120,52,2,120,52,60);g.addColorStop(0,'rgba(255,236,160,.55)');g.addColorStop(1,'rgba(255,236,160,0)');hc.fillStyle=g;hc.fillRect(50,0,140,124);}
+  DECO.forEach(d=>{
+    d.a=Math.max(0,(d.a||0)-dt);const q=d.a>0?d.a:0;
+    let dy=0,sx=1,sy=1,rot=0;
+    if(d.k==='bottle'&&q>0){rot=Math.sin(q*30)*.12*q;sy=1+.08*Math.sin(q*20)*q;
+      if(Math.random()<.35)decoParts.push({x:d.x+rnd(-3,3),y:d.y-30,vy:-rnd(.3,.7),r:rnd(1,2.5),life:1,c:['#ffd0e8','#ffffff','#e8d0ff'][Math.random()*3|0],b:1});}
+    if(d.k==='book'&&q>0){dy=-Math.round(Math.abs(Math.sin(q*12))*3*q);if(Math.random()<.3)burst(hparts,d.x+rnd(-8,8),d.y-24,1,.6);}
+    if(d.k==='lamp'&&q>0){sx=sy=1+.12*Math.sin(q*18)*q;}
+    const img=soft(d.k,d.o,d.k==='book'&&q>0),z=40;
+    hc.save();hc.translate(d.x,d.y+4+dy);hc.rotate(rot);hc.scale(sx,sy);hc.drawImage(img,-z/2,-z,z,z);
+    if(d.k==='lamp'&&lampOn){hc.globalAlpha=.5+.15*Math.sin(t*3);hc.fillStyle='#fff6c0';hc.fillRect(-3,-z+16,6,5);hc.globalAlpha=1;}
+    hc.restore();
+  });
+  for(let i=decoParts.length-1;i>=0;i--){const p=decoParts[i];p.y+=p.vy;p.x+=Math.sin(p.y*.3)*.3;p.life-=dt*.8;if(p.life<=0){decoParts.splice(i,1);continue;}
+    hc.globalAlpha=p.life;hc.strokeStyle=p.c;hc.lineWidth=1;hc.beginPath();hc.arc(p.x,p.y,p.r,0,6.3);hc.stroke();hc.globalAlpha=1;}
+}
+function tapDecor(p){
+  for(const d of DECO){
+    if(Math.abs(p.x-d.x)<18&&p.y>d.y-38&&p.y<d.y+6){
+      initAudio();d.a=1.4;
+      if(d.k==='bottle'){sfx('c'+(Math.random()*3|0));setTimeout(()=>sfx('c'+(2+(Math.random()*3|0))),160);}
+      else if(d.k==='book'){sfx('c5');burst(hparts,d.x,d.y-22,10,1);}
+      else{lampOn=!lampOn;sfx(lampOn?'c6':'c1');burst(hparts,d.x,d.y-24,lampOn?14:4,1);}
+      if(!H.talk||H.talk.id==='witch'){const line=d.k==='lamp'?d.say[lampOn?0:1]:pick(d.say);talk(WITCH,line,3);}
+      return true;
+    }
+  }
+  return false;
+}
 function placeBubble(c){
   const b=$('#hbub'),cx=(c.x+24)/240*100,left=Math.max(32,Math.min(68,cx));b.style.left=left+'%';
   const w=b.offsetWidth/b.parentElement.offsetWidth*100||40;b.style.setProperty('--tl',Math.max(14,Math.min(86,50+(cx-left)/w*100))+'%');
@@ -1414,7 +1460,7 @@ function drawCoin(x,y,s){x=Math.round(x);y=Math.round(y);
 function drawHome(t,dt){
   H.t=t;
   hc.drawImage(makeBg('home'),0,0);
-  [['bottle',{c:'#f5a0c8'},0],['book',{c:'#6a8ad8'},1],['lamp',{c:'#f5b0c8'},4]].forEach(([k,o,j])=>{const [px,py]=POS[j];hc.drawImage(spr(k,o).c,px-24,py-44,48,48);});
+  drawDecor(t,dt);
   const paying=H.cs.some(c=>c.ph==='pay');
   hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+(paying?-Math.round(Math.abs(Math.sin(t*8))*2):Math.round(Math.sin(t*2))),48,48);
   H.timer-=dt;
@@ -1425,7 +1471,7 @@ function drawHome(t,dt){
     else H.timer=5;
   }
   /* ふきだし: だれかが はなしている あいだは ほかの ふきだしを ださない */
-  if(H.talk){const c=H.cs.find(c=>c.id===H.talk.id);if(c)placeBubble(c);if(t>H.talk.until||!c){H.talk=null;$('#hbub').classList.remove('on');H.bt=1.5;}}
+  if(H.talk){const c=H.talk.id==='witch'?WITCH:H.cs.find(c=>c.id===H.talk.id);if(c)placeBubble(c);if(t>H.talk.until||!c){H.talk=null;$('#hbub').classList.remove('on');H.bt=1.5;}}
   else{H.bt-=dt;if(H.bt<=0){const bb=$('#hbub');if(bb.classList.contains('on')){bb.classList.remove('on');H.bt=1;H.bi++;}else H.bt=showBubble();}}
   let qi=0;H.cs.forEach(c=>{if(!c.ph)c.tx=slotX(qi++);});
   for(let k=H.cs.length-1;k>=0;k--){
