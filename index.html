@@ -565,7 +565,6 @@ function thanksText(r){const cl=CLIENTS[r.ci];return r.cat===cl.fav?cl.tf:r.cat=
 /* ========= 音・声 ========= */
 let AC=null;
 /* iPhone: よみあげの あと こうかおんが とまる(interrupted)ので、なんども おこす */
-try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 function wakeAC(){if(AC&&AC.state!=='running'){try{AC.resume();}catch(e){}}}
 function initAudio(){
   if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();AC.onstatechange=()=>{if(AC.state!=='running')setTimeout(wakeAC,60);};
@@ -574,15 +573,52 @@ function initAudio(){
 }
 ['touchstart','touchend','pointerdown','click'].forEach(ev=>document.addEventListener(ev,()=>{if(AC)wakeAC();},{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wakeAC();});
+let REC=null;
 function tone(f,t0,dur,type='triangle',vol=.12){
+  if(REC){REC.push([f,t0,dur,type,vol]);return;}
   if(!AC||!soundOn)return;wakeAC();const T=AC.currentTime+t0+.01,o=AC.createOscillator(),g=AC.createGain();
   o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,T);g.gain.linearRampToValueAtTime(vol,T+.02);g.gain.exponentialRampToValueAtTime(.001,T+dur);
   o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+dur+.05);
 }
 const PENT=[523,587,659,784,880,1047,1175,1319];
-const chime=i=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);};
-const fanfare=()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k]*(i>3?1:1),i*.11,.5));
-const boo=()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);};
+/* iPhone は よみあげと Web Audio が いっしょに なれないので、こうかおんを wav に して audio で ならす */
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const SFX={},APOOL=[];let apI=0,apUnlocked=false;
+function wavURL(notes){
+  const sr=22050,len=Math.ceil(sr*(Math.max(...notes.map(n=>n[1]+n[2]))+.08)),buf=new Float32Array(len);
+  for(const [f,t0,dur,type,vol] of notes){
+    const s0=Math.floor(t0*sr),n=Math.floor(dur*sr);
+    for(let i=0;i<n&&s0+i<len;i++){
+      const t=i/sr,ph=(f*t)%1;
+      const w=type==='sine'?Math.sin(ph*6.2832):type==='sawtooth'?2*ph-1:1-4*Math.abs(ph-.5);
+      const env=t<.02?t/.02:Math.exp(Math.log(.001)*(t-.02)/Math.max(.01,dur-.02));
+      buf[s0+i]+=w*vol*env*1.6;
+    }
+  }
+  const dv=new DataView(new ArrayBuffer(44+len*2)),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i));};
+  ws(0,'RIFF');dv.setUint32(4,36+len*2,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,len*2,true);
+  for(let i=0;i<len;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,buf[i]))*32767,true);
+  return URL.createObjectURL(new Blob([dv],{type:'audio/wav'}));
+}
+function unlockPool(){
+  if(apUnlocked||!IS_IOS)return;apUnlocked=true;
+  const sil=wavURL([[440,0,.02,'sine',0]]);
+  for(let i=0;i<6;i++){const a=new Audio();a.preload='auto';a.src=sil;APOOL.push(a);try{const p=a.play();p&&p.then(()=>a.pause()).catch(()=>{});}catch(e){}}
+}
+['touchend','click'].forEach(ev=>document.addEventListener(ev,unlockPool,{capture:true}));
+function sfx(key,fn){
+  if(!soundOn)return;
+  if(!IS_IOS||!APOOL.length){fn();return;}
+  let url=SFX[key];if(!url){REC=[];try{fn();}finally{}const n=REC;REC=null;if(!n.length)return;url=SFX[key]=wavURL(n);}
+  const a=APOOL[apI++%APOOL.length];
+  try{a.pause();a.src=url;a.currentTime=0;a.volume=1;const p=a.play();p&&p.catch(()=>{});}catch(e){}
+}
+const chime=i=>sfx('c'+(i%8),()=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);});
+const fanfare=()=>sfx('fan',()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k],i*.11,.5)));
+const boo=()=>sfx('boo',()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);});
+const hoverSfx=()=>sfx('hov',()=>tone(1568,0,.12,'sine',.05));
+const bellSfx=()=>sfx('bell',()=>{tone(1319,0,.3,'sine',.1);tone(1047,.16,.5,'sine',.1);});
 /* よみあげ: スマホは さいしょの タップの なかで いちど ならさないと こえが でない */
 const HAS_TTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 const _utt=[];let jaVoice=null,ttsUnlocked=false,voicesLoaded=false;
@@ -918,7 +954,7 @@ lcv.addEventListener('pointermove',e=>{
   const m=P.sz*.5;tx=Math.max(m,Math.min(P.W-m,tx));ty=Math.max(m,Math.min(P.H-m,ty));
   const i=nearSlot({ch:L.ch,x:tx,y:ty},P.sz*1.5);
   if(i>=0){const s=P.slots[i],d=Math.hypot(tx-s.x,ty-s.y),pull=Math.max(0,1-d/(P.sz*1.5))*.35;tx+=(s.x-tx)*pull;ty+=(s.y-ty)*pull;}
-  if(i!==P.hot){P.hot=i;if(i>=0)tone(1568,0,.12,'sine',.05);}
+  if(i!==P.hot){P.hot=i;if(i>=0)hoverSfx();}
   L.tx=tx;L.ty=ty;
 });
 function endDrag(){
@@ -1159,7 +1195,7 @@ function renderReqList(fresh){
 function spawnClient(){
   const r=makeRequest();save.reqs.push(r);persist();
   H.cs.push({id:r.id,x:262,tx:slotX(save.reqs.length-1)});
-  tone(1319,0,.3,'sine',.1);tone(1047,.16,.5,'sine',.1);renderReqList(r.id);
+  bellSfx();renderReqList(r.id);
 }
 onShow.home=()=>{refreshLocks();
   save.reqs=save.reqs.filter(r=>r&&r.items&&r.items.length);
