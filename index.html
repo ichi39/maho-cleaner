@@ -564,9 +564,18 @@ function greetText(r){
 function thanksText(r){const cl=CLIENTS[r.ci];return r.cat===cl.fav?cl.tf:r.cat===cl.dis?cl.td:cl.tx;}
 /* ========= 音・声 ========= */
 let AC=null;
-function initAudio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();}
+/* iPhone: よみあげの あと こうかおんが とまる(interrupted)ので、なんども おこす */
+try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+function wakeAC(){if(AC&&AC.state!=='running'){try{AC.resume();}catch(e){}}}
+function initAudio(){
+  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();AC.onstatechange=()=>{if(AC.state!=='running')setTimeout(wakeAC,60);};
+    const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);}catch(e){}}
+  wakeAC();
+}
+['touchstart','touchend','pointerdown','click'].forEach(ev=>document.addEventListener(ev,()=>{if(AC)wakeAC();},{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)wakeAC();});
 function tone(f,t0,dur,type='triangle',vol=.12){
-  if(!AC||!soundOn)return;const T=AC.currentTime+t0,o=AC.createOscillator(),g=AC.createGain();
+  if(!AC||!soundOn)return;wakeAC();const T=AC.currentTime+t0+.01,o=AC.createOscillator(),g=AC.createGain();
   o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,T);g.gain.linearRampToValueAtTime(vol,T+.02);g.gain.exponentialRampToValueAtTime(.001,T+dur);
   o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+dur+.05);
 }
@@ -595,14 +604,15 @@ function unlockTTS(){
   try{pickVoice();const u=mkUtt(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}
 }
 ['touchend','click','keydown','pointerup'].forEach(ev=>document.addEventListener(ev,unlockTTS,{capture:true}));
+let curU=null;
 function speakNow(t,onDone){
-  const ss=speechSynthesis;let started=false,done=false;
-  const fin=()=>{if(done)return;done=true;onDone&&onDone();};
-  const mk=()=>{const u=mkUtt(t);u.onstart=()=>{started=true;};u.onend=fin;u.onerror=e=>{if(e&&(e.error==='interrupted'||e.error==='canceled'))fin();else fin();};return u;};
-  let busy=false;
-  try{busy=ss.speaking||ss.pending;if(busy)ss.cancel();if(ss.paused)ss.resume();ss.speak(mk());}catch(e){fin();return;}
-  /* iOS などで cancel ちょくごの こえが きえる ときの やりなおし */
-  setTimeout(()=>{if(!started&&!done&&!ss.speaking){try{ss.cancel();ss.speak(mk());}catch(e){}}},busy?320:600);
+  const ss=speechSynthesis;let started=false,done=false,mine=null;
+  const fin=()=>{if(done)return;done=true;if(curU===mine)curU=null;setTimeout(wakeAC,30);onDone&&onDone();};
+  const go=()=>{if(done)return;try{if(ss.paused)ss.resume();const u=mkUtt(t);u.onstart=()=>{started=true;};u.onend=fin;u.onerror=fin;mine=u;curU=u;ss.speak(u);}catch(e){fin();}};
+  /* iPhone は cancel の すぐあとの こえを すてるので、すこし まってから よむ */
+  const busy=!!(curU&&ss.speaking);
+  if(busy){try{ss.cancel();}catch(e){}setTimeout(go,130);}else go();
+  setTimeout(()=>{if(!started&&!done){try{ss.cancel();}catch(e){}setTimeout(go,130);}},busy?1000:900);
 }
 function say(t){if(!soundOn||!HAS_TTS||!t)return;speakNow(t);}
 /* つかんでいる間、おなじ もじを くりかえし よむ */
@@ -615,13 +625,13 @@ function startHold(ch){
     if(tok!==holdTok)return;
     let nxt=false;const next=()=>{if(nxt||tok!==holdTok)return;nxt=true;setTimeout(loop,150);};
     speakNow(ch,next);
-    setTimeout(next,2200);
+    setTimeout(next,2600);
   };
   loop();
 }
-function stopHold(){holdTok++;try{if(HAS_TTS&&(speechSynthesis.speaking||speechSynthesis.pending))speechSynthesis.cancel();}catch(e){}}
+function stopHold(){holdTok++;try{if(HAS_TTS&&curU&&speechSynthesis.speaking){speechSynthesis.cancel();}}catch(e){}setTimeout(wakeAC,40);}
 const sayChar=c=>{if(!NOLEARN.includes(c))say(c);};
-function setSound(on){soundOn=on;save.snd=on;persist();$('#bSnd').textContent='おと: '+(on?'ON':'OFF');if(!on&&'speechSynthesis' in window)speechSynthesis.cancel();}
+function setSound(on){soundOn=on;save.snd=on;persist();$('#bSnd').textContent='おと: '+(on?'ON':'OFF');if(!on&&HAS_TTS){try{speechSynthesis.cancel();}catch(e){}curU=null;}}
 
 /* ========= パーティクル ========= */
 function burst(arr,x,y,n=14,sp=1.4){
