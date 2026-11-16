@@ -170,7 +170,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <canvas id="cTitle"></canvas>
   <div class="box"><div class="sub">まほうの おそうじ ものがたり</div><h1>魔法のお掃除屋さん</h1><div class="tag">ばらばらの ものを なおして、おみせを ぴかぴかに!</div></div>
   <button id="bReset" class="reset">はじめから</button>
-  <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf"><canvas class="ico" width="24" height="24" style="width:44px;height:44px;vertical-align:middle"></canvas></button><button class="btn sm" id="bSnd">おと: ON</button></div>
+  <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf"><canvas class="ico" width="24" height="24" style="width:44px;height:44px;vertical-align:middle"></canvas></button><button class="btn sm" id="bSnd">おと: ON</button><div id="voiceNote" style="display:none;font-size:12px;color:#fff;background:rgba(106,74,98,.6);padding:4px 10px;border-radius:10px;max-width:280px;text-align:center">この たんまつには にほんごの よみあげが ないようです</div></div>
  </section>
  <section id="home" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><span id="homeInfo" style="color:#ffe27a"></span><button class="shopbtn" data-go="shelf"><canvas class="ico" width="24" height="24"></canvas></button></div>
@@ -574,34 +574,52 @@ const PENT=[523,587,659,784,880,1047,1175,1319];
 const chime=i=>{tone(PENT[i%8],0,.45);tone(PENT[(i+2)%8]*2,.09,.3,'sine',.05);};
 const fanfare=()=>[0,2,4,7,5,7].forEach((k,i)=>tone(PENT[k]*(i>3?1:1),i*.11,.5));
 const boo=()=>{tone(220,0,.18,'sawtooth',.05);tone(165,.12,.22,'sawtooth',.05);};
-const _utt=[];
+/* よみあげ: スマホは さいしょの タップの なかで いちど ならさないと こえが でない */
+const HAS_TTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+const _utt=[];let jaVoice=null,ttsUnlocked=false,voicesLoaded=false;
+function pickVoice(){
+  if(!HAS_TTS)return;const vs=speechSynthesis.getVoices();if(vs.length)voicesLoaded=true;
+  const ja=vs.filter(v=>/^ja([-_]|$)/i.test(v.lang));
+  jaVoice=ja.find(v=>/kyoko|o-ren|otoya|haruka|nanami|google/i.test(v.name)&&v.localService!==false)||ja.find(v=>v.localService)||ja[0]||null;
+  updateVoiceNote();
+}
+function updateVoiceNote(){const n=document.getElementById('voiceNote');if(!n)return;n.style.display=(!HAS_TTS||(voicesLoaded&&!jaVoice))?'':'none';}
+if(HAS_TTS){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice);}catch(e){speechSynthesis.onvoiceschanged=pickVoice;}}
 function mkUtt(t){
-  const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=.8;u.pitch=1.15;u.volume=1;
-  const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;
+  const u=new SpeechSynthesisUtterance(t);u.lang=jaVoice?jaVoice.lang:'ja-JP';u.rate=.85;u.pitch=1.15;u.volume=1;
+  if(jaVoice)u.voice=jaVoice;
   _utt.push(u);if(_utt.length>30)_utt.shift();return u;
 }
-function say(t){
-  if(!soundOn||!('speechSynthesis' in window)||!t)return;
-  try{const ss=speechSynthesis;const go=()=>{try{ss.resume&&ss.resume();ss.speak(mkUtt(t));}catch(e){}};
-    if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,90);}else go();}catch(e){}
+function unlockTTS(){
+  if(ttsUnlocked||!HAS_TTS)return;ttsUnlocked=true;
+  try{pickVoice();const u=mkUtt(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}
 }
+['touchend','click','keydown','pointerup'].forEach(ev=>document.addEventListener(ev,unlockTTS,{capture:true}));
+function speakNow(t,onDone){
+  const ss=speechSynthesis;let started=false,done=false;
+  const fin=()=>{if(done)return;done=true;onDone&&onDone();};
+  const mk=()=>{const u=mkUtt(t);u.onstart=()=>{started=true;};u.onend=fin;u.onerror=e=>{if(e&&(e.error==='interrupted'||e.error==='canceled'))fin();else fin();};return u;};
+  let busy=false;
+  try{busy=ss.speaking||ss.pending;if(busy)ss.cancel();if(ss.paused)ss.resume();ss.speak(mk());}catch(e){fin();return;}
+  /* iOS などで cancel ちょくごの こえが きえる ときの やりなおし */
+  setTimeout(()=>{if(!started&&!done&&!ss.speaking){try{ss.cancel();ss.speak(mk());}catch(e){}}},busy?320:600);
+}
+function say(t){if(!soundOn||!HAS_TTS||!t)return;speakNow(t);}
 /* つかんでいる間、おなじ もじを くりかえし よむ */
 let holdTok=0;
 function startHold(ch){
   stopHold();
-  if(NOLEARN.includes(ch)||!soundOn||!('speechSynthesis' in window))return;
-  const tok=++holdTok,ss=speechSynthesis;
+  if(NOLEARN.includes(ch)||!soundOn||!HAS_TTS)return;
+  const tok=++holdTok;
   const loop=()=>{
     if(tok!==holdTok)return;
-    const u=mkUtt(ch);let nxt=false;
-    const next=()=>{if(nxt||tok!==holdTok)return;nxt=true;setTimeout(loop,120);};
-    u.onend=next;u.onerror=next;
-    try{ss.resume&&ss.resume();ss.speak(u);}catch(e){return;}
-    setTimeout(()=>{if(!nxt&&tok===holdTok){try{ss.cancel();}catch(e){}next();}},1600);
+    let nxt=false;const next=()=>{if(nxt||tok!==holdTok)return;nxt=true;setTimeout(loop,150);};
+    speakNow(ch,next);
+    setTimeout(next,2200);
   };
-  if(ss.speaking||ss.pending){ss.cancel();setTimeout(loop,90);}else loop();
+  loop();
 }
-function stopHold(){holdTok++;}
+function stopHold(){holdTok++;try{if(HAS_TTS&&(speechSynthesis.speaking||speechSynthesis.pending))speechSynthesis.cancel();}catch(e){}}
 const sayChar=c=>{if(!NOLEARN.includes(c))say(c);};
 function setSound(on){soundOn=on;save.snd=on;persist();$('#bSnd').textContent='おと: '+(on?'ON':'OFF');if(!on&&'speechSynthesis' in window)speechSynthesis.cancel();}
 
@@ -1197,7 +1215,7 @@ $('#bTutNext').addEventListener('click',()=>{initAudio();chime(tutI+2);if(tutI<T
 $('#bTutSkip').addEventListener('click',endTut);
 $('#bStart').addEventListener('click',()=>{initAudio();chime(2);if(!save.tut)startTut(()=>show('home'));else show('home');});
 $('#bShelf').addEventListener('click',()=>{initAudio();if(!canShop()){boo();const b=$('#bShelf');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show('shelf');});
-$('#bSnd').addEventListener('click',()=>{initAudio();setSound(!soundOn);});
+$('#bSnd').addEventListener('click',()=>{initAudio();unlockTTS();setSound(!soundOn);if(soundOn)say('おとが でるよ');});
 $('#bRoomBack').addEventListener('click',()=>{$('#rbub').classList.remove('on');$('#clear').classList.remove('on');show('home');});
 $('#bPzBack').addEventListener('click',()=>{stopFinger();stopVoice();drag=null;P.tok++;show('room');updateRoomHud();});
 $('#bHear').addEventListener('click',()=>{initAudio();say(P.word);});
@@ -1213,7 +1231,7 @@ onShow.title=refreshLocks;
 refreshLocks();
 $('#bReset').addEventListener('click',()=>{const ans=prompt('ぜんぶ きえて さいしょから やりなおします。\nやりなおすなら「はい」と いれてね');if(ans!==null&&ans.trim()==='はい'){try{localStorage.removeItem('maho-cleaner-3');}catch(e){}location.reload();}});
 setSound(soundOn);
-if('speechSynthesis' in window)speechSynthesis.getVoices();
+updateVoiceNote();setTimeout(()=>{pickVoice();updateVoiceNote();},1500);
 let last=0;
 function frame(ts){
   const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
