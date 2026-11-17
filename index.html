@@ -842,7 +842,8 @@ function unlockPool(){
   }
 }
 ['touchend','click'].forEach(ev=>document.addEventListener(ev,unlockPool,{capture:true}));
-function sfx(key){
+let AUD_PAUSE=0;
+function sfx(key,now){
   if(!soundOn)return;
   if(!IS_IOS){SFX_DEFS[key]();return;}
   const list=SFX_EL[key];if(!list)return;
@@ -850,12 +851,13 @@ function sfx(key){
   const a=list.find(x=>x._ready&&(x.paused||x.ended));if(!a)return;
   a._ready=false;
   const go=()=>{try{const p=a.play();p&&p.catch&&p.catch(()=>{a._ready=true;});}catch(e){a._ready=true;}};
+  if(now){const t1=performance.now();go();AUD_PAUSE+=performance.now()-t1;return;}
   const t0=performance.now();
   const tryGo=()=>{if(HAS_TTS&&speechSynthesis.speaking&&performance.now()-t0<450){setTimeout(tryGo,40);return;}go();};
   requestAnimationFrame(()=>setTimeout(tryGo,0));
 }
-const chime=i=>sfx('c'+(i%8));
-const fanfare=()=>sfx('fan');
+const chime=(i,now)=>sfx('c'+(i%8),now);
+const fanfare=now=>sfx('fan',now);
 const boo=()=>sfx('boo');
 const hoverSfx=()=>{if(!IS_IOS)sfx('hov');};
 const bellSfx=()=>sfx('bell');
@@ -1157,14 +1159,15 @@ function arrive(L){
 function completePuzzle(){
   const tok=P.tok;P.done=true;P.cel=0;P.doneT=0;
   P.L.forEach(l=>{if(l.slot<0)l.st='gone';});
-  setTimeout(()=>{if(tok===P.tok){fanfare();P.L.forEach((l,i)=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});}},900);
-  setTimeout(()=>{if(tok===P.tok)say(P.word);},2100);
-  setTimeout(()=>{if(tok===P.tok)finishItem();},3900);
+  P.dance=false;const dur=1.8+.12*P.chars.length;
+  setTimeout(()=>{if(tok!==P.tok)return;fanfare(true);P.dance=true;P.doneT=0;P.L.forEach(l=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});},550);
+  setTimeout(()=>{if(tok===P.tok)say(P.word);},550+dur*1000+100);
+  setTimeout(()=>{if(tok===P.tok)finishItem();},550+dur*1000+1700);
 }
 function finishItem(){
   P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
-  const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4);
+  const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4,true);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
 }
 /* ドラッグ操作(タップでは はめられない) */
@@ -1203,9 +1206,9 @@ function endDrag(){
   if(!moved){L.st='free';L.bx=L.x;L.by=L.y;L.tap=1;return;}
   /* ただしい ばしょが ちかければ すいこむ(ひろめに うけとめる) */
   let mi=-1,md=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k]||P.chars[k]!==L.ch)return;const d=Math.hypot(L.tx-sl.x,L.ty-sl.y);if(d<md){md=d;mi=k;}});
-  if(mi>=0&&md<P.sz*1.3){chime(mi+P.arrived);L.chimed=true;P.filled[mi]=true;L.slot=mi;L.st='snap';L.age=0;L.sx=L.x;L.sy=L.y;if(!save.tutDrag){save.tutDrag=true;stopFinger();}return;}
+  if(mi>=0&&md<P.sz*1.3){chime(mi+P.arrived,true);L.chimed=true;P.filled[mi]=true;L.slot=mi;L.st='snap';L.age=0;L.fresh=true;L.sx=L.x;L.sy=L.y;if(!save.tutDrag){save.tutDrag=true;stopFinger();}return;}
   let ni=-1,nd=1e9;P.slots.forEach((sl,k)=>{if(P.filled[k])return;const d=Math.hypot(L.tx-sl.x,L.ty-sl.y);if(d<nd){nd=d;ni=k;}});
-  if(ni>=0&&nd<P.sz*.8){boo();L.st='back';L.age=0;L.shake=1;L.sx=L.x;L.sy=L.y;L.tx=L.px0;L.ty=L.py0;return;}
+  if(ni>=0&&nd<P.sz*.8){sfx('boo',true);L.st='back';L.fresh=true;L.age=0;L.shake=1;L.sx=L.x;L.sy=L.y;L.tx=L.px0;L.ty=L.py0;return;}
   L.st='free';L.bx=L.x;L.by=L.y;
 }
 lcv.addEventListener('pointerup',endDrag);lcv.addEventListener('pointercancel',endDrag);
@@ -1234,7 +1237,7 @@ function drawPuzzle(t,dt){
   if(!P.slots.length||P.slots.length!==P.chars.length)return;
   lc.setTransform(P.dpr,0,0,P.dpr,0,0);lc.clearRect(0,0,P.W,P.H);
   const px=Math.round(P.sz*P.dpr);
-  if(P.done)P.doneT+=dt;
+  if(P.done&&P.dance)P.doneT+=dt;
   P.slots.forEach((s,i)=>{
     if(P.filled[i])return;
     const hot=P.hot===i,g=glyph(P.chars[i],'g',px,hot?2:1);
@@ -1253,17 +1256,17 @@ function drawPuzzle(t,dt){
       const sp2=Math.hypot(L.tx-L.x,L.ty-L.y);
       amp=5+Math.min(5,sp2*.25);rot=Math.sin(t*L.rf*3+L.rph)*.16+(L.tx-L.x)*.004;sx=1+Math.sin(t*L.sq*3+L.ph)*.12;sy=1/sx;sc=1.18;
     }else if(L.st==='snap'){
-      L.age+=dt;const p=Math.min(1,L.age/.1),e=1+2.2*Math.pow(p-1,3)+1.2*Math.pow(p-1,2),s=P.slots[L.slot];
+      if(L.fresh)L.fresh=false;else L.age+=dt;const p=Math.min(1,L.age/.12),e=1+2.2*Math.pow(p-1,3)+1.2*Math.pow(p-1,2),s=P.slots[L.slot];
       L.x=L.sx+(s.x-L.sx)*e;L.y=L.sy+(s.y-L.sy)*e;amp=5*(1-p)+1;rot*=1-p;sc=1.18+.3*Math.sin(Math.PI*p);
       if(p>=1)arrive(L);
     }else if(L.st==='back'){
-      L.age+=dt;const p=Math.min(1,L.age/.5),e=1-Math.pow(1-p,3);
+      if(L.fresh)L.fresh=false;else L.age+=dt;const p=Math.min(1,L.age/.5),e=1-Math.pow(1-p,3);
       L.x=L.sx+(L.tx-L.sx)*e;L.y=L.sy+(L.ty-L.sy)*e;dx=Math.sin(L.age*45)*8*(1-p);amp=3+4*(1-p);
       if(p>=1){L.st='free';L.bx=L.x;L.by=L.y;}
     }else if(L.st==='placed'){
       L.x=P.slots[L.slot].x;L.y=P.slots[L.slot].y;{const q=Math.max(0,L.pop||0);amp=2.2*q;rot=Math.sin(t*28)*.06*q;sx=1+.06*Math.sin(t*30)*q;sy=1/sx;}
       if(L.pop>0){L.pop-=dt*2.4;const q=Math.max(0,L.pop);sc=1+.45*Math.sin(q*Math.PI)*q;}
-      if(P.done){const d=P.doneT-L.slot*.12,q=d>0&&d<1.8?Math.abs(Math.sin(d*7))*(1-d/1.8):0;dy=-q*P.sz*.45;}
+      if(P.done&&P.dance){const d=P.doneT-L.slot*.12,q=d>0&&d<1.8?Math.abs(Math.sin(d*7))*(1-d/1.8):0;dy=-q*P.sz*.45;}
     }
     const col=(L.st==='placed'&&L.pop>0.5)?'#ffd84a':L.col;
     drawWavy(lc,glyph(L.ch,col,px),L.x+dx,L.y+dy,P.sz*sc,t,L,amp,rot,sx,sy);
@@ -1927,7 +1930,7 @@ setSound(soundOn);
 updateVoiceNote();setTimeout(()=>{pickVoice();updateVoiceNote();},1500);
 let last=0;
 function frame(ts){
-  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const t=ts/1000;
+  const dt=Math.min(.05,Math.max(0,ts-last-AUD_PAUSE)/1000||0);last=ts;AUD_PAUSE=0;const t=ts/1000;
   if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='mine')drawMine(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);
   requestAnimationFrame(frame);
 }
