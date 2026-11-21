@@ -483,7 +483,14 @@ book(d,o){const c=o.c;
   d.r(3,2,16,18,c);d.r(3,2,3,18,shade(c,-.25));d.r(18,4,1,14,CR);d.r(9,6,7,5,GOLD);d.r(10,7,5,1,shade(GOLD,-.3));d.r(10,9,5,1,shade(GOLD,-.3));
   if(o.ring)for(let y=4;y<19;y+=3)d.r(2,y,2,1,'#c8c8d8');},
 lamp(d,o){const c=o.c;d.t(2,10,11,5,17,c);d.r(4,10,14,1,shade(c,-.25));d.r(10,11,2,7,GOLD);d.e(11,19,5,2,GOLD);d.p(3,3,'#fff');d.p(18,1,'#fff6a0');},
-pencil(d){for(const t of [-1,0,1])d.l(6+t,15,16+t,5,'#ffd84a');d.l(5,14,4,18,'#f2d0a0');d.l(6,15,4,19,'#f2d0a0');d.p(3,19,E1);d.l(15,6,18,9,'#c0c0d0');d.l(17,4,19,6,'#ff8aa8');d.p(18,3,'#ff8aa8');d.l(17,7,14,4,'#c0c0d0');},
+pencil(d){const A=Math.SQRT1_2;   /* ななめの えんぴつ: けしゴム・かなぐ・ほんたい・けずった木・しん */
+  for(let y=0;y<22;y++)for(let x=0;x<22;x++){
+    const px=x+.5-18,py=y+.5-4,s=(-px+py)*A,w=(px+py)*A,aw=Math.abs(w);let col=null;
+    if(s>=0&&s<3&&aw<=2.1)col='#ff8aa8';
+    else if(s>=3&&s<4.3&&aw<=2.1)col='#c8ccd8';
+    else if(s>=4.3&&s<14&&aw<=2.1)col=w<-.9?'#ffe98a':w>.9?'#e8b820':'#ffd84a';
+    else if(s>=14&&s<18.2&&aw<=2.1*(1-(s-14)/4.2)+.35)col=s>=16.6?'#4a3a5a':(w<0?'#f6dcb0':'#e8c08c');
+    if(col)d.p(x,y,col);}},
 fruit(d,o){const t=o.t,c=o.c;
   if(t==='apple'){d.e(8,12,5.5,7,c);d.e(14,12,5.5,7,c);d.r(11,3,1,4,'#7a5a3a');d.e(15,4,3,1.5,'#6fcf8f');d.p(6,9,'#fff');d.p(6,10,'#fff');}
   else if(t==='orange'||t==='peach'){const cc=t==='peach'?'#ffb7a0':c;d.e(11,12,8,8,cc);d.e(14,3,3,1.5,'#6fcf8f');d.r(11,3,1,3,'#7a5a3a');
@@ -493,11 +500,26 @@ fruit(d,o){const t=o.t,c=o.c;
   else if(t==='kaki'){const k=c||'#ff8a3a';d.e(11,13,8.6,6.8,k);d.l(11,8,11,19,shade(k,-.12));d.p(7,11,'#ffd0a0');d.p(6,12,'#ffd0a0');
     const g='#5a7a30';d.r(8,6,7,2,g);d.p(6,7,g);d.p(16,7,g);d.p(11,5,g);d.p(7,8,g);d.p(15,8,g);d.r(10,3,2,3,'#7a5a3a');}
   else if(t==='berry'){d.e(11,9,7.5,4.5,c);d.t(9,19,11,15,3,c);for(const [x,y] of [[7,10],[11,9],[15,10],[9,13],[13,13],[11,16]])d.p(x,y,'#ffe9a0');d.e(11,4.5,5,1.6,'#6fcf8f');d.r(11,2,1,3,'#4a9a5a');d.p(8,7,'#fff');}
-  else if(t==='grape'){for(const [x,y] of [[7,7],[11,7],[15,7],[9,11],[13,11],[11,15],[7,11],[15,11],[11,19]])d.e(x,y,2.5,2.5,c);d.r(11,1,1,4,'#7a5a3a');d.e(15,3,3,1.4,'#6fcf8f');d.p(6,6,'#fff');}
+  else if(t==='grape'){const pts=[[6.7,8.5],[11,8.5],[15.3,8.5],[8.9,12.6],[13.1,12.6],[11,16.7]];   /* 3-2-1 の ぶどうの ふさ */
+    for(const [x,y] of pts.slice().reverse())d.e(x,y,2.8,2.8,c);
+    for(const [x,y] of pts)d.p(x-1,y-1,shade(c,.55));
+    d.r(11,2,1,4,'#7a5a3a');d.e(14.6,3.6,3,1.5,'#6fcf8f');d.l(12,4,16,3,shade('#6fcf8f',-.2));}
+  else if(t==='netmelon'){d.e(11,12.5,8.6,8,c);   /* メロン: あみめの もよう、T字の へた */
+    for(let y=0;y<22;y++)for(let x=0;x<22;x++){if(!d.g[y][x])continue;const dx=(x+.5-11)/8.6,dy=(y+.5-12.5)/8;if(dx*dx+dy*dy>.88)continue;
+      if(((x+y)%4===0)||((((x-y)%4)+4)%4===0))d.p(x,y,shade(c,.32));}
+    d.r(10,2,2,3,'#7a5a3a');d.r(8,2,6,1,'#7a5a3a');d.p(8,8,'#ffffff');d.p(9,7,'#ffffff');}
   else if(t==='lemon'){d.e(11,12,9,6,c);d.r(1,11,2,2,c);d.r(19,11,2,2,c);d.p(7,9,'#fffbd0');d.p(8,9,'#fffbd0');d.e(14,5,3,1.5,'#6fcf8f');}
   else{d.e(11,6,10.5,10.5,'#4ba85a');d.e(11,6,9,9,'#ff6b7a');d.e(11,6,9,9,'#ff6b7a',false);d.r(0,0,22,6,null);d.r(1,6,20,1,'#fff6e6');
     for(const [x,y] of [[6,10],[10,12],[14,10],[9,8],[13,14],[16,8]])d.r(x,y,1,2,E1);}},
-flower(d,o){const c=o.c;d.r(10,8,2,10,'#6fcf8f');d.e(7,13,3,1.5,'#6fcf8f');d.e(15,11,3,1.5,'#6fcf8f');
+flower(d,o){const c=o.c;
+  if(o.t==='sakura'){   /* さくら: えだに さく 5まいの はなびら(さきに きりこみ) */
+    d.l(1,20,16,5,'#8a5a3a');d.l(2,20,17,5,'#8a5a3a');d.l(9,13,10,19,'#8a5a3a');d.l(8,13,5,9,'#8a5a3a');
+    const bloom=(cx,cy,r)=>{const as=[0,1,2,3,4].map(i=>-1.5708+i*1.2566);
+      for(const a of as)d.e(cx+Math.cos(a)*r*1.05,cy+Math.sin(a)*r*1.05,r*.85,r*.85,c);
+      d.e(cx,cy,r*.6,r*.6,'#ff8aa8',false);
+      for(const a of as)d.p(cx+Math.cos(a)*r*1.95-.5,cy+Math.sin(a)*r*1.95-.5,null);
+      d.p(cx-.5,cy-.5,'#ffe27a');d.p(cx+.5,cy-.5,'#ffe27a');d.p(cx-.5,cy+.5,'#ffe27a');};
+    bloom(16,6,3);bloom(7,11,2.6);bloom(14,16,2.4);d.p(4,16,'#ff9ab8');d.p(3,16,'#ff9ab8');d.p(4,17,'#ffd0e0');return;}d.r(10,8,2,10,'#6fcf8f');d.e(7,13,3,1.5,'#6fcf8f');d.e(15,11,3,1.5,'#6fcf8f');
   for(const [x,y] of [[11,3],[15,6],[13,10],[9,10],[7,6]])d.e(x,y,2.8,2.8,c);d.e(11,7,2.5,2.5,GOLD);d.t(16,21,11,10,8,'#d98a6a');d.r(6,16,10,1,'#e8a888');},
 snake(d,o){const c=o.c;const pts=[[3,17],[6,18],[9,18],[12,17],[15,15],[16,12],[14,9],[11,8],[9,6]];
   pts.forEach(([x,y],i)=>d.e(x,y,2.6,2.6,i%2?shade(c,.25):c));d.e(8,5,3.4,3,c);d.p(7,4,E1);d.p(10,4,E1);d.r(8,1,1,2,'#ff5a7a');d.p(7,0,'#ff5a7a');d.p(9,0,'#ff5a7a');},
@@ -509,8 +531,19 @@ kettle(d,o){const c=o.c;d.r(5,6,12,1,BR);d.r(5,6,1,4,BR);d.r(16,6,1,4,BR);d.r(17
   d.r(5,15,12,1,shade(c,.4));d.p(8,11,CR);d.p(8,12,CR);},
 snowman(d){const w='#ffffff';d.e(11,16,6,5,w);d.e(11,8,4.5,4.5,w);d.r(7,11,9,2,'#e8465a');d.r(15,12,2,5,'#e8465a');d.r(11,8,4,1,'#ff9a4a');
   d.p(10,6,E1);d.p(13,6,E1);d.p(11,15,E1);d.p(11,17,E1);d.r(7,3,9,1,E1);d.r(9,0,5,3,E1);d.l(5,12,2,9,BR);d.l(17,14,20,9,BR);},
-cloth(d,o){const c=o.c;d.r(3,14,16,6,c);d.r(4,9,14,6,shade(c,.2));d.r(5,4,12,6,shade(c,-.12));
-  for(const [x,y] of [[6,6],[10,6],[14,6],[6,11],[10,11],[14,11],[5,16],[9,16],[13,16],[17,16]])d.p(x,y,shade(c,.5));d.r(3,19,16,1,shade(c,-.3));},
+cloth(d,o){const c=o.c,lo=shade(c,-.22),hi=shade(c,.45);
+  if(o.t==='towel'){   /* タオル: ぶらさげ ひも、しま、ふさふさの はし */
+    d.r(4,5,14,14,c);d.r(4,5,14,1,hi);d.r(4,9,14,1,shade(c,-.1));
+    d.r(4,14,14,2,'#ffffff');d.r(4,16,14,1,'#8fb8e8');d.r(4,17,14,1,'#ffffff');
+    for(let x=4;x<18;x+=2){d.p(x,19,c);d.p(x,20,lo);}
+    for(const [x,y] of [[6,7],[10,7],[14,7],[8,11],[12,11],[16,11]])d.p(x,y,hi);
+    d.e(7,3.5,2.2,2.6,lo,false);d.e(7,3.8,1.1,1.5,null,false);d.p(17,6,shade(c,.2));d.p(16,7,shade(c,.2));return;}
+  /* ふろしき: むすびめが あって、かどが 2つ たつ。もようつき */
+  d.t(4,8,8,1,4,c);d.t(4,8,14,1,4,c);                      // かど
+  d.t(9,14,11,6,14,c);d.e(11,16,8.5,4.8,c);                // つつんだ ほんたい
+  d.e(11,9.5,3.2,2.2,lo);d.p(10,9,hi);
+  for(const [x,y] of [[8,14],[14,14],[11,12],[6,17],[16,17],[11,17]]){d.p(x,y,hi);d.p(x-1,y,hi);d.p(x+1,y,hi);d.p(x,y-1,hi);d.p(x,y+1,hi);}
+  d.r(5,20,12,1,lo);},
 glove(d,o){const c=o.c;d.e(11,11,6,6.5,c);d.e(5,12,2.6,3.2,c);d.r(7,16,8,5,shade(c,.45));d.r(7,17,8,1,shade(c,.1));d.r(7,19,8,1,shade(c,.1));d.p(11,9,CR);d.p(10,10,CR);d.p(12,10,CR);d.p(11,11,CR);},
 moon(d){d.e(11,11,9,9,'#ffe9a0');d.e(15,9,8,8,null,false);d.p(5,11,E1);d.p(4,12,PK);d.p(18,4,'#fff6a0');d.p(17,5,'#fff6a0');d.p(19,5,'#fff6a0');d.p(18,6,'#fff6a0');d.p(3,3,'#fff6a0');d.p(19,16,'#fff6a0');},
 ribbon(d,o){const c=o.c;d.e(6,10,5,4.5,c);d.e(16,10,5,4.5,c);d.r(8,12,3,8,shade(c,-.1));d.r(12,12,3,8,shade(c,-.1));d.r(9,8,4,5,shade(c,-.25));d.p(4,8,shade(c,.45));},
@@ -536,10 +569,40 @@ sofa(d,o){const c=o.c;d.r(3,5,16,8,c);d.r(2,11,18,6,shade(c,.15));d.r(1,8,3,9,sh
 bowl(d,o){d.e(11,12,9,8,CR);d.r(0,0,22,11,null);d.r(2,10,18,1,'#e8d0b8');d.r(8,19,6,2,'#e8d0b8');
   if(o.t==='noodle'){for(let x=3;x<19;x+=3){d.e(x+1,9,2.4,2,'#ffe27a');d.e(x+2,7,2,1.6,'#f1d070');}d.e(8,6,2,2,'#ff9a8a');d.e(14,6,2,2,'#7fd08a');d.l(15,0,13,8,'#c89a6a');d.l(17,0,15,8,'#c89a6a');}
   else{d.e(6,8,3.5,2.5,'#7fd08a');d.e(11,6,4,3,'#6fcf8f');d.e(16,8,3.5,2.5,'#9be8a0');d.e(9,8,1.6,1.6,'#e8465a');d.e(14,7,1.6,1.6,'#e8465a');d.e(11,8,1.4,1.2,'#ffe27a');}},
-knife(d){for(const t of [0,1,2])d.l(10+t,15,17+t,3,'#dfe6f0');d.l(12,3,19,3,'#c0c8d8');d.r(8,15,6,2,GOLD);for(const t of [0,1,2])d.l(3+t,20,8+t,16,'#c89a6a');d.p(2,20,'#c89a6a');},
+knife(d){const A=Math.SQRT1_2;   /* パンを きる ナイフ: もち手・かなぐ・はの ついた はもの */
+  for(let y=0;y<22;y++)for(let x=0;x<22;x++){
+    const px=x+.5-3.5,py=y+.5-18.5,s=(px-py)*A,w=(px+py)*A;let col=null;
+    if(s>=0&&s<6.4&&Math.abs(w)<=1.9){col=w<-.9?'#d8a878':w>.9?'#a8784e':'#c89a6a';if(Math.abs(w)<.7&&(Math.abs(s-1.6)<.7||Math.abs(s-4.6)<.7))col=GOLD;}
+    else if(s>=6.4&&s<7.6&&Math.abs(w)<=2.4)col='#b8c0d0';
+    else if(s>=7.6&&s<=19.5){const k=(s-7.6)/11.9,edge=-1.7+4.4*(1-Math.pow(k,1.6));
+      if(w>=-1.7&&w<=edge)col=w<-.8?'#aab6cc':(w>edge-.9?'#ffffff':'#e6edf6');}
+    if(col)d.p(x,y,col);}},
+wool(d,o){const c=o.c,w='#fff8f2',sh='#f6e4e4',cu=shade(c,.5);   /* ウール: ふわふわの わた(くるくるの もよう)に リボン */
+  for(let i=0;i<10;i++){const a=i/10*6.2832;d.e(11+Math.cos(a)*6.4,12.5+Math.sin(a)*5.6,3,3,i>=3&&i<=6?sh:w,false);}
+  d.e(11,12.5,7,6.2,w,false);d.e(12.5,15,5.5,3.2,sh,false);
+  for(const [x,y] of [[7,10],[12,9],[9,14],[14,13],[6,14],[11,17],[16,10]]){d.p(x,y,cu);d.p(x+1,y,cu);d.p(x+2,y+1,cu);d.p(x+1,y+2,cu);d.p(x,y+1,cu);}
+  d.p(8,8,'#ffffff');d.p(9,8,'#ffffff');
+  d.e(7.8,5.2,2.4,1.7,c);d.e(14.2,5.2,2.4,1.7,c);d.r(10,4,2,3,shade(c,-.2));d.l(10,7,8,10,c);d.l(12,7,14,10,c);d.p(7,4,shade(c,.4));d.p(13,4,shade(c,.4));},
+bulb(d,o){const c=o.c,g='#c8ccd8';   /* あかり: ひかる でんきゅう */
+  for(const [x1,y1,x2,y2] of [[11,0,11,2],[4,2,6,4],[18,2,16,4],[1,9,3,9],[21,9,19,9]])d.l(x1,y1,x2,y2,GOLD);
+  d.e(11,9.5,5.8,6,c);d.t(14,16,11,8,6,c);
+  d.l(9,14,9,10,'#c89a3a');d.l(13,14,13,10,'#c89a3a');d.l(9,10,10,8,'#c89a3a');d.l(13,10,12,8,'#c89a3a');d.l(10,8,12,8,'#c89a3a');
+  d.p(7,6,'#ffffff');d.p(7,7,'#ffffff');d.p(8,5,'#ffffff');
+  d.r(8,16,6,1,g);d.r(8,17,6,1,'#9aa0b8');d.r(8,18,6,1,g);d.r(9,19,4,1,'#9aa0b8');d.r(10,20,2,1,E1);},
 yarn(d,o){const c=o.c;d.l(15,20,20,3,'#c89a6a');d.l(16,20,21,3,'#c89a6a');d.e(11,12,8,8,c);d.l(5,9,17,15,shade(c,-.2));d.l(4,12,16,8,shade(c,.35));d.l(6,16,15,18,shade(c,-.2));d.r(1,18,4,1,c);d.r(1,19,2,1,c);},
 star(d,o){const c=o.c||'#ffd84a';d.t(1,9,11,2,8,c);d.r(2,9,18,3,c);d.t(12,19,7,7,2,c);d.t(12,19,15,7,2,c);d.p(9,10,E1);d.p(13,10,E1);d.p(7,12,PK);d.p(15,12,PK);d.p(11,12,'#d0607a');},
-fish(d,o){const c=o.c||'#7fc8e8';d.r(16,9,1,4,c);d.r(17,8,1,6,c);d.r(18,7,1,8,c);d.r(19,6,1,10,c);d.e(10,11,7.5,5.2,c);d.e(10,14,3,1.8,shade(c,.45),false);d.e(11,6,3,1.8,shade(c,-.15));d.p(6,10,'#fff');d.p(6,11,E1);d.p(9,8,shade(c,.4));d.p(12,8,shade(c,.4));d.p(15,11,shade(c,-.2));},
+fish(d,o){const c=o.c||'#7fc8e8';
+  if(o.t==='flat'){   /* かれい: ひらべったい からだ、あたまの ふくらみ、とびだした めが 2つ、ひれの ふち */
+    const dk=shade(c,-.28),fin='#ecd09a',lt=shade(c,.32);
+    d.t(8,14,2,3,6,c);d.e(10.5,11,8.4,5.8,c);d.e(17.2,11,2.6,2.8,c);
+    const edge=(x,y)=>!d.g[y-1][x]||!d.g[y+1][x]||!d.g[y][x-1]||!d.g[y][x+1];
+    const per=[];for(let y=1;y<21;y++)for(let x=1;x<21;x++)if(d.g[y][x]&&edge(x,y))per.push([x,y]);
+    for(const [x,y] of per)if(x<=15)d.p(x,y,fin);
+    for(const [x,y] of per)if(x<=15){for(const [dx,dy] of [[0,1],[0,-1]])if(d.g[y+dy]&&d.g[y+dy][x+dx]&&d.g[y+dy][x+dx]!==fin&&(x%2)===0)d.p(x+dx,y+dy,dk);}
+    d.e(9,13.6,4.2,1.7,lt,false);
+    for(const [x,y] of [[7,9],[10,8],[12,12],[9,11],[14,13],[6,12],[12,9],[8,14]]){d.p(x,y,dk);d.p(x+1,y,dk);}
+    d.e(14.6,5.4,1.7,1.7,'#ffffff',false);d.p(15,5,E1);d.p(15,6,E1);d.e(18,6.8,1.7,1.7,'#ffffff',false);d.p(18,6,E1);d.p(18,7,E1);
+    d.p(19,13,E1);d.p(18,13,E1);return;}d.r(16,9,1,4,c);d.r(17,8,1,6,c);d.r(18,7,1,8,c);d.r(19,6,1,10,c);d.e(10,11,7.5,5.2,c);d.e(10,14,3,1.8,shade(c,.45),false);d.e(11,6,3,1.8,shade(c,-.15));d.p(6,10,'#fff');d.p(6,11,E1);d.p(9,8,shade(c,.4));d.p(12,8,shade(c,.4));d.p(15,11,shade(c,-.2));},
 mushroom(d,o){const c=o.c||'#e8465a';d.e(11,10,9.5,7.5,c);d.r(0,12,22,10,null);d.r(7,12,8,7,CR);d.e(11,19,4.5,1.6,CR);d.r(7,12,8,1,shade(CR,-.12));d.e(7,8,1.6,1.6,'#fff',false);d.e(12,6,2,2,'#fff',false);d.e(16,9,1.4,1.4,'#fff',false);d.p(9,15,E1);d.p(13,15,E1);d.p(8,17,PK);d.p(14,17,PK);},
 chair(d,o){const c=o.c||'#e8a0b0';d.r(5,2,12,9,c);d.r(8,3,1,6,shade(c,.4));d.r(11,3,1,6,shade(c,.4));d.r(14,3,1,6,shade(c,.4));d.r(3,10,16,3,shade(c,.2));d.r(4,13,2,8,BR);d.r(16,13,2,8,BR);d.r(5,2,12,1,shade(c,-.2));},
 candle(d,o){d.e(11,4.5,2,3,'#ffd84a');d.e(11,5.5,1,1.6,'#ff9a3a',false);d.r(8,8,6,11,CR);d.r(8,8,2,5,'#fff8f0');d.r(13,8,1,11,shade(CR,-.12));d.p(11,7,E1);d.r(10,12,2,3,shade(CR,-.1));d.r(5,19,12,2,GOLD);d.e(11,19,6,1.5,GOLD);},
@@ -716,24 +779,24 @@ A2('clothes',[
  ['シャツ','shirt',{c:'#9ac8f0'}],['セーター','shirt',{t:'sweater',c:'#f0b878'}],['エプロン','shirt',{t:'apron',c:'#f0a0c8'}],['ヘルメット','hat',{t:'helmet',c:'#f3c850'}],
  ['スカート',W('skirt',{c:'#e86a8a'})],['ズボン',W('pants',{c:'#5a7ac8'})],['パジャマ',W('pajama',{c:'#bfe0f8'})],['コート',W('coat',{c:'#c8956a'})],['マフラー',W('muffler',{c:'#e8465a'})],
  ['サンダル',W('sandal',{c:'#ffb347'})],['ティアラ',W('tiara',{c:'#ff8fb0'})],
- ['けいと','yarn',{c:'#8fb8e8'}],['ふろしき','cloth',{c:'#7fc8a0'}],['ウール','yarn',{c:'#ff9ab8'}],['タオル','cloth',{c:'#f0a0c8'}]
+ ['けいと','yarn',{c:'#8fb8e8'}],['ふろしき','cloth',{t:'furoshiki',c:'#7fc8a0'}],['ウール','wool',{c:'#ff9ab8'}],['タオル','cloth',{t:'towel',c:'#f0a0c8'}]
 ]);
 A2('toy',[['くま','animal',{t:'bear',c:'#c8956a'}],['たいこ','drum',{c:'#e8606a'}],['ふうせん','balloon',{c:'#7fc8e8'}],['ひよこ','animal',{t:'chick'}],['ふね','boat',{c:'#7fc8e8'}],
  ['いぬ','animal',{t:'dog',c:'#e8c090'}],['くるま','car',{c:'#e8606a'}],
  ['ハート','balloon',{h:1,c:'#ff6a8a'}],['ユニコーン','animal',{t:'unicorn'}],['ヤギ','animal',{t:'goat'}],['ヨット','boat',{c:'#e8606a'}],['ロボット','robot',{c:'#f0c0a0'}]]);
 A2('fruit',[['みかん','fruit',{t:'orange',c:'#ff9a3a'}],['すいか','fruit',{t:'melon'}],['もも','fruit',{t:'peach'}],['りんご','fruit',{t:'apple',c:'#e8465a'}],
  ['かき','fruit',{t:'kaki',c:'#ff8a3a'}],['なし','fruit',{t:'orange',c:'#e8e07a'}],['くり','fruit',{t:'chestnut'}],['いちご','fruit',{t:'berry',c:'#ff5a6a'}],['ぶどう','fruit',{t:'grape',c:'#9a6ad8'}],
- ['メロン','fruit',{t:'orange',c:'#9be8a0'}],['レモン','fruit',{t:'lemon',c:'#ffe24a'}]]);
+ ['メロン','fruit',{t:'netmelon',c:'#9be8a0'}],['レモン','fruit',{t:'lemon',c:'#ffe24a'}]]);
 A2('sweets',[['あめ','candy',{c:'#ff8fb0'}],['だんご','dango'],
  ['ケーキ','cake',{t:'slice',c:'#ffe0a0'}],['ムース','cake',{t:'pudding',c:'#ffb0c8'}],['クッキー','cake',{t:'cookie'}],['ホットケーキ','cake',{t:'pancake'}],['チーズ','cake',{t:'cheese'}],
  ['ミルク','bottle',{c:'#fff6e6',milk:1}],['アイス','ice',{c:'#ffc0d8'}],['コーヒー','cup',{c:'#8a5a3a'}]]);
-A2('books',[['ほん','book',{c:'#6a8ad8'}],['えんぴつ','pencil'],['あかり','lamp',{c:'#ffe27a'}],['ほんをよむ','book',{c:'#b08ae0',open:1}],['ノート','book',{c:'#5a8ad8',ring:1}],['ランプ','lamp',{c:'#f5b0c8'}]]);
+A2('books',[['ほん','book',{c:'#6a8ad8'}],['えんぴつ','pencil'],['あかり','bulb',{c:'#fff3a0'}],['ほんをよむ','book',{c:'#b08ae0',open:1}],['ノート','book',{c:'#5a8ad8',ring:1}],['ランプ','lamp',{c:'#f5b0c8'}]]);
 A2('music',[['ピアノ','piano',{c:'#b8a0e8'}],['オルガン','piano',{t:'organ',c:'#e8a0b0'}],['ギター','guitar',{c:'#e8a060'}],['ラッパ','trumpet'],['ベル','bell',{c:'#f3c850'}]]);
 A2('denki',[['カメラ','camera',{c:'#8fd0c0'}],['テレビ','tv',{c:'#e8a0b0'}]]);
-A2('nature',[['はな','flower',{c:'#ff9ab8'}],['さくら','flower',{c:'#ffd0e0'}],['むし','ladybug'],['わに','animal',{t:'croc',c:'#6fc88f'}],['へび','snake',{c:'#7fcf8f'}],['ねこ','animal',{t:'cat'}],
- ['おに','animal',{t:'oni'}],['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['かれい','fish',{c:'#c8a878'}],['ゆきだるま','snowman']]);
+A2('nature',[['はな','flower',{c:'#ff9ab8'}],['さくら','flower',{t:'sakura',c:'#ffd0e0'}],['むし','ladybug'],['わに','animal',{t:'croc',c:'#6fc88f'}],['へび','snake',{c:'#7fcf8f'}],['ねこ','animal',{t:'cat'}],
+ ['おに','animal',{t:'oni'}],['ほし','star'],['つき','moon'],['くも','cloud'],['きのこ','mushroom'],['さかな','fish'],['かれい','fish',{t:'flat',c:'#c8a878'}],['ゆきだるま','snowman']]);
 A2('home',[['やかん','kettle',{c:'#e0a0c0'}],['いす','chair'],['ほうき','broom'],['ろうそく','candle'],
- ['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ヌードル','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}]]);
+ ['ソファ','sofa',{c:'#e8a0b0'}],['コップ','cup',{c:'#8fb8e8'}],['ナイフ','knife'],['サラダ','bowl',{t:'salad'}],['ラーメン','bowl',{t:'noodle'}],['ワイン','bottle',{c:'#a03060'}]]);
 const SLOT_OF_={startiara:'head',flowercrown:'head',rainbowdress:'body',starcape:'body',wings:'back',wand:'wand',glassshoe:'feet',hat:'head',ribbon:'head',crown:'head',tiara:'head',glasses:'face',tie:'neck',muffler:'neck',shirt:'body',yukata:'body',coat:'body',pajama:'body',skirt:'bottom',pants:'bottom',shoe:'feet',socks:'feet',geta:'feet',sandal:'feet',glove:'hand',bag:'bag',umbrella:'held'};
 const wearKind=it=>it[1]==='wi'?it[2].k:it[1];
 const isWear=it=>!!(it&&SLOT_OF_[wearKind(it)]);
@@ -2118,7 +2181,7 @@ const NOTE={
 'きのこ':'もりで みつけた きのこ。たべちゃ だめだよ。','さかな':'すいすい およぐ さかな。ひれが きらきら。','かれい':'ひらべったい かれい。うみの そこで おひるね。',
 'ゆきだるま':'まっしろな ゆきだるま。とけないで ね。','やかん':'しゅんしゅん ゆげが でる やかん。おちゃの じかん。','いす':'すわると ほっと する いす。',
 'ほうき':'まほうつかいの だいじな ほうき。そらも とべる。','ろうそく':'ちいさな ひが ゆれる ろうそく。','ソファ':'ふかふかで ねむく なる ソファ。',
-'コップ':'すきな のみものを いれよう。','ナイフ':'ぱんを きる ナイフ。きを つけて つかおう。','サラダ':'しゃきしゃきの やさいが たっぷり。','ヌードル':'ずるずる すする あったかい ヌードル。','ワイン':'おとなが のむ むらさきの のみもの。'
+'コップ':'すきな のみものを いれよう。','ナイフ':'ぱんを きる ナイフ。きを つけて つかおう。','サラダ':'しゃきしゃきの やさいが たっぷり。','ラーメン':'ずるずる すする あつあつの ラーメン。','ワイン':'おとなが のむ むらさきの のみもの。'
 };
 const noteOf=w=>NOTE[w]||'ぴかぴかに なおしたよ。';
 const BOOK={i:0,mode:'items'};

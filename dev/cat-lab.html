@@ -422,24 +422,18 @@ shirt(d,R,o){
     for(const x of [9,12,19,22])for(let y=T+3;y<hem-1;y+=3)d.p(x,y,shade(c,-.1));
     return;}
   if(t==='apron'){
-    // 参考: 肩ひもが太く、胸当てから裾まで四角い、ギンガムチェックの前かけ。下は長そでのシャツ
-    const top='#fff8ee',cuff=shade(top,-.14),hem=R.fy0-1;
-    const dark=shade(c,-.2),mid=shade(c,.36),light='#fffdf6';
-    const check=(x,y)=>{const u=Math.floor(x/2)%2,v=Math.floor(y/2)%2;return (u&&v)?dark:(u||v)?mid:light;};
-    // 長そでのシャツ
+    // ゲームの 119 エプロンと同じ形: 細い肩ひも2本、せまい胸当て、その下に広い四角いスカート。ポケット(赤い点)と白いすそ
+    const top='#fff8ee',cuff=shade(top,-.14),hem=R.fy0-1,pk=shade(c,.35);
     for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),top);
     sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);
     const len=R.ay1-R.ay0;
     mr(d,armL(R)-1,R.ay0,R.aw+1,len,top);mr(d,armL(R)-1,R.ay0+len-1,R.aw+1,1,cuff);
     mr(d,armL(R)+R.aw-1,R.ay0+1,1,len-2,shade(top,-.14));
-    // 肩ひも(太い)
-    for(let y=T;y<=T+1;y++){for(const x of [12,13,18,19])d.p(x,y,check(x,y));}
-    // 本体: 同じ幅でストンと落ちる
-    for(let y=T+2;y<=hem;y++)for(let x=11;x<=20;x++)d.p(x,y,check(x,y));
-    hr(d,11,20,T+2,dark);                                                  // 胸当ての上のふち
-    hr(d,11,20,T+7,dark);                                                  // こしの縫い目(ポケットの上)
-    for(let y=T+8;y<=T+10;y+=2){d.p(12,y,dark);d.p(19,y,dark);}            // ポケットのステッチ
-    hr(d,11,20,hem,mid);hr(d,11,20,hem-1,dark);                            // すその折り返し
+    for(const x of [12,19])for(let y=T;y<=T+2;y++)d.p(x,y,c);              // 肩ひも(胸当ての外がわ)
+    for(let y=T+2;y<=B-1;y++)hr(d,13,18,y,c);                              // 胸当て(せまい)
+    for(let y=B;y<=hem;y++)hr(d,10,21,y,c);                                // スカート(広い四角)
+    hr(d,10,21,hem,CR);                                                    // 白いすそ
+    d.r(13,B+1,6,3,pk);d.p(15,B+2,'#e8465a');d.p(16,B+2,'#e8465a');        // ポケットと赤い点
     return;}
   const sw=t==='sweater';
   for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
@@ -624,20 +618,14 @@ wand(d,R,o){
   for(const [x,y] of [[30,14],[20,3]]){d.p(x,y,'#ffffff');d.p(x-1,y,'#ffe0f0');d.p(x+1,y,'#ffe0f0');d.p(x,y-1,'#ffe0f0');d.p(x,y+1,'#ffe0f0');}
 },
 umbrella(d,R,o){
-  // 33: かさ(単色。縞は入れない。左上のつや・右下のかげ・なみ形のすその かげだけで丸みを出す)
-  const c=o.c,cx=24,tip=GOLD,hi=shade(c,.26),lo=shade(c,-.16),lo2=shade(c,-.3);
-  d.e(cx,7,8,6.2,c,false);d.r(0,8,32,24,null);
-  for(const i of [-5.3,0,5.3])d.e(cx+i,8.2,2.9,1.7,c,false);
-  const has=(x,y)=>y>=0&&y<N&&x>=0&&x<N&&d.g[y][x];
-  for(let y=0;y<10;y++)for(let x=0;x<N;x++){if(!has(x,y))continue;
-    const u=((x+.5-cx)/8)*.75+((y+.5-1)/8)*.55;                 // 左上 → 右下 の向き
-    let col=u<-.38?hi:u>.34?lo:c;
-    if(y>=8)col=lo;                                              // なみ形のすそ
-    d.g[y][x]=col;}
-  for(let x=0;x<N;x++)if(has(x,9))d.g[9][x]=lo2;                 // すそのふち
-  d.p(24,0,tip);d.p(24,1,tip);d.p(23,1,shade(tip,.4));d.p(25,1,shade(tip,-.2));
-  d.l(24,10,23,23,'#c8a070');
-  d.p(23,24,'#c8a070');d.p(22,25,'#c8a070');d.p(21,25,'#c8a070');d.p(21,24,'#c8a070');
+  // 33: かさ(ゲームの 105 と同じ形: 半円のかさ、なみ形のすそ、中心から3本の うすい骨、えのカーブ、先の金)
+  const c=o.c,cx=24,hi=shade(c,.45),lo=shade(c,-.08);
+  d.e(cx,7.5,8,6.4,c,false);d.r(0,8,32,24,null);
+  for(let i=-2;i<=2;i++)d.e(cx+i*3.2,8.2,1.9,1.5,i%2?lo:c,false);
+  for(const x of [cx-4,cx,cx+4])d.l(cx,2,x,8,hi);
+  d.p(cx,0,GOLD);d.p(cx,1,GOLD);
+  d.l(cx,9,23,23,'#a8785a');
+  d.p(23,24,'#a8785a');d.p(22,25,'#a8785a');d.p(21,25,'#a8785a');d.p(21,24,'#a8785a');
 },
 };
 
