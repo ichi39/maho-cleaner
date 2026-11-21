@@ -281,6 +281,18 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 @keyframes tapme{0%,100%{transform:translate(0,0)}50%{transform:translate(-10px,-12px) scale(.92)}}
 #mineTray canvas.newk{animation:newk 1.4s 2;box-shadow:0 0 0 3px #ffe27a}
 @keyframes newk{0%{transform:scale(1.6)}30%{transform:scale(1)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.screen.tr-keep{display:flex}
+.tr-in-r{animation:trInR .4s ease-out}.tr-out-l{animation:trOutL .4s ease-in forwards}
+.tr-in-l{animation:trInL .4s ease-out}.tr-out-r{animation:trOutR .4s ease-in forwards}
+@keyframes trInR{from{transform:translateX(100%)}}@keyframes trOutL{to{transform:translateX(-100%)}}
+@keyframes trInL{from{transform:translateX(-100%)}}@keyframes trOutR{to{transform:translateX(100%)}}
+.tr-door-in{animation:doorIn .5s ease-in forwards}.tr-door-out{animation:doorOut .5s ease-in forwards}
+@keyframes doorIn{from{clip-path:circle(3% at var(--ox,50%) var(--oy,50%))}to{clip-path:circle(150% at var(--ox,50%) var(--oy,50%))}}
+@keyframes doorOut{from{clip-path:circle(150% at var(--ox,50%) var(--oy,50%))}to{clip-path:circle(3% at var(--ox,50%) var(--oy,50%))}}
+.street{position:relative}
+#switch{position:absolute;bottom:22px;left:14px;width:72px;height:72px;image-rendering:pixelated;pointer-events:none;z-index:2}
+#switch.walk{animation:wbob .22s infinite}
+@keyframes wbob{50%{transform:translateY(-5px)}}
 </style>
 </head>
 <body>
@@ -293,7 +305,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div class="btns"><button class="btn" id="bStart">はじめる ▶</button><button class="btn pink" id="bShelf"><canvas class="ico" width="24" height="24" style="width:44px;height:44px;vertical-align:middle"></canvas></button><div class="sndrow"><button class="snd" data-k="bgm" aria-label="BGM">♪</button><button class="snd" data-k="sfx" aria-label="こうかおん">🔔</button><button class="snd" data-k="voice" aria-label="こえ">💬</button></div><div id="voiceNote" style="display:none;font-size:12px;color:#fff;background:rgba(106,74,98,.6);padding:4px 10px;border-radius:10px;max-width:280px;text-align:center">この たんまつには にほんごの よみあげが ないようです</div></div>
  </section>
  <section id="home" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><span id="homeInfo" style="color:#ffe27a"></span><button class="shopbtn" data-go="shelf"><canvas class="ico" width="24" height="24"></canvas></button></div>
+  <div class="bar" style="background:#2a2550"><span id="homeInfo" style="color:#ffe27a"></span><span></span></div>
   <div class="cvwrap"><canvas id="hc" width="240" height="150"></canvas><button id="bToMine" class="arrow" style="display:none">◀</button><div id="hbub" class="sbub"></div><button id="bCloseShop" class="btn big closebtn" style="display:none">🌙 おみせを しめる</button></div>
   <div id="reqList"></div>
   <div class="modal" id="hreq"><div class="mcard"><canvas id="hqC" width="24" height="24"></canvas><div class="mtxt"><span class="who" id="hqWho"></span><p id="hqText"></p></div><div class="hqitems" id="hqItems"></div>
@@ -317,7 +329,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="shelf" class="screen" style="background:linear-gradient(#bfe3f7,#fdeef2 70%,#e8d8c0)">
   <div class="bar"><button class="back" id="bStreetBack">◀</button><h2 id="sCoin"></h2><span style="width:46px"></span></div>
-  <div class="stwrap"><div class="street" id="street"></div></div>
+  <div class="stwrap" id="stwrap"><div class="street" id="street"></div></div>
  </section>
  <section id="shop" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><button class="back" id="bShopBack">◀</button><h2 id="shopName" style="color:#fff"></h2><span id="shopCoin" style="color:#ffe27a;min-width:46px;text-align:right"></span></div>
@@ -1594,7 +1606,7 @@ function genStock(cat){
 function stockOf(cat){ensureStock();const s=save.stock.shops;if(!s[cat]){s[cat]=genStock(cat);persist();}return s[cat];}
 const priceE=e=>e.sale?Math.max(2,Math.round(priceOf(e.k)*.6)):priceOf(e.k);
 /* ---- しょうてんがい ---- */
-function drawFront(cat,open){
+function drawFront(cat,open,dopen){
   const c=document.createElement('canvas');c.width=40;c.height=48;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   const T=THEMES[CAT_THEME[cat]],R=(col,a,b,w,h)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
   R(INK,1,6,38,42);R(open?T.wall:'#c8c0d0',2,7,36,40);
@@ -1603,32 +1615,34 @@ function drawFront(cat,open){
   for(let i=1;i<39;i+=6)R(open?T.acc:'#9a90a8',i,7,3,2);
   R(INK,5,14,16,15);R(open?'#bfe3f7':'#8a8498',6,15,14,13);
   if(open){const ic=spr(...CATS[cat].icon).c;x.drawImage(ic,5,13,16,16);R('rgba(255,255,255,.35)',6,15,3,2);}
-  R(INK,24,22,12,26);R(open?'#c8956a':'#7a7088',25,23,10,25);R(GOLD,33,35,1,2);
+  R(INK,24,22,12,26);if(dopen){R('#fff6c0',25,23,10,25);R('#c8956a',25,23,3,25);}else{R(open?'#c8956a':'#7a7088',25,23,10,25);R(GOLD,33,35,1,2);}
   if(!open){for(let y=12;y<47;y+=3)R('#a8a0b4',2,y,36,1);x.drawImage(spr('lock').c,10,20,20,20);}
   else{R('#d9a845',8,30,10,2);}
   return c;
 }
 onShow.shelf=()=>{
-  if(lastScreen!=='shop')S.streetFrom=lastScreen==='shelf'?'home':lastScreen;
+  if(lastScreen!=='shop'){S.streetFrom=lastScreen==='shelf'?'home':lastScreen;S.lastShop=null;}
+  if(!save.shopSeen){save.shopSeen=true;persist();}
   ensureStock();updateCoins();
   const el=$('#street');el.innerHTML='';
   Object.keys(CATS).forEach(cat=>{
-    const open=shopOpen(cat),b=document.createElement('button');b.className='front'+(open?'':' closed');
+    const open=shopOpen(cat),b=document.createElement('button');b.className='front'+(open?'':' closed');b.dataset.cat=cat;
     b.appendChild(drawFront(cat,open));
     if(open){const k=cvOf(spr('person',look(CLIENTS[keeperOf(cat)])).c);k.className='kface';b.appendChild(k);
       const st=save.stock.shops[cat];if(!st||st.some(e=>e.sale&&!hasK(e.k)))b.insertAdjacentHTML('beforeend','<span class="saleb">★</span>');}
-    b.addEventListener('click',()=>{initAudio();if(!open){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}chime(3);openShop(cat);});
+    b.addEventListener('click',()=>{initAudio();if(!open){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}chime(3);enterShop(cat,b);});
     el.appendChild(b);
   });
+  placeStreetWitch();
 };
-$('#bStreetBack').addEventListener('click',()=>{initAudio();show(S.streetFrom||'home');});
+$('#bStreetBack').addEventListener('click',()=>leaveStreet());
 /* ---- おみせの なか ---- */
 const spc=$('#spc'),sx=spc.getContext('2d');sx.imageSmoothingEnabled=false;
 const SH={cat:null,sel:null,anim:null,parts:[],coins:[]};
 const SSLOT=[[36,62],[84,62],[156,62],[204,62],[36,118],[204,118]],KX=120,KY=78;
-function openShop(cat){
+function openShop(cat,o){
   SH.cat=cat;SH.sel=null;SH.anim=null;SH.parts.length=0;SH.coins.length=0;stockOf(cat);
-  $('#shopName').textContent=CATS[cat].name;show('shop');
+  $('#shopName').textContent=CATS[cat].name;if(o)transit('shop','in',o);else show('shop');
   const cl=CLIENTS[keeperOf(cat)];shopTalk(`${cl.hi} いらっしゃい!`,3);renderShopPanel();
 }
 function shopTalk(text){const w=$('#shopSay'),c=$('#sayC').getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('person',look(CLIENTS[keeperOf(SH.cat)])).c,0,0);
@@ -1711,7 +1725,7 @@ spc.addEventListener('pointerdown',e=>{
   else shopTalk(`「${baseW(hit.k)}」は ${priceE(hit)}コイン だよ。`+(save.coins<priceE(hit)?' おかねが ちょっと たりないね。':''),3);
   renderShopPanel();
 });
-$('#bShopBack').addEventListener('click',()=>{if(SH.anim)return;initAudio();show('shelf');});
+$('#bShopBack').addEventListener('click',()=>{if(SH.anim||TR)return;initAudio();bellSfx();transit('shelf','out',S.doorO||{ox:50,oy:50});});
 /* ---- じぶんの おへやに とどいた はこ ---- */
 /* ---- じぶんの おへやに とどいた はこ ----
   ゆかの はこ か、したの はこの だんを タップ → おおきく ひらく がめん → ▶ で おへやへ。
@@ -1850,12 +1864,12 @@ function drawToybox(t,dt){
     if(it){const sz=Math.round(MSZ*(1-k*.85));mc.globalAlpha=1-k*.6;mc.drawImage(spr(it[1],it[2]).c,Math.round(st.x+(TB.x-st.x)*k-sz/2),Math.round(st.y+(TB.y-16-st.y)*k-sz/2),sz,sz);mc.globalAlpha=1;}
     if(k>=1){burst(M.parts,TB.x,TB.y-20,14,1.2);chime(1);M.stow=null;M.newK=st.w;renderMine();}}
 }
-$('#bMineBack').addEventListener('click',()=>show('home'));
-$('#bToMine').addEventListener('click',()=>{initAudio();chime(4);show('mine');});
+$('#bMineBack').addEventListener('click',()=>{initAudio();transit('home','r');});
+$('#bToMine').addEventListener('click',()=>{initAudio();chime(4);transit('mine','l');});
 /* ========= おそうじ屋さん(依頼がたまる店) ========= */
 const hcv=$('#hc'),hc=hcv.getContext('2d');hc.imageSmoothingEnabled=false;
 const H={cs:[],queue:0,timer:0,bt:0,bi:0,bn:0,coins:[],pops:[],talk:null,ask:null,t:0};
-const slotX=i=>[100,128,156,184][i]||184;
+const slotX=i=>[94,120,146,172][i]||172;
 const COUNTER_X=92;
 const reqOf=id=>save.reqs.find(r=>r.id===id);
 const waitingReqs=()=>save.reqs.filter(r=>!r.leaving);
@@ -1894,7 +1908,7 @@ function declineReq(id){
 function spawnClient(){
   const D=DAY();if(D.closed||D.spawned>=D.quota)return;
   const r=makeRequest();save.reqs.push(r);D.spawned++;D.met.push(r.ci);persist();
-  H.cs.push({id:r.id,x:262,tx:262});
+  H.cs.push({id:r.id,x:262,tx:262});H.door=1;
   bellSfx();renderReqList(r.id);
 }
 /* みせを はなれる とき、かえりかけの おきゃくさんは しはらいを すませて いなくなる */
@@ -1925,6 +1939,7 @@ hcv.addEventListener('pointerdown',e=>{
   if($('#hreq').classList.contains('on'))return;
   const p=roomPoint(hcv,e,RW,RH);
   if(tapDecor(p))return;
+  if(p.x>=DOOR.x-2&&p.y>=DOOR.y-28&&p.y<=DOOR.y+DOOR.h){goShopping();return;}
   if(DAY().closed)return;
   for(let i=H.cs.length-1;i>=0;i--){const c=H.cs[i];
     if(!c.ph&&Math.abs(c.tx-c.x)<4&&p.x>c.x&&p.x<c.x+48&&p.y>104&&p.y<152){tapClient(c.id);return;}}
@@ -1997,7 +2012,8 @@ function drawHome(t,dt){
   hc.drawImage(makeBg('home'),0,0);drawSky(t);drawNightRoom();drawRankDecor(t);
   drawDecor(t,dt);checkClose();
   const paying=H.cs.some(c=>c.ph==='pay');
-  hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,46,104+(paying?-Math.round(Math.abs(Math.sin(t*8))*2):Math.round(Math.sin(t*2))),48,48);
+  drawDoor(t,dt);const wk=stepWitch(dt);
+  if(!H.w.hide)hc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,Math.round(H.w.x),104+(wk?-Math.round(Math.abs(Math.sin(t*12))*2):paying?-Math.round(Math.abs(Math.sin(t*8))*2):Math.round(Math.sin(t*2))),48,48);
   H.timer-=dt;{const D=DAY();if(!D.closed&&D.spawned<D.quota&&!waitingReqs().length&&H.timer>4)H.timer=4;}
   if(H.timer<=0){
     const w=waitingReqs().length;
@@ -2026,7 +2042,7 @@ function drawHome(t,dt){
       if(c.pt>2.8){
         c.ph='out';talk(c,'またね!',2);}
     }
-    else if(c.ph==='out'){c.x+=60*dt;walking=true;
+    else if(c.ph==='out'){c.x+=60*dt;walking=true;if(!c.dO&&c.x>DOOR.x-30){c.dO=1;H.door=1;}
       if(c.x>250){save.reqs=save.reqs.filter(q=>q.id!==c.id);persist();H.cs.splice(k,1);renderReqList();continue;}}
     else{const dx=c.tx-c.x;c.x+=Math.sign(dx)*Math.min(Math.abs(dx),38*dt);walking=Math.abs(c.tx-c.x)>.5;}
     c.by=walking?-Math.abs(Math.sin(t*12))*2:Math.round(Math.sin(t*2+k*1.7)*.8);
@@ -2280,6 +2296,81 @@ function goMorning(){
   $('#dayEnd').classList.remove('on');
   const fl=$('#dawn');fl.classList.remove('go');void fl.offsetWidth;fl.classList.add('go');
   sfx('fan');onShow.home();setTimeout(()=>talk(WITCH,'おはよう! きょうも がんばろうね。',3.5),300);
+}
+/* ========= おでかけ: がめんの きりかえ と あるく まじょ =========
+  - みせの みぎの ドアから でかける → がめんが みぎから ながれて しょうてんがいへ。
+  - しょうてんがいでは まじょが おみせの まえまで あるき、ドアの かたちに ひろがって なかへ はいる。
+  - かえりは ぎゃく。じぶんの へやは ひだり(がめんが ひだりから ながれる)。 */
+let TR=false;
+function transit(to,kind,opt){
+  opt=opt||{};if(TR||to===screen)return;TR=true;
+  const from=document.getElementById(screen);show(to);const nw=document.getElementById(to);
+  const C={r:['tr-out-l','tr-in-r'],l:['tr-out-r','tr-in-l'],in:['','tr-door-in'],out:['tr-door-out','']}[kind];
+  if(opt.ox!=null){[from,nw].forEach(e=>{e.style.setProperty('--ox',opt.ox+'%');e.style.setProperty('--oy',opt.oy+'%');});}
+  from.classList.add('on','tr-keep');if(C[0])from.classList.add(C[0]);if(C[1])nw.classList.add(C[1]);
+  if(kind==='out')from.style.zIndex=6;else nw.style.zIndex=6;
+  setTimeout(()=>{from.classList.remove('on','tr-keep',...C.filter(Boolean));nw.classList.remove(...C.filter(Boolean));from.style.zIndex='';nw.style.zIndex='';TR=false;opt.after&&opt.after();},kind==='in'||kind==='out'?520:420);
+}
+/* ---- みせの まじょ と ドア ---- */
+const DOOR={x:216,y:76,w:24,h:48};
+H.w={x:46,tx:46,hide:false,cb:null};H.door=0;H.signShake=0;
+function drawDoor(t,dt){
+  const R=(c,a,b,w,h)=>{hc.fillStyle=c;hc.fillRect(a,b,w,h);},ok=canShop();
+  if(H.door>0)H.door=Math.max(0,H.door-dt*.8);
+  R(INK,DOOR.x-1,DOOR.y-1,DOOR.w+2,DOOR.h+1);R('#3a2a40',DOOR.x,DOOR.y,DOOR.w,DOOR.h);
+  const op=Math.min(1,H.door*2.5),dw=Math.round(DOOR.w*(1-op*.75));
+  if(op>0){R('#fff6c0',DOOR.x+1,DOOR.y+1,DOOR.w-2,DOOR.h-1);R('#bfe3f7',DOOR.x+2,DOOR.y+2,DOOR.w-4,24);R('#d8c4a4',DOOR.x+2,DOOR.y+30,DOOR.w-4,DOOR.h-31);}
+  R('#b07a50',DOOR.x,DOOR.y,dw,DOOR.h);R('#c8956a',DOOR.x+2,DOOR.y+3,Math.max(1,dw-4),DOOR.h-6);
+  if(dw>8){R('#a06a40',DOOR.x+4,DOOR.y+8,dw-8,14);R('#a06a40',DOOR.x+4,DOOR.y+28,dw-8,14);R(GOLD,DOOR.x+dw-5,DOOR.y+26,2,3);}
+  /* かんばん(かごの え) */
+  const sk=H.signShake>0?Math.round(Math.sin(H.signShake*40)*2):0;if(H.signShake>0)H.signShake-=dt;
+  R('#8a5a3a',DOOR.x+11,DOOR.y-10,1,6);R(INK,DOOR.x-1+sk,DOOR.y-26,DOOR.w+2,17);R(ok?'#fff6e6':'#c8c0d0',DOOR.x+sk,DOOR.y-25,DOOR.w,15);
+  hc.drawImage(ok?spr('basket').c:spr('basket').g,DOOR.x+4+sk,DOOR.y-26,16,16);
+  if(!ok)hc.drawImage(spr('lock').c,DOOR.x+13+sk,DOOR.y-18,10,10);
+  else if(!save.shopSeen&&Math.sin(t*5)>0){R('#ffe27a',DOOR.x+22,DOOR.y-28,5,1);R('#ffe27a',DOOR.x+24,DOOR.y-30,1,5);}
+}
+function stepWitch(dt){
+  const w=H.w,d=w.tx-w.x;if(Math.abs(d)<.5){w.x=w.tx;if(w.cb){const c=w.cb;w.cb=null;c();}return false;}
+  w.x+=Math.sign(d)*Math.min(Math.abs(d),70*dt);return true;
+}
+function goShopping(){
+  if(TR||H.w.cb||H.w.hide)return;initAudio();
+  if(!canShop()){boo();H.signShake=.4;return;}
+  chime(3);$('#hbub').classList.remove('on');
+  H.w.tx=DOOR.x-30;H.w.cb=()=>{H.door=1;bellSfx();H.w.tx=DOOR.x-10;H.w.cb=()=>{H.w.hide=true;
+    setTimeout(()=>{S.streetIn='left';transit('shelf','r');},250);};};
+}
+function comeHome(){H.w.x=DOOR.x-10;H.w.tx=46;H.w.hide=false;H.door=1;H.w.cb=null;setTimeout(()=>bellSfx(),120);}
+/* ---- しょうてんがいの まじょ ---- */
+function streetWitch(){let w=$('#switch');if(!w){w=cvOf(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c);w.id='switch';}$('#street').appendChild(w);return w;}
+function walkStreet(x,cb){
+  const w=$('#switch'),cur=parseFloat(w.style.left)||0,dist=Math.abs(x-cur),ms=Math.max(250,dist/260*1000);
+  w.style.transition=`left ${ms}ms linear`;w.classList.add('walk');w.style.left=x+'px';
+  clearTimeout(w._t);w._t=setTimeout(()=>{w.classList.remove('walk');cb&&cb();},ms);
+}
+const frontX=b=>b.offsetLeft+b.offsetWidth/2-36;
+function placeStreetWitch(){
+  const w=streetWitch(),el=$('#stwrap');w.style.transition='none';
+  if(S.streetIn==='left'){w.style.left='-80px';el.scrollLeft=0;void w.offsetWidth;S.streetIn=null;setTimeout(()=>walkStreet(14),60);}
+  else if(S.lastShop){const b=$(`.front[data-cat="${S.lastShop}"]`);if(b){w.style.left=frontX(b)+'px';el.scrollLeft=Math.max(0,b.offsetLeft-60);}}
+  else w.style.left='14px';
+}
+function enterShop(cat,b){
+  if(TR||SH.walking)return;SH.walking=true;
+  const el=$('#stwrap');el.scrollTo({left:Math.max(0,b.offsetLeft-60),behavior:'smooth'});
+  walkStreet(frontX(b),()=>{
+    const cv=b.querySelector('canvas');cv.replaceWith(drawFront(cat,true,true));bellSfx();
+    const r=b.getBoundingClientRect(),app=$('#app').getBoundingClientRect();
+    const ox=((r.left+r.width*.75)-app.left)/app.width*100,oy=((r.top+r.height*.7)-app.top)/app.height*100;
+    S.lastShop=cat;S.doorO={ox,oy};
+    setTimeout(()=>{SH.walking=false;openShop(cat,{ox,oy});},220);
+  });
+}
+function leaveStreet(){
+  if(TR||SH.walking)return;SH.walking=true;initAudio();
+  $('#stwrap').scrollTo({left:0,behavior:'smooth'});
+  walkStreet(-80,()=>{SH.walking=false;const to=S.streetFrom||'home';
+    if(to==='home'){transit('home','l');comeHome();}else transit(to,'l');});
 }
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();if(b.dataset.go==='shelf'&&!canShop()){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show(b.dataset.go);}));
