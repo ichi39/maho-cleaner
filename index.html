@@ -242,7 +242,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .snd.off{filter:grayscale(1);opacity:.55}
 .snd.off::after{content:'';position:absolute;left:8px;right:8px;top:50%;height:3px;background:#e8607a;transform:rotate(-40deg);border-radius:2px}
 .stwrap{flex:1;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;display:flex;align-items:center}
-.street{display:flex;gap:14px;padding:20px 18px 30px;align-items:flex-end;min-width:max-content;background:repeating-linear-gradient(90deg,#d8c4a4 0 30px,#ccb594 30px 60px) bottom/100% 34px no-repeat}
+.street{display:flex;gap:14px;padding:48px 18px 30px;align-items:flex-end;min-width:max-content;background:repeating-linear-gradient(90deg,#d8c4a4 0 30px,#ccb594 30px 60px) bottom/100% 34px no-repeat}
 .front{position:relative;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center}
 .front>canvas:first-child{width:120px;height:144px;image-rendering:pixelated}
 .front .kface{position:absolute;left:62px;bottom:2px;width:60px;height:60px}
@@ -296,6 +296,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .back.exitb::before{display:none}
 .back.exitb{border-radius:12px;background:linear-gradient(#fffaf0,#ffe9c8);border-color:var(--gold)}
 .back.exitb canvas{width:36px;height:36px;margin:2px auto 0;display:block;image-rendering:pixelated}
+.front.homef .homeb{position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:#fff;border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;animation:pulse 1.4s infinite}
+.front.homef .homeb canvas{width:34px;height:34px;image-rendering:pixelated}
 </style>
 </head>
 <body>
@@ -331,7 +333,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div id="mineTray"></div>
  </section>
  <section id="shelf" class="screen" style="background:linear-gradient(#bfe3f7,#fdeef2 70%,#e8d8c0)">
-  <div class="bar"><button class="back" id="bStreetBack">◀</button><h2 id="sCoin"></h2><span style="width:46px"></span></div>
+  <div class="bar"><button class="back exitb" id="bStreetBack"><canvas width="24" height="24"></canvas></button><h2 id="sCoin"></h2><span style="width:46px"></span></div>
   <div class="stwrap" id="stwrap"><div class="street" id="street"></div></div>
  </section>
  <section id="shop" class="screen" style="background:#2a2550">
@@ -625,6 +627,11 @@ exitdoor(d,o){d.r(3,1,16,21,INK);d.r(4,2,14,20,'#bfe3f7');d.r(4,13,14,9,'#d8c4a4
   d.r(5,6,4,6,'#f6c9c9');d.r(4,5,6,1,'#c06a6a');d.r(12,8,5,4,'#cfe8d8');d.r(11,7,7,1,'#7fb89a');d.p(7,9,'#fff3b0');d.p(14,10,'#fff3b0');
   d.r(14,2,4,20,'#b07a50');d.r(15,3,2,18,'#c8956a');d.p(15,12,GOLD);
   d.r(5,15,8,2,'#ffffff');d.p(5,14,'#ffffff');d.p(6,13,'#ffffff');d.p(5,17,'#ffffff');d.p(6,18,'#ffffff');d.p(4,15,'#ffffff');d.p(4,16,'#ffffff');},
+streeticon(d){const aw=['#e88fa8','#f0a060'];[[1,0],[11,1]].forEach(([x,k])=>{d.r(x,6,10,14,INK);d.r(x+1,7,8,12,k?'#fdecc8':'#fbe0e6');
+    d.r(x,3,10,4,INK);for(let i=0;i<10;i+=2)d.r(x+i,4,1,2,aw[k]);for(let i=1;i<10;i+=2)d.r(x+i,4,1,2,'#fff');d.r(x+2,9,3,3,'#bfe3f7');d.r(x+6,12,3,7,'#c8956a');});
+  d.r(0,20,22,2,'#d8c4a4');},
+homeicon(d){const p='#8a7ad8';d.t(0,6,11,1,13,'#6a5ac8');d.r(7,5,9,1,GOLD);d.r(3,8,16,13,INK);d.r(4,9,14,11,'#e9e0f7');d.r(4,9,14,2,'#cfc6ee');
+  d.r(6,12,4,4,'#fff6c0');d.r(12,13,4,7,'#c8956a');d.p(15,16,GOLD);d.r(2,20,18,2,'#d8c4a4');d.p(11,0,'#6a5ac8');d.p(12,-1,'#6a5ac8');},
 person(d,o){
   if(o.hs&&!o.witch){
     const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',c2=o.c2||shade(dr,-.3),skin=o.sk||'#ffe0c8',hs=o.hs,fit=o.fit||'dress',acc=o.acc||'';
@@ -1632,6 +1639,9 @@ onShow.shelf=()=>{
   if(!save.shopSeen){save.shopSeen=true;persist();}
   ensureStock();updateCoins();
   const el=$('#street');el.innerHTML='';
+  {const b=document.createElement('button');b.className='front homef';b.dataset.cat='_home';b.appendChild(drawHomeFront(false));
+   b.insertAdjacentHTML('beforeend','<span class="homeb"></span>');b.querySelector('.homeb').appendChild(cvOf(spr('homeicon').c));
+   b.addEventListener('click',()=>leaveStreet());el.appendChild(b);}
   Object.keys(CATS).forEach(cat=>{
     const open=shopOpen(cat),b=document.createElement('button');b.className='front'+(open?'':' closed');b.dataset.cat=cat;
     b.appendChild(drawFront(cat,open));
@@ -1642,6 +1652,7 @@ onShow.shelf=()=>{
   });
   placeStreetWitch();
 };
+{const c=$('#bStreetBack').querySelector('canvas').getContext('2d');c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(spr('homeicon').c,10,8,14,14);}
 $('#bStreetBack').addEventListener('click',()=>leaveStreet());
 /* ---- おみせの なか ---- */
 const spc=$('#spc'),sx=spc.getContext('2d');sx.imageSmoothingEnabled=false;
@@ -1695,7 +1706,9 @@ function drawShop(t,dt){
   });
   /* でぐち(ひだりの かべ): タップで しょうてんがいへ */
   {const glow=!SH.sel&&!A&&Math.sin(t*3)>.2;if(glow){sx.fillStyle='rgba(255,236,160,.45)';sx.fillRect(0,64,22,62);}
-   sx.drawImage(spr('exitdoor').c,-2,74,26,52);}
+   sx.drawImage(spr('exitdoor').c,-2,74,26,52);
+   const bob=Math.round(Math.sin(t*3)*1);sx.fillStyle=INK;sx.fillRect(0,46+bob,26,24);sx.fillStyle='#fff6e6';sx.fillRect(1,47+bob,24,22);
+   sx.drawImage(spr('streeticon').c,2,47+bob,20,20);sx.fillStyle='#8a5a3a';sx.fillRect(11,70+bob,1,4);}
   /* みせばん と カウンター */
   const cl=CLIENTS[keeperOf(cat)],happy=A&&A.t>.5&&A.t<2.2;
   sx.drawImage(spr('person',look(cl)).c,KX-24,KY-4-(happy?Math.round(Math.abs(Math.sin(t*10))*2):Math.round(Math.sin(t*2))),48,48);
@@ -1736,7 +1749,7 @@ spc.addEventListener('pointerdown',e=>{
   else shopTalk(`「${baseW(hit.k)}」は ${priceE(hit)}コイン だよ。`+(save.coins<priceE(hit)?' おかねが ちょっと たりないね。':''),3);
   renderShopPanel();
 });
-$('#bShopBack').querySelector('canvas').getContext('2d').drawImage(spr('exitdoor').c,0,0);
+{const c=$('#bShopBack').querySelector('canvas').getContext('2d');c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(spr('streeticon').c,10,8,14,14);}
 $('#bShopBack').addEventListener('click',()=>{if(SH.anim||TR)return;initAudio();bellSfx();transit('shelf','out',S.doorO||{ox:50,oy:50});});
 /* ---- じぶんの おへやに とどいた はこ ---- */
 /* ---- じぶんの おへやに とどいた はこ ----
@@ -2361,11 +2374,24 @@ function walkStreet(x,cb){
   clearTimeout(w._t);w._t=setTimeout(()=>{w.classList.remove('walk');cb&&cb();},ms);
 }
 const frontX=b=>b.offsetLeft+b.offsetWidth/2-36;
+function drawHomeFront(dopen){
+  const c=document.createElement('canvas');c.width=40;c.height=48;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+  const R=(col,a,b,w,h)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
+  R(INK,1,10,38,38);R('#e9e0f7',2,11,36,36);for(let i=2;i<38;i+=6)R('#f4eefc',i,11,3,36);
+  x.fillStyle=INK;x.beginPath();x.moveTo(20,0);x.lineTo(40,11);x.lineTo(0,11);x.fill();x.fillStyle='#6a5ac8';x.beginPath();x.moveTo(20,2);x.lineTo(37,10);x.lineTo(3,10);x.fill();
+  R(GOLD,12,8,16,2);
+  R(INK,5,17,16,13);R('#bfe3f7',6,18,14,11);x.drawImage(spr('basket').c,7,17,12,12);
+  R(INK,24,24,12,24);if(dopen){R('#fff6c0',25,25,10,23);R('#c8956a',25,25,3,23);}else{R('#c8956a',25,25,10,23);R(GOLD,33,36,1,2);}
+  return c;
+}
+const homeFrontX=()=>{const b=$('.front.homef');return b?b.offsetLeft+b.offsetWidth*.7-36:0;};
 function placeStreetWitch(){
   const w=streetWitch(),el=$('#stwrap');w.style.transition='none';
-  if(S.streetIn==='left'){w.style.left='-80px';el.scrollLeft=0;void w.offsetWidth;S.streetIn=null;setTimeout(()=>walkStreet(14),60);}
+  if(S.streetIn==='left'){w.style.left=homeFrontX()+'px';el.scrollLeft=0;void w.offsetWidth;S.streetIn=null;
+    const hb=$('.front.homef');if(hb){hb.querySelector('canvas').replaceWith(drawHomeFront(true));setTimeout(()=>{const b2=$('.front.homef');if(b2)b2.querySelector('canvas').replaceWith(drawHomeFront(false));},500);}
+    setTimeout(()=>walkStreet(homeFrontX()+70),80);}
   else if(S.lastShop){const b=$(`.front[data-cat="${S.lastShop}"]`);if(b){w.style.left=frontX(b)+'px';el.scrollLeft=Math.max(0,b.offsetLeft-60);}}
-  else w.style.left='14px';
+  else w.style.left=(homeFrontX()+70)+'px';
 }
 function enterShop(cat,b){
   if(TR||SH.walking)return;SH.walking=true;
@@ -2382,10 +2408,11 @@ function enterShop(cat,b){
 }
 function leaveStreet(){
   if(TR||SH.walking)return;SH.walking=true;initAudio();
-  {const w=$('#switch'),el=$('#stwrap');if((parseFloat(w.style.left)||0)>200){el.scrollLeft=0;w.style.transition='none';w.style.left='120px';void w.offsetWidth;}}
+  const hx=homeFrontX();
+  {const w=$('#switch'),el=$('#stwrap');if((parseFloat(w.style.left)||0)>hx+260){el.scrollLeft=0;w.style.transition='none';w.style.left=(hx+150)+'px';void w.offsetWidth;}}
   $('#stwrap').scrollTo({left:0,behavior:'smooth'});
-  walkStreet(-80,()=>{SH.walking=false;const to=S.streetFrom||'home';
-    if(to==='home'){transit('home','l');comeHome();}else transit(to,'l');});
+  walkStreet(hx,()=>{const hb=$('.front.homef');if(hb)hb.querySelector('canvas').replaceWith(drawHomeFront(true));bellSfx();
+    setTimeout(()=>{SH.walking=false;transit('home','l');comeHome();},220);});
 }
 /* ========= ボタン・メインループ ========= */
 $$('[data-go]').forEach(b=>b.addEventListener('click',()=>{initAudio();if(b.dataset.go==='shelf'&&!canShop()){boo();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return;}show(b.dataset.go);}));
