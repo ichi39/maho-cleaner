@@ -1791,10 +1791,13 @@ function renderMine(){
       if(save.doll.wear[sl]===w)delete save.doll.wear[sl];else save.doll.wear[sl]=w;
       persist();chime(5);M.hop=.5;burst(M.parts,save.doll.x,save.doll.y-10,14);renderMine();
     },w=>save.doll.wear&&save.doll.wear[slotOf(w)]===w);
-    const free=save.owned.filter(w=>!isWear(IT(w))&&!save.placed.some(p=>p.w===w));
-    if(free.length)row(spr('chair').c,free,w=>{
-      initAudio();const p={w,x:rnd(30,210),y:rnd(50,125)};save.placed.push(p);M.sel=p;persist();chime(2);burst(M.parts,p.x,p.y,10);renderMine();
-    });
+    /* かざる もの: タップで おく、おいてある もの(きいろい わく)を もういちど タップで しまう */
+    const deco=save.owned.filter(w=>!isWear(IT(w)));
+    if(deco.length)row(spr('chair').c,deco,w=>{
+      initAudio();if(M.stow)return;const p0=save.placed.find(p=>p.w===w);
+      if(p0){save.placed=save.placed.filter(p=>p!==p0);if(M.sel===p0)M.sel=null;M.stow={w,x:p0.x,y:p0.y,t:0};sfx('c3');persist();renderMine();return;}
+      const p={w,x:rnd(30,190),y:rnd(50,120)};save.placed.push(p);M.sel=p;persist();chime(2);burst(M.parts,p.x,p.y,10);renderMine();
+    },w=>save.placed.some(p=>p.w===w));
   }
   $('#mineHint').textContent=save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
 }
