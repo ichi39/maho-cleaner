@@ -132,7 +132,7 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 
 ### 声を作る(まだ作っていません)
 この作業環境には日本語の読み上げソフトがないため、`VOICE_DATA` は空のままです。今は端末の読み上げで読んでいます。
-1. Mac で `bash tools/make-voice-mac.sh` を実行する(Kyoko の声で217個作り、埋め込むまで自動)。
+1. Mac で `bash tools/make-voice-mac.sh` を実行する(Kyoko の声で248個作り、埋め込むまで自動)。
    - 声の種類や速さは `VOICE=Otoya RATE=140 bash tools/make-voice-mac.sh` のように変えられる。
 2. 言葉を足したときは、もう一度実行する(一覧 `tools/voice-list.txt` は `ITEMS` から自動で作る)。
 3. 自分で録音した wav でも、`tools/voice-wav/0001.wav …` の番号を一覧の順にそろえれば、`node tools/make-voice.js embed tools/voice-wav` で入れられる。
@@ -175,5 +175,5 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 - [ ] `index.html` が大きい(BGM で約3MB。声を入れると約4.3MB)。気になるなら、曲の長さを短くするか、サンプリングレートを下げる(`make-bgm.js` の `SR`)。
 - [ ] 古い仕様の名残が残っている。使っていない CSS(`.shopbtn`, `.stabs`, `#buyBar`, `.rbub`)、なかよし度の関数(`hearts`, `heartsHTML`, `needOf`)、使っていない保存データのキー。
 - [ ] タイトルの「買い物」ボタンは、ドアを通らずに直接商店街へ行く(帰りは自分のお店に戻る)。
-- [ ] カタカナの「ヲ」と「ヌ」は、出てくる言葉がない(「ヌ」は、ヌードルを ラーメン に直したため)。「ヌ」を含む言葉(例: カヌー)を足せば戻せる。確認は dev/shop-items.html の「もじ表」で。
+- [ ] カタカナの「ヲ」は、出てくる言葉がない。確認は dev/shop-items.html の「もじ表」で。
 - [ ] 1日の人数、お金、値段の釣り合いは、実際に遊んで調整する余地がある。
