@@ -34,6 +34,7 @@ tools/make-bgm.js         BGM を前もって作り、index.html に埋め込む
 tools/make-voice.js       読み上げの声を index.html に埋め込む道具(Node.js)
 tools/make-voice-mac.sh   Mac の声で全部の声を作って埋め込むスクリプト
 tools/voice-list.txt      読み上げる文字・言葉の一覧(make-voice.js list で作る)
-dev/doll-lab.html         人形のフォルムと服を見比べる開発用画面(ゲームとは別。ブラウザで開くだけ)
+dev/doll-lab.html         人形のフォルムと服を見比べる開発用画面(にんげん・22ドット。ゲームとは別。ブラウザで開くだけ)
+dev/animal-lab.html       同じ画面の どうぶつ版(うさぎ・くま・ねこ、32ドット)
 docs/                     仕様と開発資料
 ```
