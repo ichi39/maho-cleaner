@@ -18,8 +18,8 @@ button{cursor:pointer}button:hover{background:#f0eaff}
 main{padding:12px 16px 60px;max-width:1400px;margin:0 auto}
 h2{font-size:15px;margin:26px 0 4px;border-left:5px solid var(--acc);padding-left:8px}
 p.note{margin:0 0 8px;color:var(--sub);font-size:12px}
-.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(max-width:1000px){.cols{grid-template-columns:repeat(2,1fr)}}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
 .card h3{margin:0;font-size:14px}
 .card small{color:var(--sub);display:block;min-height:3.9em;font-size:12px}
@@ -35,7 +35,10 @@ canvas{image-rendering:pixelated;display:block}
 .step{display:inline-flex;gap:4px;align-items:center}
 .step span{display:inline-block;min-width:2em;text-align:center;font-weight:bold}
 textarea{width:100%;height:4.4em;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:#faf7fd}
-.matrix{display:grid;grid-template-columns:140px repeat(4,1fr);gap:4px;align-items:center}
+.matrix .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:8px}
+.icard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-align:center}
+.icard .nm{font-size:13px;text-align:left}
+.icard .nm small{color:var(--sub);margin-left:6px}
 .matrix .slot{grid-column:1/-1;font-weight:bold;margin-top:10px;color:var(--acc)}
 .matrix .nm{font-size:13px}
 .matrix .nm small{color:var(--sub);display:block}
@@ -63,18 +66,18 @@ a{color:var(--acc)}
   </div>
 </header>
 <main>
-  <h2>1. ほおの3案(肩は B に決定)</h2>
-  <p class="note">毛は白、肩は B で固定。「まえ」はへこんで見える状態です。顔だけが違い、体と服は同じです。</p>
+  <h2>1. 白ねこ(決定: 肩 B・ほお 1)</h2>
+  <p class="note">毛は白、肩は B、ほおは 1 に決定。以降はアイテムの調整です。「寸法の線」で体の基準の行が見えます。</p>
   <div class="cols" id="forms"></div>
 
-  <h2>2. きせかえ(同じ服を4つの顔に着せて比べる)</h2>
+  <h2>2. きせかえ</h2>
   <div class="presets" id="presets"></div>
   <div class="row"><b>ばんごうで きせる</b><input type="text" id="numIn" placeholder="例: 12 22 23 30" size="22"><button id="numGo">きせる</button><span class="note" style="margin:0">アイテムの番号(#01〜)をスペースで区切って入れる。同じ部位は後の番号が勝つ。</span></div>
   <div class="outfit" id="outfit"></div>
   <div class="cols" id="dress"></div>
 
   <h2>3. アイテムの ちょうせい</h2>
-  <p class="note">選んだアイテムを1ドット単位でずらしたり、色を変えたりして試せます(全部の顔に同じ調整が入ります)。最後の「いまの設定」をコピーして伝えてください。URLにも保存されるので、リロードしても残ります。</p>
+  <p class="note">選んだアイテムを1ドット単位でずらしたり、色を変えたりして試せます。最後の「いまの設定」をコピーして伝えてください。URLにも保存されるので、リロードしても残ります。</p>
   <div class="panel">
     <div class="row"><b>アイテム</b><select id="aItem"></select><button id="aWear">着せる</button>
       <b>よこ</b><span class="step"><button id="aL">◀</button><span id="adx">0</span><button id="aR">▶</button></span>
@@ -138,16 +141,29 @@ const BODY={ch:16,ty0:17,ty1:24,tw:[4,5,5,5,5,5,5,6],ax:8,aw:3,ay0:17,ay1:23,ly0
 const CAT={key:'cat',fur:'#fff8f2',inner:'#ffb0b8',ht:5,hy:11,hrx:8,hry:5.8,ey:10,ex:11};
 /* 肩の4パターン。変えるのは「うでが始まる行(ay0)」「うでの位置(ax,aw)」「どうたいの幅(tw)」「肩の丸め(cut)」だけ。
    cut=[k0,k1,...] は、うでの1行目からk0マス・2行目からk1マス、外がわを削って肩をなだらかにする */
-/* 肩は B(うで内よせ)に決定。ここでは「ほお」の3案を比べる。cheek=0 は修正前 */
+/* 決定: 白ねこ・肩は B(うで内よせ)・ほおは 1(ふっくら小) */
 const SH_B={tw:[3,4,4,5,5,5,5,6],ax:7,aw:3,ay0:18,ay1:23,cut:[1,1]};
 const FORMS={
- old:{name:'まえ(参考)',sub:'あごの線が急に内側へ入り、そこからひげが飛び出すので、ほおがへこんで見える。',cheek:0},
- p1:{name:'1 ほお ふっくら(小)',sub:'あごの横に小さなふくらみを足し、輪郭をなめらかにつなぐ。ひげはほおの外から出す。',cheek:1},
- p2:{name:'2 ほお ふっくら(大)',sub:'ふくらみを大きくして、ほおを横に張り出す。いちばん丸く、やわらかい顔。',cheek:2},
- p3:{name:'3 ほお ふっくら(上)',sub:'ふくらみを目の下まで上げる。ほおが高く、にっこりして見える。',cheek:3},
+ cat:{name:'白ねこ(決定)',sub:'毛:白 / 肩:B / ほお:1',cheek:1},
 };
 for(const k in FORMS)Object.assign(FORMS[k],BODY,CAT,SH_B);
-const ADJ={};   // アイテムごとの微調整 { id:{dx,dy,c} }
+const ADJ={};
+// 外がわのふちを、うすい色で囲む(はねなどが白い背景にとけないように)
+function rimD(d,col){const o=d.g.map(r=>r.slice());
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(!d.g[y][x])continue;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=N||ny>=N||!d.g[ny][nx]){o[y][x]=col;break;}}}
+  d.g=o;}
+// 左半分に描いた絵を、右にも写す
+function mirrorD(d){for(let y=0;y<N;y++)for(let x=0;x<16;x++)if(d.g[y][x])d.g[y][MX(x)]=d.g[y][x];}
+// 丸いふくらんだそで(パフスリーブ)
+function puff(d,R,col,hi,lo){
+  for(const s of [0,1]){
+    const cx0=armL(R)+R.aw/2,cx=s?32-cx0:cx0,cy=R.ay0+1.6;
+    d.e(cx,cy,2.7,2.0,col);
+    const yb=R.ay0+3;for(let x=0;x<N;x++)if(d.g[yb][x]&&Math.abs(x+.5-cx)<=2.7)d.p(x,yb,lo);
+    d.p(Math.round(cx-1.3),R.ay0,hi);
+  }
+}   // アイテムごとの微調整 { id:{dx,dy,c} }
 function mix(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);
   const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((B>>s)&255)*t);return '#'+[16,8,0].map(s=>f(s).toString(16).padStart(2,'0')).join('');}
 function furSet(R,P){const fur=P.fur||R.fur;return{fur,fu2:mix(fur,'#8a7090',.16),fu3:mix(fur,'#6a5070',.34),belly:mix(fur,'#ffffff',.7)};}
@@ -266,7 +282,7 @@ const ITEMS=[
 ];
 const FIXED_COLOR=new Set(['crown','startiara','flowercrown','rainbowdress','starcape','wings','wand','glassshoe']);
 // 耳を服の上に出す(耳が帽子の穴から出ているように見せる)
-const EAR_THROUGH=new Set(['hat','helmet','crown','tiara','startiara','flowercrown']);
+const EAR_THROUGH=new Set(['hat','helmet']);   // 帽子は耳が穴から出る。小物(04-07)は耳のあいだに乗せる
 
 const WEAR={
 /* ---------- あたま ---------- */
@@ -300,39 +316,40 @@ ribbon(d,R,o){
   d.p(cx-4,cy-1,hi);d.p(cx+3,cy-1,hi);
 },
 crown(d,R,o){
-  const T=R.ht,hw=Math.round(R.hrx)-2,g=GOLD,lo=shade(g,-.28),hi=shade(g,.5);
-  for(let y=T;y<=T+1;y++)sr(d,y,hw,g);
-  sr(d,T+1,hw,lo);
-  for(const x of [16-hw,16-hw+3]){d.r(x,T-3,1,3,g);d.p(x,T-4,hi);mp(d,x,T-4,hi);d.r(MX(x),T-3,1,3,g);}
-  d.r(15,T-4,2,4,g);d.r(15,T-5,2,1,hi);
-  d.p(15,T-1,hi);
-  mr(d,16-hw+1,T,1,1,'#7fc8e8');mr(d,16-hw+4,T,1,1,'#9be8a0');d.r(15,T,2,1,'#e8465a');d.p(15,T,'#ff9aa8');
-  for(const x of [16-hw,16-hw+3])d.p(x,T-3,hi);
+  // 04: ちいさな かんむり。耳のあいだに ちょこんと乗せる
+  const g=GOLD,hi=shade(g,.55),lo=shade(g,-.32);
+  for(const x of [12,15,16,19])d.p(x,1,hi);
+  for(const x of [12,13,15,16,18,19])d.p(x,2,g);
+  hr(d,12,19,3,g);hr(d,12,19,4,lo);
+  d.p(13,2,hi);d.p(12,3,hi);d.p(18,2,shade(g,.25));
+  d.r(15,3,2,1,'#e8465a');d.p(15,3,'#ff9aa8');d.p(13,3,'#7fc8e8');d.p(18,3,'#9be8a0');
 },
 tiara(d,R,o){
-  const T=R.ht,h=Math.round(R.hrx),s='#e8ecf8',s2='#b8bcd0',c=o.c;
-  sr(d,T+2,h-1,s);sr(d,T+1,h-3,s);sr(d,T,3,s);
-  mp(d,15,T+2,null);sr(d,T+2,h-1,s);
-  d.r(14,T-2,4,2,s);d.r(15,T-3,2,1,s);d.r(15,T-1,2,3,c);d.p(15,T-1,'#ffffff');
-  mr(d,16-h+3,T+1,1,2,c);mr(d,16-h+1,T+2,1,1,c);
-  hr(d,16-h+1,15+h-1,T+3,s2);
+  // 05: ハートのティアラ
+  const c=o.c,s='#e8ecf8',s2='#aab0c8',hi=shade(c,.5),lo=shade(c,-.25);
+  hr(d,13,14,1,c);hr(d,17,18,1,c);hr(d,13,18,2,c);hr(d,14,17,3,c);hr(d,15,16,4,c);
+  d.p(13,1,hi);d.p(14,2,hi);d.p(17,3,lo);d.p(16,4,lo);d.p(18,2,lo);
+  hr(d,13,18,5,s);hr(d,14,17,6,s2);
+  d.p(12,5,s2);d.p(19,5,s2);
 },
 startiara(d,R,o){
-  const T=R.ht,h=Math.round(R.hrx),Y='#ffd84a',s='#e8ecf8',s2='#b8bcd0';
-  sr(d,T+2,h-1,s);sr(d,T+1,h-3,s);sr(d,T,3,s);hr(d,16-h+1,15+h-1,T+3,s2);
-  // おおきな星
-  d.r(15,T-6,2,1,Y);d.r(15,T-5,2,1,Y);d.r(14,T-4,4,1,Y);d.r(11,T-3,10,1,Y);d.r(12,T-2,8,1,Y);d.r(13,T-1,6,1,Y);d.r(12,T,3,1,Y);d.r(17,T,3,1,Y);
-  d.p(15,T-4,'#ffffff');d.p(14,T-3,'#ffffff');
-  mr(d,16-h+2,T+1,1,2,'#ff8fb0');mr(d,16-h+4,T,1,1,'#7fc8e8');
+  // 06: ほしのティアラ
+  const Y='#ffd84a',hi='#fff6b0',lo=shade(Y,-.25),s='#e8ecf8',s2='#aab0c8';
+  hr(d,15,16,0,Y);hr(d,14,17,1,Y);hr(d,12,19,2,Y);hr(d,13,18,3,Y);hr(d,13,14,4,Y);hr(d,17,18,4,Y);
+  d.p(15,0,hi);d.p(14,1,hi);d.p(13,2,hi);d.p(18,3,lo);d.p(17,4,lo);d.p(19,2,lo);
+  d.r(15,2,2,1,'#ff8fb0');
+  hr(d,13,18,5,s);hr(d,14,17,6,s2);
+  d.p(12,5,s2);d.p(19,5,s2);d.p(13,5,'#ff8fb0');d.p(18,5,'#7fc8e8');
 },
 flowercrown(d,R,o){
-  const T=R.ht,fc=['#ff8fb0','#ffe24a','#ffffff','#b8a0f0'];
-  [[3,T],[6,T+1],[9,T+3]].forEach(([off,cy],i)=>{
-    for(const cx of [16-off,15+off]){
-      d.e(cx,cy,2.2,2.2,fc[(i*2+(cx<16?0:1))%4]);d.p(cx-.5,cy-.5,GOLD);d.p(cx+.5,cy-.5,GOLD);
-      d.p(cx-3,cy+2,'#6fcf8f');d.p(cx+3,cy+2,'#6fcf8f');
-    }});
-  hr(d,13,18,T+1,'#6fcf8f');
+  // 07: はなかんむり(まん中に大きな花、りょうがわに小さな花)
+  const big=o.c,gold=GOLD,leaf='#6fcf8f',leaf2='#4aa86a';
+  for(let x=10;x<=21;x+=2){d.p(x,6,leaf);d.p(x+1,7,leaf2);}                       // つる
+  for(const [cx,cy] of [[15.2,3.4],[16.8,3.4],[16,2.2],[16,4.6]])d.e(cx,cy,1.7,1.7,big,false);
+  d.r(15,3,2,2,gold);d.p(15,3,'#fff6b0');
+  const f3=(x0,y0,pc)=>{d.r(x0,y0,3,3,pc);d.p(x0+1,y0+1,gold);d.p(x0,y0,shade(pc,.3));d.p(x0+2,y0+2,shade(pc,-.15));};
+  f3(10,5,'#ffffff');f3(19,5,'#b8a0f0');
+  hr(d,12,13,6,leaf);hr(d,18,19,6,leaf);d.p(12,7,leaf2);d.p(19,7,leaf2);
 },
 /* ---------- かお ---------- */
 glasses(d,R,o){
@@ -369,7 +386,7 @@ shirt(d,R,o){
   if(t==='dress'){
     const hem=R.fy0-1;
     for(let y=T;y<=T+3;y++)sr(d,y,hwAt(R,y),c);
-    mr(d,armL(R)-2,R.ay0,aw+2,3,c);mr(d,armL(R)-2,R.ay0+2,aw+2,1,lo);mr(d,armL(R)-2,R.ay0,aw+1,1,hi);   // ふくらんだそで
+    puff(d,R,c,hi,lo);   // ふくらんだそで
     sr(d,T+3,5,lo);d.r(14,T+3,4,1,hi);d.r(13,T+4,2,2,hi);d.r(17,T+4,2,2,hi);d.r(15,T+3,2,2,lo);   // リボン
     for(let y=T+4;y<=hem;y++)sr(d,y,5+Math.round((y-T-4)*.55),c);
     for(let x=16-9;x<=15+9;x++)if((x%2)===0&&(d.g[hem][x]))d.p(x,hem,hi);
@@ -388,13 +405,26 @@ shirt(d,R,o){
     for(const x of [9,12,19,22])for(let y=T+3;y<hem-1;y+=3)d.p(x,y,shade(c,-.1));
     return;}
   if(t==='apron'){
-    const hem=R.ly0+2;
-    for(let y=T+1;y<=T+4;y++){sr(d,y,3,c);d.p(13,y,CR);d.p(18,y,CR);}
-    sr(d,T+1,3,CR);mp(d,12,T,c);mp(d,12,T-0,c);d.p(12,T,c);d.p(19,T,c);
-    sr(d,T+5,5,lo);d.r(14,T+5,4,1,hi);
-    for(let y=T+6;y<=hem;y++)sr(d,y,5+Math.floor((y-T-6)/2),c);
-    sr(d,hem,6+Math.floor((hem-T-6)/2),CR);sr(d,hem-1,5+Math.floor((hem-1-T-6)/2),hi);
-    d.r(13,T+8,6,3,hi);d.r(13,T+8,6,1,CR);d.r(13,T+10,6,1,lo);d.r(15,T+9,2,1,'#ff6a8a');d.p(15,T+8,'#ff6a8a');d.p(16,T+8,'#ff6a8a');
+    // 白地のエプロン(c は ふちどり・ひも・ポケットの色)。下に クリーム色のブラウスを着ている
+    const cream='#fffdf6',blouse='#bfe2f6',hem=R.fy0-1;
+    for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),blouse);
+    sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);
+    puff(d,R,blouse,'#e4f4ff',shade(blouse,-.18));
+    // むね当て(かたひも つき)
+    for(const x of [13,18]){d.p(x,T,c);d.p(x,T+1,c);}
+    sr(d,T+1,2,cream);
+    for(let y=T+2;y<=T+4;y++){sr(d,y,3,cream);d.p(13,y,c);d.p(18,y,c);}
+    sr(d,T+1,2,c);d.p(15,T+1,cream);d.p(16,T+1,cream);
+    // こし(ひも・リボン)
+    sr(d,T+5,5,c);d.r(14,T+5,4,1,hi);
+    for(const s of [0,1]){const x0=s?20:10;d.e(x0+(s?1.2:.8),T+5.5,1.5,1.2,c,false);d.p(x0+(s?1:0),T+5,hi);d.r(x0+(s?0:1),T+6,1,2,shade(c,-.1));}
+    // スカート(まわりにフリル)
+    for(let y=T+6;y<=hem;y++){const w=5+Math.floor((y-T-6)/2);sr(d,y,w,cream);d.p(16-w,y,c);d.p(15+w,y,c);}
+    const wh=5+Math.floor((hem-T-6)/2);
+    sr(d,hem,wh,c);for(let x=16-wh;x<=15+wh;x+=2)d.p(x,hem-1,c);          // すそのフリル
+    // ポケット(ハートつき)
+    d.r(13,T+8,6,3,hi);hr(d,13,18,T+8,c);
+    hr(d,14,14,T+9,'#ffffff');hr(d,17,17,T+9,'#ffffff');hr(d,14,17,T+10,'#ffffff');d.p(15,T+11,'#ffffff');d.p(16,T+11,'#ffffff');
     return;}
   const sw=t==='sweater';
   for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
@@ -458,7 +488,7 @@ pajama(d,R,o){
 rainbowdress(d,R,o){
   const rb=['#ff6a8a','#ffa850','#ffe24a','#7fd08a','#6ab0f0','#a88ae0'],T=R.ty0,hem=R.fy0-1;
   for(let y=T;y<=T+3;y++)sr(d,y,hwAt(R,y),'#ffffff');
-  mr(d,armL(R)-2,R.ay0,R.aw+2,3,'#ffffff');mr(d,armL(R)-2,R.ay0+2,R.aw+2,1,'#e8dcf8');
+  puff(d,R,'#ffffff','#ffffff','#e8dcf8');
   sr(d,T,3,'#ffd0e0');d.p(15,T,null);d.p(16,T,null);
   d.r(14,T+3,4,1,'#ff8fb0');d.r(13,T+4,2,2,'#ff8fb0');d.r(17,T+4,2,2,'#ff8fb0');d.r(15,T+3,2,2,'#e0607a');
   for(let i=0,y=T+4;y<=hem;y++,i++)sr(d,y,5+Math.round(i*.55),i<6?rb[i]:rb[i-6]);
@@ -555,28 +585,39 @@ bag(d,R,o){
 },
 /* ---------- うしろ・もつ ---------- */
 wings(d,R,o){
-  const a='#d8f0ff',b='#f0d8ff',T=R.ty0,v='#ffffff';
-  for(const s of [0,1]){
-    const cx=s?MX(16-R.ax-3):16-R.ax-3,sg=s?1:-1;
-    d.e(cx,T+1,3.7,6.4,a);d.e(cx-sg*0.5,T+8,2.7,3.2,b);
-    d.l(cx,T-3,cx-sg*1,T+7,v);d.l(cx,T-1,cx+sg*2,T+3,shade(a,-.12));
-    d.p(cx-sg,T,v);d.p(cx+sg,T+4,v);d.p(cx,T+9,v);
-  }
+  // 31: ようせいのはね(肩から斜め上にのびる、先のとがった羽。下に小さな羽)
+  const t=new D(),A='#e4f3ff',B='#ffd8ec',rimc='#8fbfe8';
+  const up=[[7.4,21.4,1.9],[6.4,19.6,2.5],[5.4,17.6,2.9],[4.6,15.4,3.0],[4.0,13.2,2.7],[3.6,11.2,2.1],[3.5,9.6,1.3]];
+  for(const [x,y,r] of up)t.e(x,y,r,r*1.15,A,false);
+  t.e(6.2,24.2,2.3,2.7,B,false);t.e(7,22.6,1.5,1.4,B,false);
+  for(const [x,y,r] of up.slice(1,5))t.e(x+.5,y+.3,r*.55,r*.7,'#f6fbff',false);
+  rimD(t,rimc);
+  t.l(6,21,4,12,'#c8e2f8');                                  // はねすじ
+  t.p(4,10,'#ffffff');t.p(5,15,'#ffffff');t.p(3,13,'#ffffff');t.p(6,25,'#ffffff');t.p(5,23,'#ffa8cc');
+  mirrorD(t);blit(d,t);
 },
 wand(d,R,o){
-  const hx=armR(R)-1,hy=R.ay1,tx=Math.min(28,hx+5),ty=Math.max(9,hy-12),Y='#ffd84a';
-  d.l(hx,hy,tx,ty,'#c89a6a');d.l(hx+1,hy,tx+1,ty,'#c89a6a');d.l(hx,hy-1,tx,ty-1,shade('#c89a6a',.25));
-  d.p(tx,ty-7,Y);d.r(tx-1,ty-6,3,1,Y);d.r(tx-1,ty-5,3,1,Y);d.r(tx-3,ty-4,7,1,Y);d.r(tx-2,ty-3,5,1,Y);d.r(tx-1,ty-2,3,1,Y);d.p(tx-2,ty-1,Y);d.p(tx+2,ty-1,Y);
-  d.p(tx,ty-5,'#ffffff');d.p(tx-1,ty-4,'#ffffff');d.p(tx-4,ty-6,'#ffffff');d.p(tx+4,ty-3,'#ffffff');d.p(tx-3,ty-2,'#ff8fb0');
-  d.r(hx+2,hy-4,2,1,'#ff8fb0');
+  // 32: まほうのつえ(ピンクと白のしましま、大きな星、リボン)
+  const sx=27,sy=6,Y='#ffd84a';
+  const n=14;for(let i=0;i<=n;i++){const x=Math.round(23+(sx-23)*i/n),y=Math.round(23+(10-23)*i/n);
+    const col=(Math.floor(i/2)%2)?'#ffffff':'#ffb0d4';d.p(x,y,col);d.p(x+1,y,col);}
+  const rows={[-4]:[0,0],[-3]:[-1,1],[-2]:[-1,1],[-1]:[-4,4],0:[-3,3],1:[-2,2]};
+  for(const k in rows){const [a,b]=rows[k];hr(d,sx+a,sx+b,sy+(+k),Y);}
+  hr(d,sx-3,sx-1,sy+2,Y);hr(d,sx+1,sx+3,sy+2,Y);hr(d,sx-3,sx-2,sy+3,Y);hr(d,sx+2,sx+3,sy+3,Y);
+  d.p(sx-1,sy-2,'#fff6b0');d.p(sx-3,sy,'#fff6b0');d.p(sx+3,sy,shade(Y,-.25));d.p(sx+2,sy+2,shade(Y,-.25));d.p(sx,sy,'#ff8fb0');
+  d.e(sx-2,10.8,1.7,1.1,'#ff8fb0',false);d.e(sx+2,10.8,1.7,1.1,'#ff8fb0',false);d.p(sx,10,shade('#ff8fb0',-.25));d.p(sx,11,shade('#ff8fb0',-.25));
+  for(const [x,y] of [[30,14],[20,3]]){d.p(x,y,'#ffffff');d.p(x-1,y,'#ffe0f0');d.p(x+1,y,'#ffe0f0');d.p(x,y-1,'#ffe0f0');d.p(x,y+1,'#ffe0f0');}
 },
 umbrella(d,R,o){
-  const c=o.c,px=armR(R),cx=Math.min(px+1,24);
-  d.l(px,5,px,R.ay1+1,'#a8785a');d.p(px-1,R.ay1+2,'#a8785a');
-  d.e(cx,4,7,4.2,c);d.r(0,7,32,10,null);
-  for(let i=-5;i<=5;i+=5)d.e(cx+i+.5,7,2.6,1.4,c);
-  for(const dx of [-4,-2,0,2,4])d.l(cx+dx,1,cx+dx*1.2,7,shade(c,.3));
-  d.p(cx,0,GOLD);d.r(cx-6,5,12,1,shade(c,-.12));
+  // 33: かさ(ひらいたかさ。パネルが交互の色、すそはなみ形、ほそいえ)
+  const c=o.c,w='#fff4f8',cx=24,tip=GOLD;
+  d.e(cx,7,8,6.2,c,false);d.r(0,8,32,24,null);
+  for(const i of [-5.3,0,5.3])d.e(cx+i,8.2,2.9,1.7,c,false);
+  for(let y=0;y<10;y++)for(let x=0;x<N;x++)if(d.g[y][x]){const k=Math.floor((x+.5-(cx-8))/2);d.g[y][x]=(k%2)?w:c;}
+  for(let x=0;x<N;x++)if(d.g[9][x])d.g[9][x]=shade(d.g[9][x],-.12);
+  d.p(24,0,tip);d.p(24,1,tip);d.p(23,1,shade(tip,.4));d.p(25,1,shade(tip,-.2));
+  d.l(24,10,23,23,'#c8a070');
+  d.p(23,24,'#c8a070');d.p(22,25,'#c8a070');d.p(21,25,'#c8a070');d.p(21,24,'#c8a070');
 },
 };
 
@@ -748,18 +789,15 @@ function wearAdj(){ // 調整中のアイテムを着せて確かめやすくす
 }
 function renderMatrix(){
   const box=$('#matrix');box.innerHTML='';
-  box.insertAdjacentHTML('beforeend','<div></div>'+FORM_KEYS.map(k=>`<div class="hd">${FORMS[k].name}</div>`).join(''));
-  const scale=Math.min(+$('#cScale').value,5);
-  let last='';
-  for(const [slot,id,nm,k,t,c0] of ITEMS){
-    if(slot!==last){last=slot;box.insertAdjacentHTML('beforeend',`<div class="slot">${SLOT_LABEL[slot]}</div>`);}
-    const label=document.createElement('div');label.className='nm';
-    label.innerHTML=`<b class="no">#${NUM(id)}</b> ${nm}<small><span class="swatch" style="background:${c0}"></span> ${id}</small>`;box.appendChild(label);
-    for(const fk of FORM_KEYS){
-      const cell=document.createElement('div');cell.className='cell '+$('#cBg').value;
-      const cv=document.createElement('canvas');drawOnto(cv,renderDoll(fk,P(),{[slot]:id},$('#cEdge').value),scale,FORMS[fk]);
-      cell.appendChild(cv);box.appendChild(cell);
-    }
+  const k=FORM_KEYS[0],R=FORMS[k];
+  let last='',grid=null;
+  for(const [slot,id,nm,kk,t,c0] of ITEMS){
+    if(slot!==last){last=slot;box.insertAdjacentHTML('beforeend',`<div class="slot">${SLOT_LABEL[slot]}</div>`);
+      grid=document.createElement('div');grid.className='items';box.appendChild(grid);}
+    const cell=document.createElement('div');cell.className='icard';
+    cell.innerHTML=`<div class="nm"><b class="no">#${NUM(id)}</b> ${nm} <small><span class="swatch" style="background:${c0}"></span> ${id}</small></div>`;
+    cell.appendChild(previewBlock(renderDoll(k,P(),{[slot]:id},$('#cEdge').value),R));
+    grid.appendChild(cell);
   }
 }
 function renderAll(){renderForms();renderDress();renderMatrix();}
