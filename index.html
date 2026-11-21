@@ -932,12 +932,8 @@ function buildTrack(key){
   const {notes,len}=songNotes(BGM_SONGS[key]),sr=22050,d=new Float32Array(Math.floor(len*sr));
   let i=0;const step=()=>{const e=Math.min(notes.length,i+10);synth(d,sr,notes.slice(i,e),true);i=e;
     if(i<notes.length)setTimeout(step,0);else{let pk=0;for(let q=0;q<d.length;q+=7){const v=Math.abs(d[q]);if(v>pk)pk=v;}if(pk>0){const g=.3/pk;for(let q=0;q<d.length;q++)d[q]*=g;}
-      AU.rawT[key]={d,sr};AU.tracks={};bgmTick(true);prebuildNext();}};
+      AU.rawT[key]={d,sr};bgmTick(true);prebuildNext();}};
   setTimeout(step,0);
-}
-function trackBuf(key){
-  const r=AU.rawT[key];if(!r||r==='building'){buildTrack(key);return null;}
-  if(!AU.tracks[key])AU.tracks[key]=toBuf(r);return AU.tracks[key];
 }
 /* がめんごとの BGM: パズルの あいだは ならさない(よみあげで とまる ため) */
 function wantBgm(){
@@ -953,20 +949,50 @@ function prebuildNext(){
   const want=[wantBgm(),...(save.reqs||[]).map(r=>r.cat),'mine','night'].filter(k=>k&&BGM_SONGS[k]&&!AU.rawT[k]);
   if(want.length&&!Object.values(AU.rawT).includes('building'))setTimeout(()=>buildTrack(want[0]),300);
 }
-function bgmTick(force){
-  if(!AU.ctx||AU.dead)return;
-  const key=wantBgm(),vol=1;
-  if(AU.bgm){const g=AU.bgm.gain,T=AU.ctx.currentTime;g.cancelScheduledValues(T);g.setTargetAtTime((save.aud.bgm?.3:0)*vol,T,.25);}
-  if(key===AU.curKey&&!force)return;
-  if(key===AU.curKey&&AU.cur)return;
-  const T=AU.ctx.currentTime;
-  if(AU.cur){const o=AU.cur;o.g.gain.setTargetAtTime(0,T,.3);setTimeout(()=>{try{o.s.stop();}catch(e){}},1600);AU.cur=null;}
-  AU.curKey=key;if(!key)return;
-  const b=trackBuf(key);if(!b){AU.curKey=null;return;}
-  const s=AU.ctx.createBufferSource(),g=AU.ctx.createGain();s.buffer=b;s.loop=true;g.gain.value=0;s.connect(g);g.connect(AU.duck);
-  s.start(T+.05);g.gain.setTargetAtTime(1,T+.05,.5);AU.cur={s,g};
+/* ---- BGM は <audio> で ながす ----
+  よみあげの あと Web Audio は タッチ するまで もどせない が、
+  いちど タッチで ならした <audio> は タッチ なしでも play() できる。
+  iPhone は <audio> の volume を むしするので、おとの おおきさは データに いれておく。 */
+AU.bgmEls=[];AU.bgmUrl={};AU.bgmI=0;AU.curKey=null;
+function wavFrom(r,gain){
+  const n=r.d.length,dv=new DataView(new ArrayBuffer(44+n*2)),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i));};
+  ws(0,'RIFF');dv.setUint32(4,36+n*2,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,r.sr,true);dv.setUint32(28,r.sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,r.d[i]*gain));dv.setInt16(44+i*2,v*32767,true);}
+  return URL.createObjectURL(new Blob([dv],{type:'audio/wav'}));
 }
-function bgmDuck(on){if(!AU.duck||AU.dead)return;const T=AU.ctx.currentTime;AU.duck.gain.cancelScheduledValues(T);AU.duck.gain.setTargetAtTime(on?.35:1,T,on?.05:.4);}
+function bgmUrl(key){
+  const r=AU.rawT[key];if(!r){buildTrack(key);return null;}if(r==='building')return null;
+  return AU.bgmUrl[key]||(AU.bgmUrl[key]=wavFrom(r,.4));
+}
+function unlockBgmEls(){
+  if(AU.bgmEls.length)return;
+  for(let i=0;i<2;i++){
+    const el=new Audio();el.setAttribute('playsinline','');el.preload='auto';el.loop=true;el.muted=true;el.src=silentURL(.3);el._ok=false;
+    try{const p=el.play();const ok=()=>{el.pause();el.muted=false;el._ok=true;bgmTick(true);};p&&p.then?p.then(ok).catch(()=>{el.muted=false;el._ok=true;}):ok();}catch(e){el._ok=true;}
+    AU.bgmEls.push(el);
+  }
+}
+function fadeEl(el,to,ms,done){
+  clearInterval(el._fade);const from=el.volume,t0=performance.now();
+  el._fade=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);try{el.volume=from+(to-from)*k;}catch(e){}if(k>=1){clearInterval(el._fade);done&&done();}},40);
+}
+function bgmTick(force){
+  if(!AU.bgmEls.length||!AU.bgmEls.every(e=>e._ok))return;
+  const key=document.hidden?null:wantBgm(),cur=AU.bgmEls[AU.bgmI];
+  if(key&&key===AU.curKey){if(cur.paused){const p=cur.play();p&&p.catch&&p.catch(()=>{});}return;}
+  if(!key&&!AU.curKey)return;
+  const url=key?bgmUrl(key):null;
+  if(key&&!url){if(AU.curKey){const o=cur;fadeEl(o,0,250,()=>o.pause());AU.curKey=null;}return;}
+  if(AU.curKey){const o=cur;fadeEl(o,0,IS_IOS?0:400,()=>o.pause());}
+  AU.curKey=key;if(!key)return;
+  AU.bgmI=1-AU.bgmI;const el=AU.bgmEls[AU.bgmI];
+  clearInterval(el._fade);el.pause();el.src=url;el.loop=true;try{el.volume=IS_IOS?1:0;}catch(e){}
+  try{el.currentTime=0;}catch(e){}
+  const p=el.play();p&&p.catch&&p.catch(()=>{});if(!IS_IOS)fadeEl(el,1,600);
+}
+function bgmDuck(){}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){AU.bgmEls.forEach(e=>e.pause());AU.curKey=null;}else setTimeout(()=>bgmTick(true),100);});
 function makeCtx(){
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
   try{AU.ctx=new C({latencyHint:'interactive'});}catch(e){try{AU.ctx=new C();}catch(e2){AU.ctx=null;return false;}}
@@ -975,7 +1001,7 @@ function makeCtx(){
   AU.sfx.gain.value=save.aud.sfx?1:0;AU.bgm.gain.value=0;
   try{const s=c.createBufferSource();s.buffer=c.createBuffer(1,1,22050);s.connect(c.destination);s.start(0);}catch(e){}
   AU.buf={};for(const k in AU.rawS)AU.buf[k]=toBuf(AU.rawS[k]);
-  AU.tracks={};AU.cur=null;AU.curKey=null;AU.dead=false;AU.bad=0;AU.lastT=-1;
+  AU.dead=false;AU.bad=0;AU.lastT=-1;
   c.onstatechange=()=>{if(c===AU.ctx&&c.state!=='running'&&!document.hidden)AU.bad=Math.max(AU.bad,1);sndStatus();};
   return true;
 }
@@ -992,13 +1018,15 @@ setInterval(()=>{
   if(!AU.ctx||document.hidden)return;
   const c=AU.ctx,t=c.currentTime;
   if(c.state==='running'&&t>AU.lastT+.05){AU.bad=0;}
-  else{AU.bad++;if(c.state!=='running'){try{c.resume().catch(()=>{});}catch(e){}}if(AU.bad>=2&&!AU.dead){AU.dead=true;AU.cur=null;AU.curKey=null;}}
+  else{AU.bad++;if(c.state!=='running'){try{c.resume().catch(()=>{});}catch(e){}}if(AU.bad>=2&&!AU.dead){AU.dead=true;}}
   AU.lastT=t;
   if(AU.sil&&AU.sil.paused&&!document.hidden){try{AU.sil.play().catch(()=>{});}catch(e){}}
-  if(!AU.dead)bgmTick(false);
+  bgmTick(false);
 },400);
 /* ---- タッチの たびに おとの じゅんびを たしかめる ---- */
 function audioUnlock(){
+  unlockBgmEls();
+  {const k=wantBgm(),el=AU.bgmEls[AU.bgmI];if(k&&k===AU.curKey&&el&&el.paused&&el._ok){const p=el.play();p&&p.catch&&p.catch(()=>{});}}
   if(!AU.ctx){
     if(!makeCtx())return;
     if(IS_IOS){try{const el=document.createElement('audio');el.setAttribute('playsinline','');el.setAttribute('x-webkit-airplay','deny');el.preload='auto';el.loop=true;el.src=silentURL(1);AU.sil=el;}catch(e){}}
@@ -1086,7 +1114,7 @@ function sndStatus(){
   const el=document.getElementById('sndInfo');if(!el)return;
   const as=navigator.audioSession?navigator.audioSession.type:'-';
   el.textContent=[`web audio: ${AU.ctx?AU.ctx.state:'まだ'}${AU.dead?'(とまった→つぎの タッチで なおす)':''}`,`つくりなおし: ${AU.rebuilds}かい`,`むおんループ: ${AU.sil?(AU.sil.paused?'とまっている':'ながれている'):(IS_IOS?'まだ':'つかわない')}`,
-    `audioSession: ${as}`,`こえ: ${jaVoice?jaVoice.name:'みつからない'}`,`BGM: ${AU.curKey||'なし'}`].join('\n');
+    `audioSession: ${as}`,`こえ: ${jaVoice?jaVoice.name:'みつからない'}`,`BGM: ${AU.curKey||'なし'}${AU.curKey&&AU.bgmEls[AU.bgmI]&&AU.bgmEls[AU.bgmI].paused?'(とまっている)':''}`].join('\n');
 }
 
 /* ========= パーティクル ========= */
@@ -1336,10 +1364,10 @@ function arrive(L){
 function completePuzzle(){
   const tok=P.tok;P.done=true;P.cel=0;P.doneT=0;
   P.L.forEach(l=>{if(l.slot<0)l.st='gone';});
-  P.dance=false;const dur=1.8+.12*P.chars.length;
-  setTimeout(()=>{if(tok!==P.tok)return;fanfare(true);P.dance=true;P.doneT=0;P.L.forEach(l=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});},550);
-  setTimeout(()=>{if(tok===P.tok)say(P.word);},550+dur*1000+100);
-  setTimeout(()=>{if(tok===P.tok)finishItem();},550+dur*1000+1700);
+  P.dance=false;const dur=.9+.1*(P.chars.length-1);
+  setTimeout(()=>{if(tok!==P.tok)return;fanfare(true);P.dance=true;P.doneT=0;P.L.forEach(l=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});},200);
+  setTimeout(()=>{if(tok===P.tok)say(P.word);},200+dur*1000);
+  setTimeout(()=>{if(tok===P.tok)finishItem();},200+dur*1000+1000);
 }
 function finishItem(){
   P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
@@ -1357,6 +1385,7 @@ function nearSlot(L,maxD){
   return best;
 }
 lcv.addEventListener('pointerdown',e=>{
+  if(P.done&&P.dance&&P.doneT>.3){finishItem();return;}
   if(P.done||!P.slots.length)return;initAudio();
   const p=lpt(e);let best=null,bd=P.sz*.75;
   P.L.forEach(L=>{if(L.st!=='free'&&L.st!=='back')return;const d=Math.hypot(p.x-L.x,p.y-L.y);if(d<bd){bd=d;best=L;}});
@@ -1443,7 +1472,7 @@ function drawPuzzle(t,dt){
     }else if(L.st==='placed'){
       L.x=P.slots[L.slot].x;L.y=P.slots[L.slot].y;{const q=Math.max(0,L.pop||0);amp=2.2*q;rot=Math.sin(t*28)*.06*q;sx=1+.06*Math.sin(t*30)*q;sy=1/sx;}
       if(L.pop>0){L.pop-=dt*2.4;const q=Math.max(0,L.pop);sc=1+.45*Math.sin(q*Math.PI)*q;}
-      if(P.done&&P.dance){const d=P.doneT-L.slot*.12,q=d>0&&d<1.8?Math.abs(Math.sin(d*7))*(1-d/1.8):0;dy=-q*P.sz*.45;}
+      if(P.done&&P.dance){const d=P.doneT-L.slot*.1,q=d>0&&d<.9?Math.abs(Math.sin(d*7))*(1-d/.9):0;dy=-q*P.sz*.45;}
     }
     const col=(L.st==='placed'&&L.pop>0.5)?'#ffd84a':L.col;
     drawWavy(lc,glyph(L.ch,col,px),L.x+dx,L.y+dy,P.sz*sc,t,L,amp,rot,sx,sy);
@@ -1646,7 +1675,7 @@ function tapClient(id){
   {const c=H.cs.find(c=>c.id===id);if(c)r.hx=c.x;}
   if(r.done.some(Boolean)){openRequest(id);return;}
   H.ask=id;const cl=CLIENTS[r.ci];portrait($('#hqC'),cl);
-  $('#hqWho').innerHTML=cl.n+' '+heartsHTML(r.ci);$('#hqText').textContent=greetText(r);
+  $('#hqWho').textContent=cl.n;$('#hqText').textContent=greetText(r);
   const box=$('#hqItems');box.innerHTML='';box.appendChild(cvOf(spr(...CATS[r.cat].icon).c));
   r.items.forEach(it=>box.appendChild(cvOf(spr(it[1],it[2]).g)));
   $('#hreq').classList.add('on');chime(2);
@@ -1687,7 +1716,6 @@ onShow.home=()=>{refreshLocks();
   H.coins.length=0;H.pops.length=0;H.talk=null;
   H.queue=Math.max(0,2-waitingReqs().length);H.timer=H.queue>0?.5:rnd(8,15);H.bt=1.5;H.bi=0;H.bn=Math.random()*3|0;
   {const D=DAY();$('#bCloseShop').style.display=D.closed?'':'none';if(D.closed){lampOn=true;H.queue=0;}}
-  if(save.pendingGift.length&&!H.cs.some(c=>c.ph==='walk'))setTimeout(()=>{if(screen==='home'&&save.pendingGift.length&&!$('#gift').classList.contains('on'))giveFriendGift(save.pendingGift[0]);},900);
   $('#hbub').classList.remove('on');$('#hreq').classList.remove('on');$('#bToMine').style.display=save.mineUnlocked?'':'none';renderReqList();
 };
 hcv.addEventListener('pointerdown',e=>{
@@ -1789,15 +1817,11 @@ function drawHome(t,dt){
       c.pt+=dt;
       const want=Math.min(6,Math.ceil(r.gain/3));
       while(c.nc<want&&c.pt>c.nc*.16){c.nc++;H.coins.push({sx:c.x+20,sy:120,ex:74,ey:118,age:-c.nc*.02});}
-      if(!c.paid&&c.pt>1.1){c.paid=true;save.coins+=r.gain||0;r.leaving='paid';dayHandled(r,true);c.gift=onServed(r,c);persist();updateCoins();
+      if(!c.paid&&c.pt>1.1){c.paid=true;save.coins+=r.gain||0;r.leaving='paid';dayHandled(r,true);onServed(r,c);persist();updateCoins();
         const hi=$('#homeInfo');hi.classList.remove('coinpop');void hi.offsetWidth;hi.classList.add('coinpop');
         H.pops.push({x:70,y:96,n:r.gain||0,age:0});chime(5);setTimeout(()=>chime(7),120);}
       if(c.pt>2.8){
-        if(c.gift&&!c.gave){c.gave=true;c.ph='gift';talk(c,'いつも ありがとう! どれか あげるね!',2.5);
-          setTimeout(()=>{if(screen!=='home'){c.ph='out';return;}giveFriendGift(r.ci,()=>{c.ph='out';talk(c,'またね!',2);});},900);}
-        else{c.ph='out';talk(c,'またね!',2);}}
-    }
-    else if(c.ph==='gift'){
+        c.ph='out';talk(c,'またね!',2);}
     }
     else if(c.ph==='out'){c.x+=60*dt;walking=true;
       if(c.x>250){save.reqs=save.reqs.filter(q=>q.id!==c.id);persist();H.cs.splice(k,1);renderReqList();continue;}}
@@ -1935,7 +1959,7 @@ function addDiary(r,j){
   save.diaryNew=true;
 }
 /* ========= ちいさな ゴール: なかよし・スタンプ・おみせの ほし ========= */
-save.friend=save.friend||{};save.stamps=save.stamps||0;save.servedTotal=save.servedTotal||0;save.pendingGift=save.pendingGift||[];
+save.friend=save.friend||{};save.stamps=save.stamps||0;save.servedTotal=save.servedTotal||0;
 const FRIEND_MAX=3,STAMP_MAX=5,RANKS=[0,4,10,18,28];
 const rankOf=n=>RANKS.filter(v=>n>=v).length;
 const hearts=ci=>save.friend[ci]||0;
@@ -1944,17 +1968,10 @@ function heartsHTML(ci){const h=Math.min(hearts(ci),needOf(ci));let s='';for(let
 /* しはらいの とき: なかよし と おみせの ほし */
 function onServed(r,c){
   const before=rankOf(save.servedTotal);save.servedTotal++;
-  const cl=CLIENTS[r.ci],need=needOf(r.ci);
-  /* ふつうは ハート1つ。すきな おみせなら +1、たまに とても よろこんで +1 */
-  save.friend[r.ci]=Math.min(need,hearts(r.ci)+1+(r.cat===cl.fav?1:0)+(Math.random()<.25?1:0));
-  /* プレゼントは 1にち ひとりまで(いっぺんに ならない ように) */
-  let gift=false;const D=save.day;
-  if(save.friend[r.ci]>=need&&!(D&&D.gifted)){save.friend[r.ci]=0;save.pendingGift.push(r.ci);gift=true;if(D)D.gifted=true;}
   persist();
   if(c){H.hfx.push({x:c.x+24,y:104,age:0});}
   if(rankOf(save.servedTotal)>before){addEvent({type:'rank',n:rankOf(save.servedTotal)});setTimeout(()=>{if(screen==='home'){talk(WITCH,'おみせの ほしが ふえたよ! すてきに なったね。',4);burst(hparts,120,40,30,1.6);sfx('fan');}},1600);}
   updateCoins();
-  return gift;
 }
 /* もってない ものを みっつ だして えらんでもらう */
 function giftChoices(kind,ci){
@@ -1979,10 +1996,6 @@ function openGift(who,text,keys,done,tag){
       b.classList.add('chosen');fanfare();burst(hparts,120,90,20,1.4);setTimeout(()=>{$('#gift').classList.remove('on');refreshLocks();$('#bToMine').style.display='';const d=giftDone;giftDone=null;d&&d();},700);});
     box.appendChild(b);});
   giftDone=done;$('#gift').classList.add('on');chime(6);
-}
-function giveFriendGift(ci,done){
-  save.pendingGift=save.pendingGift.filter((x,i,a)=>!(x===ci&&a.indexOf(x)===i));persist();
-  openGift(spr('person',look(CLIENTS[ci])).c,`${CLIENTS[ci].n}さん「いつも ありがとう! どれか ひとつ あげるね。」`,giftChoices('friend',ci),done,{type:'gift',ci});
 }
 /* おみせの ほしで すこしずつ ごうかに(かざりは かべと ゆかに ちいさく) */
 function drawRankDecor(t){
