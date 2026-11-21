@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>お店のアイテム・もじ表(開発用)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8;--hira:#ffe3ec;--kata:#dff0ff}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:#fffe;backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:16px;margin:0 0 6px}
+.devnav{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin-bottom:2px}
+.devnav a{color:var(--acc)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.ctl label{display:flex;gap:4px;align-items:center;white-space:nowrap}
+select,button,input{font:inherit;color:inherit}
+select,button,input[type=text]{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 6px}
+button{cursor:pointer}button:hover{background:#f0eaff}
+main{padding:12px 16px 60px;max-width:1300px;margin:0 auto}
+h2{font-size:15px;margin:26px 0 4px;border-left:5px solid var(--acc);padding-left:8px}
+h3{font-size:14px;margin:18px 0 6px}
+h3 small{color:var(--sub);font-weight:normal}
+p.note{margin:0 0 8px;color:var(--sub);font-size:12px}
+canvas{image-rendering:pixelated;display:block}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;gap:8px;scroll-margin-top:90px}
+.card.hit{outline:3px solid #ff8fb0}
+.card .pic{background:#fff8ee;border-radius:8px;padding:2px;flex:none}
+.card .no{display:inline-block;background:var(--acc);color:#fff;border-radius:5px;padding:0 6px;font-size:12px;font-weight:bold}
+.card .w{font-size:20px;font-weight:bold;line-height:1.2;margin:2px 0}
+.card .rd{font-size:12px;color:var(--sub)}
+.chips{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.chip{border-radius:5px;padding:0 5px;font-size:13px;border:1px solid #0001}
+.chip.h{background:var(--hira)}.chip.k{background:var(--kata)}.chip.o{background:#eee}
+.chip small{font-size:10px;color:var(--sub)}
+.tag{display:inline-block;font-size:10px;background:#fff3c8;border-radius:4px;padding:0 4px;margin:2px 2px 0 0}
+.kana{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;max-width:560px}
+.kcell{border:1px solid var(--line);border-radius:6px;padding:2px 4px;min-height:54px;background:#fff;cursor:pointer;font-size:11px;line-height:1.25}
+.kcell b{font-size:18px;margin-right:4px}
+.kcell.h{background:var(--hira)}.kcell.k{background:var(--kata)}
+.kcell.z{background:#ffd0d0;border-color:#e88}
+.kcell.few{outline:2px solid #f3c850}
+.kcell.empty{visibility:hidden}
+.kcell.sel{outline:3px solid var(--acc)}
+.kwrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.detail{min-width:260px;flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.detail .row{display:flex;gap:8px;align-items:center;margin:4px 0}
+#err{background:#ffe3e3;border:1px solid #e88;border-radius:8px;padding:10px;margin:12px 0;display:none}
+</style>
+</head>
+<body>
+<header>
+  <nav class="devnav"><a href="../index.html">← ゲーム</a><a href="index.html">開発メニュー</a><a href="doll-lab.html">にんげん</a><a href="animal-lab.html">どうぶつ</a><a href="cat-lab.html">ねこ</a><a href="shop-items.html">お店アイテム・もじ表</a></nav>
+  <h1>お店のアイテム・もじ表 <small style="font-weight:normal;color:var(--sub)">(開発用・ゲーム本体の index.html を読み込んで表示)</small></h1>
+  <div class="ctl">
+    <label>さがす <input type="text" id="q" placeholder="番号(214)・ことば・ひらがな・カタカナ" size="30"></label>
+    <label>絵のおおきさ <select id="sz"><option>3</option><option selected>4</option><option>6</option></select></label>
+    <span id="count" class="note" style="margin:0"></span>
+  </div>
+</header>
+<main>
+  <div id="err"></div>
+  <h2>1. お店ごとのアイテム(3けたの番号つき)</h2>
+  <p class="note">番号は「お店の番号 × 100 + そのお店の中の順番」です(1xx ようふく / 2xx おもちゃ / 3xx くだもの / 4xx おかし / 5xx ほん / 6xx おんがく / 7xx でんき / 8xx もり / 9xx おうち / 0xx ごほうびの とくべつ)。ゲームの ITEMS の並び順で振っているので、アイテムを足すと番号がずれることがあります。</p>
+  <div id="shops"></div>
+
+  <h2>2. もじ → アイテム(ひらがな・カタカナ)</h2>
+  <p class="note">そのもじを含む言葉の数と番号です(濁点・小さいもじ・「ー」は、ゲームの判定と同じく元のもじに数えます)。赤は 0 件(ことばが無いもじ)、黄の枠は 1〜2 件(少ないもじ)です。クリックで一覧を出します。</p>
+  <div class="kwrap">
+    <div><h3>ひらがな</h3><div class="kana" id="kh"></div><h3>カタカナ</h3><div class="kana" id="kk"></div></div>
+    <div class="detail" id="detail"><span class="note">もじをクリックすると、そのもじを使うアイテムが出ます。</span></div>
+  </div>
+</main>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const toKata=s=>s.replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60));
+const toHira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const isH=c=>/[ぁ-ゖ]/.test(c), isK=c=>/[ァ-ヺ]/.test(c);
+
+async function loadGame(){
+  /* ゲーム本体の「ドット絵」「スプライト」「ゲームデータ」の部分だけを取り出して実行する */
+  const txt=await (await fetch('../index.html',{cache:'no-store'})).text();
+  const a=txt.indexOf('/* ========= ユーティリティ ========= */');
+  const b=txt.indexOf('/* なくなった ことばを セーブから');
+  if(a<0||b<0)throw new Error('index.html の構造が変わったので、取り出す範囲が見つかりません');
+  return new Function(txt.slice(a,b)+';return {ITEMS,CATS,spr,ROWS,norm,SMALL};')();
+}
+
+(async()=>{
+  let G;
+  try{G=await loadGame();}
+  catch(e){
+    const el=$('#err');el.style.display='block';
+    el.innerHTML='ゲーム本体(../index.html)を読み込めませんでした。<br>公開ページ(https://ichi39.github.io/maho-cleaner/dev/shop-items.html)か、ローカルサーバー経由(<code>python3 -m http.server</code>)で開いてください。ファイルを直接開く(file://)と、ブラウザの制限で読めません。<br><small>'+String(e)+'</small>';
+    return;
+  }
+  const {ITEMS,CATS,spr,ROWS,norm,SMALL}=G;
+  const shopKeys=Object.keys(CATS);
+  const shopNo=k=>k==='special'?0:shopKeys.indexOf(k)+1;
+  const groups=[...shopKeys,'special'];
+  const gname=k=>k==='special'?'とくべつ(ごほうび)':CATS[k].name;
+
+  /* ---- アイテムに3けたの番号を振る ---- */
+  const list=[];
+  for(const g of groups){
+    ITEMS.filter(it=>it[3]===g).forEach((it,i)=>{
+      const n=shopNo(g)*100+i+1;
+      list.push({no:String(n).padStart(3,'0'),g,word:it[0],kind:it[1],opt:it[2],it});
+    });
+  }
+  const byNo={};list.forEach(x=>byNo[x.no]=x);
+
+  /* ---- もじの分解 ---- */
+  const info=c=>{
+    if(c==='ー')return{c,type:'o',base:null,tag:'のばす ぼう'};
+    const type=isH(c)?'h':isK(c)?'k':'o';
+    const small=!!SMALL[c];
+    const nf=c.normalize('NFD');
+    const dak=!small&&nf.length>1;
+    const base=norm(c);
+    return{c,type,base,tag:small?'ちいさい':dak?(/\u309a/.test(nf)?'はんだくてん':'だくてん'):''};
+  };
+  for(const x of list){
+    x.chars=[...x.word].map(info);
+    x.hard=[];
+    if(x.chars.length>=4)x.hard.push('4もじ いじょう');
+    if(x.chars.some(i=>i.tag==='だくてん'||i.tag==='はんだくてん'))x.hard.push('だくてん');
+    if(x.chars.some(i=>i.tag==='ちいさい'))x.hard.push('ちいさい もじ');
+    if(x.chars.some(i=>i.c==='ー'))x.hard.push('ー');
+    x.hira=toHira(x.word);x.kata=toKata(x.word);
+  }
+
+  /* ---- 1. お店ごとのカード ---- */
+  const box=$('#shops');
+  function drawPic(x,scale){
+    const cv=document.createElement('canvas');const s=24*scale;cv.width=cv.height=s;
+    const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
+    try{c.drawImage(spr(x.kind,x.opt).c,0,0,s,s);}catch(e){c.fillStyle='#f99';c.fillRect(0,0,s,s);}
+    return cv;
+  }
+  function renderShops(){
+    box.innerHTML='';const scale=+$('#sz').value;
+    for(const g of groups){
+      const xs=list.filter(x=>x.g===g);if(!xs.length)continue;
+      const h=document.createElement('h3');h.innerHTML=`${shopNo(g)}xx ${gname(g)} <small>${xs.length}こ</small>`;box.appendChild(h);
+      const grid=document.createElement('div');grid.className='items';box.appendChild(grid);
+      for(const x of xs){
+        const card=document.createElement('div');card.className='card';card.id='n'+x.no;card.dataset.no=x.no;
+        card.dataset.q=[x.no,x.word,x.hira,x.kata].join(' ');
+        const pic=document.createElement('div');pic.className='pic';pic.appendChild(drawPic(x,scale));
+        const info=document.createElement('div');
+        const other=isH(x.word[0])||/^[ぁ-ゖー]+$/.test(x.word)?`カタカナ: ${x.kata}`:`ひらがな: ${x.hira}`;
+        info.innerHTML=`<span class="no">${x.no}</span><div class="w">${x.word}</div><div class="rd">${other}</div>
+          <div class="chips">${x.chars.map(i=>`<span class="chip ${i.type}">${i.c}${i.base&&i.base!==i.c?`<small>(${i.base})</small>`:''}</span>`).join('')}</div>
+          <div>${x.hard.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+        card.appendChild(pic);card.appendChild(info);grid.appendChild(card);
+      }
+    }
+    applyFilter();
+  }
+
+  /* ---- 2. もじ表 ---- */
+  const use={};   // もじ → [item]
+  for(const x of list)for(const i of x.chars)if(i.base){(use[i.base]||(use[i.base]=[]));if(!use[i.base].includes(x))use[i.base].push(x);}
+  const kk={};
+  function renderKana(){
+    for(const [id,rows,cls] of [['#kh',ROWS.hira,'h'],['#kk',ROWS.kata,'k']]){
+      const el=$(id);el.innerHTML='';
+      // 50音は あ行→わ行 を、縦(行)ごとに5つずつ並べる
+      for(const row of rows)for(const ch of [...row]){
+        const cell=document.createElement('div');
+        if(ch==='　'){cell.className='kcell empty';el.appendChild(cell);continue;}
+        const xs=use[ch]||[];
+        cell.className='kcell '+cls+(xs.length===0?' z':xs.length<=2?' few':'');
+        cell.innerHTML=`<b>${ch}</b>${xs.length}こ<br>${xs.slice(0,5).map(x=>x.no).join(' ')}${xs.length>5?' …':''}`;
+        cell.title=xs.map(x=>x.no+' '+x.word).join('\n')||'ことばが ありません';
+        cell.onclick=()=>{document.querySelectorAll('.kcell.sel').forEach(e=>e.classList.remove('sel'));cell.classList.add('sel');showDetail(ch,xs);};
+        el.appendChild(cell);kk[ch]=cell;
+      }
+    }
+  }
+  function showDetail(ch,xs){
+    const d=$('#detail');d.innerHTML=`<b style="font-size:22px">${ch}</b> を使うアイテム: ${xs.length}こ`;
+    if(!xs.length){d.innerHTML+='<p class="note">このもじを含む言葉が、まだありません。</p>';return;}
+    for(const x of xs){
+      const r=document.createElement('div');r.className='row';
+      r.appendChild(drawPic(x,2));
+      const t=document.createElement('div');t.innerHTML=`<span class="no" style="background:#8a7ad8;color:#fff;border-radius:5px;padding:0 6px;font-size:12px;font-weight:bold">${x.no}</span> <b>${x.word}</b> <span class="rd" style="color:#8a7a9a;font-size:12px">${gname(x.g)}</span>`;
+      const a=document.createElement('a');a.href='#n'+x.no;a.textContent='  ↓ 一覧で見る';a.style.fontSize='12px';a.onclick=()=>{setTimeout(markHash,0);};t.appendChild(a);
+      r.appendChild(t);d.appendChild(r);
+    }
+  }
+
+  /* ---- 検索・ハッシュ ---- */
+  function applyFilter(){
+    const q=$('#q').value.trim();let n=0;
+    document.querySelectorAll('.card').forEach(c=>{
+      const ok=!q||c.dataset.q.includes(q)||c.dataset.q.includes(toKata(q))||c.dataset.q.includes(toHira(q));
+      c.style.display=ok?'':'none';if(ok)n++;
+    });
+    document.querySelectorAll('#shops h3').forEach(h=>{
+      let el=h.nextElementSibling;const any=[...el.children].some(c=>c.style.display!=='none');h.style.display=any?'':'none';el.style.display=any?'':'none';});
+    $('#count').textContent=`${n} / ${list.length} こ`;
+  }
+  function markHash(){
+    document.querySelectorAll('.card.hit').forEach(c=>c.classList.remove('hit'));
+    const m=location.hash.match(/^#n(\d{3})$/);
+    if(m){const c=document.getElementById('n'+m[1]);if(c){c.classList.add('hit');c.scrollIntoView({block:'center'});}}
+  }
+  $('#q').addEventListener('input',()=>{
+    const q=$('#q').value.trim();
+    if(/^\d{3}$/.test(q)&&byNo[q]){location.hash='#n'+q;}
+    applyFilter();setTimeout(markHash,0);
+  });
+  $('#sz').addEventListener('change',renderShops);
+  window.addEventListener('hashchange',markHash);
+  renderShops();renderKana();markHash();
+})();
+</script>
+</body>
+</html>

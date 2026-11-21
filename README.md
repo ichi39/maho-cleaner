@@ -37,5 +37,7 @@ tools/voice-list.txt      読み上げる文字・言葉の一覧(make-voice.js 
 dev/doll-lab.html         人形のフォルムと服を見比べる開発用画面(にんげん・22ドット。ゲームとは別。ブラウザで開くだけ)
 dev/animal-lab.html       同じ画面の どうぶつ版(うさぎ・くま・ねこ、32ドット)
 dev/cat-lab.html          白ねこに絞った版(肩3案・アイテム番号・着せ替え・1ドット単位の調整)
+dev/shop-items.html      各お店のアイテム(3けたの番号)と、ひらがな・カタカナ表(ゲーム本体を読み込んで表示)
+dev/index.html            開発用ページの入口(タイトルの「はじめから」で dev と入れると開く)
 docs/                     仕様と開発資料
 ```
