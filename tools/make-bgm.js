@@ -95,7 +95,7 @@ Object.assign(BGM_SONGS,{
   sweets:{gen:1,seed:44,key:63,sc:'maj',bpm:84,beats:4,prog:[0,5,3,4,0,5,3,4],rh:[[2,1,1],[1,1,2],[3,1],[4]],bass:'hold',acc:'arp',arpPat:[0,1,2,1],arpStep:.5,mw:'box',mo:12,mv:.085},
   books:{gen:1,seed:55,key:57,sc:'min',bpm:66,beats:4,prog:[0,5,2,6,0,3,4,0],rh:[[2,2],[3,1],[2,-1,1],[4]],bass:'hold',acc:'pad',mw:'sine',mv:.07},
   music:{gen:1,seed:66,key:62,sc:'maj',bpm:120,beats:4,prog:[0,4,5,3,0,4,3,4],rh:[[.5,.5,.5,.5,1,1],[1,1,1,1],[.5,.5,1,.5,.5,1],[2,2]],bass:'walk',acc:'arp',arpPat:[0,1,2,1,2,1],arpStep:.5,mw:'box'},
-  denki:{gen:1,seed:77,key:60,sc:'maj',bpm:112,beats:4,prog:[0,0,3,4,0,5,3,4],rh:[[.5,.5,.5,-.5,1,1],[1,-1,1,1],[.5,.5,.5,.5,2],[1,1,1,1]],bass:'walk',acc:'blip',mw:'square',stac:1,mv:.05},
+  animal:{gen:1,seed:77,key:60,sc:'maj',bpm:112,beats:4,prog:[0,0,3,4,0,5,3,4],rh:[[.5,.5,.5,-.5,1,1],[1,-1,1,1],[.5,.5,.5,.5,2],[1,1,1,1]],bass:'walk',acc:'blip',mw:'square',stac:1,mv:.05},
   nature:{gen:1,seed:88,key:67,sc:'maj',bpm:96,beats:3,prog:[0,3,0,4,0,3,4,0,3,0,1,4,0,3,4,0],rh:[[2,1],[1,1,1],[3],[1.5,.5,1]],bass:'oom',acc:'pad',mw:'sine',mv:.075,birds:1},
   home:{gen:1,seed:99,key:65,sc:'maj',bpm:80,beats:4,prog:[0,2,3,4,0,2,3,0],rh:[[1,1,2],[2,1,1],[1.5,.5,2],[4]],bass:'hold',acc:'arp',arpPat:[0,2,1,2],arpStep:1,mw:'triangle',mv:.08},
   mine:{gen:1,seed:123,key:64,sc:'maj',bpm:92,beats:3,prog:[0,5,3,4,0,5,4,0,3,0,5,4,0,3,4,0],rh:[[1,1,1],[2,1],[1,1,1],[3]],bass:'oom',acc:'pah',mw:'box',mo:12,mv:.08}

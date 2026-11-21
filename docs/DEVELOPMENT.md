@@ -38,6 +38,24 @@
 | おでかけ | `transit`, 自分のお店のドア(`drawDoor`, `goShopping`, `comeHome`)、商店街の魔女(`walkStreet`, `enterShop`, `leaveStreet`) |
 | ボタン・メインループ | ボタンの登録、チュートリアル、`frame()`(毎コマ、今の画面の draw 関数を呼ぶ) |
 
+### お店(`CATS`)の内部名と表示名
+
+内部名(コードの `cat`・BGM のキー・`CAT_THEME`)は、昔の名前のまま残っているものがあります。表示名と食い違うので注意してください。
+
+| 内部名 | 表示名 | 部屋の色(`THEMES`) | BGM |
+|---|---|---|---|
+| `clothes` | ようふくやさん | 0 | clothes |
+| `toy` | おもちゃやさん | 1 | toy |
+| `animal` | どうぶつやさん | 8(そうげん) | animal(昔の `denki` の曲) |
+| `fruit` | やおやさん(くだもの+やさい) | 2 | fruit |
+| `sweets` | たべものやさん(おかし+ごはん) | 4 | sweets |
+| `books` | ほんやさん | 3 | books |
+| `music` | おんがくやさん | 3 | music |
+| `home` | ざっかやさん | 6 | home |
+| `nature` | しぜんの おみせ | 5 | nature |
+
+お店の並び順(`CATS` の順)が、商店街の並びと、開発ページ(`dev/shop-items.html`)の番号(1xx〜9xx)になります。お店を足す・消すときは、`CATS`・`CAT_THEME`・`THEMES`・`CLIENTS` の `fav`/`dis`・`tools/make-bgm.js` の曲を合わせて直してください(古いセーブの `reqs` は `cleanSave()` が、なくなったお店の分を捨てます)。
+
 ## 2. よく使う変数
 
 | 変数 | 役割 |
