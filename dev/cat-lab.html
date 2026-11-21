@@ -244,7 +244,7 @@ function headLayer(R,P){
 /* =========================================================
    服(ぜんぶリグ R から計算する)
    ========================================================= */
-const SLOTS={back:{z:-2},feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},held:{z:-1},face:{z:5},head:{z:6},hand:{z:7},wand:{z:8}};
+const SLOTS={back:{z:-2},feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},held:{z:9},face:{z:5},head:{z:6},hand:{z:7},wand:{z:8}};
 const ITEMS=[
  ['head','hat','ぼうし','hat',null,'#e8a0b8'],
  ['head','helmet','ヘルメット','hat','helmet','#f3c850'],
@@ -316,40 +316,41 @@ ribbon(d,R,o){
   d.p(cx-4,cy-1,hi);d.p(cx+3,cy-1,hi);
 },
 crown(d,R,o){
-  // 04: ちいさな かんむり。耳のあいだに ちょこんと乗せる
-  const g=GOLD,hi=shade(g,.55),lo=shade(g,-.32);
-  for(const x of [12,15,16,19])d.p(x,1,hi);
-  for(const x of [12,13,15,16,18,19])d.p(x,2,g);
-  hr(d,12,19,3,g);hr(d,12,19,4,lo);
-  d.p(13,2,hi);d.p(12,3,hi);d.p(18,2,shade(g,.25));
-  d.r(15,3,2,1,'#e8465a');d.p(15,3,'#ff9aa8');d.p(13,3,'#7fc8e8');d.p(18,3,'#9be8a0');
+  // 04: かんむり。頭の丸みに沿う帯(6-7行)に とがりを乗せる
+  const g=GOLD,g2=shade(g,-.12),hi=shade(g,.55),lo=shade(g,-.32);
+  for(const x of [12,15,16,19])d.p(x,3,hi);
+  for(const x of [12,13,15,16,18,19])d.p(x,4,g);
+  hr(d,12,19,5,g);hr(d,11,20,6,g2);hr(d,12,19,7,lo);
+  d.p(13,4,hi);d.p(12,5,hi);d.p(11,6,hi);d.p(19,4,lo);
+  d.r(15,5,2,1,'#e8465a');d.p(15,5,'#ff9aa8');d.p(13,6,'#7fc8e8');d.p(18,6,'#9be8a0');
 },
 tiara(d,R,o){
-  // 05: ハートのティアラ
+  // 05: ハートのティアラ。ハートの先が、頭に沿う銀の帯につながる
   const c=o.c,s='#e8ecf8',s2='#aab0c8',hi=shade(c,.5),lo=shade(c,-.25);
-  hr(d,13,14,1,c);hr(d,17,18,1,c);hr(d,13,18,2,c);hr(d,14,17,3,c);hr(d,15,16,4,c);
-  d.p(13,1,hi);d.p(14,2,hi);d.p(17,3,lo);d.p(16,4,lo);d.p(18,2,lo);
-  hr(d,13,18,5,s);hr(d,14,17,6,s2);
-  d.p(12,5,s2);d.p(19,5,s2);
+  hr(d,13,14,2,c);hr(d,17,18,2,c);hr(d,13,18,3,c);hr(d,14,17,4,c);hr(d,15,16,5,c);
+  d.p(13,2,hi);d.p(14,3,hi);d.p(17,4,lo);d.p(16,5,lo);d.p(18,3,lo);
+  hr(d,11,20,6,s);hr(d,12,19,7,s2);
+  d.p(12,6,'#ffffff');d.p(19,6,'#ffffff');d.p(14,7,'#ffffff');d.p(17,7,'#ffffff');
 },
 startiara(d,R,o){
-  // 06: ほしのティアラ
+  // 06: ほしのティアラ。星の足が銀の帯に乗る
   const Y='#ffd84a',hi='#fff6b0',lo=shade(Y,-.25),s='#e8ecf8',s2='#aab0c8';
-  hr(d,15,16,0,Y);hr(d,14,17,1,Y);hr(d,12,19,2,Y);hr(d,13,18,3,Y);hr(d,13,14,4,Y);hr(d,17,18,4,Y);
-  d.p(15,0,hi);d.p(14,1,hi);d.p(13,2,hi);d.p(18,3,lo);d.p(17,4,lo);d.p(19,2,lo);
-  d.r(15,2,2,1,'#ff8fb0');
-  hr(d,13,18,5,s);hr(d,14,17,6,s2);
-  d.p(12,5,s2);d.p(19,5,s2);d.p(13,5,'#ff8fb0');d.p(18,5,'#7fc8e8');
+  hr(d,11,20,6,s);hr(d,12,19,7,s2);
+  hr(d,15,16,1,Y);hr(d,14,17,2,Y);hr(d,12,19,3,Y);hr(d,13,18,4,Y);hr(d,13,14,5,Y);hr(d,17,18,5,Y);
+  d.p(15,1,hi);d.p(14,2,hi);d.p(13,3,hi);d.p(18,4,lo);d.p(17,5,lo);d.p(19,3,lo);
+  d.r(15,3,2,1,'#ff8fb0');
+  d.p(12,6,'#ff8fb0');d.p(19,6,'#7fc8e8');d.p(14,7,'#ffffff');d.p(17,7,'#ffffff');
 },
 flowercrown(d,R,o){
-  // 07: はなかんむり(まん中に大きな花、りょうがわに小さな花)
+  // 07: はなかんむり。頭に沿うつるに、大きな花と小さな花
   const big=o.c,gold=GOLD,leaf='#6fcf8f',leaf2='#4aa86a';
-  for(let x=10;x<=21;x+=2){d.p(x,6,leaf);d.p(x+1,7,leaf2);}                       // つる
-  for(const [cx,cy] of [[15.2,3.4],[16.8,3.4],[16,2.2],[16,4.6]])d.e(cx,cy,1.7,1.7,big,false);
-  d.r(15,3,2,2,gold);d.p(15,3,'#fff6b0');
+  for(let x=11;x<=20;x++)d.p(x,7,(x%2)?leaf:leaf2);
+  hr(d,12,19,8,leaf2);
+  for(const [cx,cy] of [[14.8,5],[17.2,5],[16,3.8],[16,6.2]])d.e(cx,cy,1.7,1.7,big,false);
+  d.r(15,4,2,2,gold);d.p(15,4,'#fff6b0');
   const f3=(x0,y0,pc)=>{d.r(x0,y0,3,3,pc);d.p(x0+1,y0+1,gold);d.p(x0,y0,shade(pc,.3));d.p(x0+2,y0+2,shade(pc,-.15));};
-  f3(10,5,'#ffffff');f3(19,5,'#b8a0f0');
-  hr(d,12,13,6,leaf);hr(d,18,19,6,leaf);d.p(12,7,leaf2);d.p(19,7,leaf2);
+  f3(10,6,'#ffffff');f3(19,6,'#b8a0f0');
+  d.p(13,8,leaf);d.p(18,8,leaf);
 },
 /* ---------- かお ---------- */
 glasses(d,R,o){
@@ -405,26 +406,22 @@ shirt(d,R,o){
     for(const x of [9,12,19,22])for(let y=T+3;y<hem-1;y+=3)d.p(x,y,shade(c,-.1));
     return;}
   if(t==='apron'){
-    // 白地のエプロン(c は ふちどり・ひも・ポケットの色)。下に クリーム色のブラウスを着ている
+    // 四角いエプロン。肩ひも→胸当て→スカートまで同じ幅で、ストンと落ちる。下に水色のブラウス
     const cream='#fffdf6',blouse='#bfe2f6',hem=R.fy0-1;
     for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),blouse);
     sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);
     puff(d,R,blouse,'#e4f4ff',shade(blouse,-.18));
-    // むね当て(かたひも つき)
-    for(const x of [13,18]){d.p(x,T,c);d.p(x,T+1,c);}
-    sr(d,T+1,2,cream);
-    for(let y=T+2;y<=T+4;y++){sr(d,y,3,cream);d.p(13,y,c);d.p(18,y,c);}
-    sr(d,T+1,2,c);d.p(15,T+1,cream);d.p(16,T+1,cream);
-    // こし(ひも・リボン)
-    sr(d,T+5,5,c);d.r(14,T+5,4,1,hi);
-    for(const s of [0,1]){const x0=s?20:10;d.e(x0+(s?1.2:.8),T+5.5,1.5,1.2,c,false);d.p(x0+(s?1:0),T+5,hi);d.r(x0+(s?0:1),T+6,1,2,shade(c,-.1));}
-    // スカート(まわりにフリル)
-    for(let y=T+6;y<=hem;y++){const w=5+Math.floor((y-T-6)/2);sr(d,y,w,cream);d.p(16-w,y,c);d.p(15+w,y,c);}
-    const wh=5+Math.floor((hem-T-6)/2);
-    sr(d,hem,wh,c);for(let x=16-wh;x<=15+wh;x+=2)d.p(x,hem-1,c);          // すそのフリル
-    // ポケット(ハートつき)
-    d.r(13,T+8,6,3,hi);hr(d,13,18,T+8,c);
-    hr(d,14,14,T+9,'#ffffff');hr(d,17,17,T+9,'#ffffff');hr(d,14,17,T+10,'#ffffff');d.p(15,T+11,'#ffffff');d.p(16,T+11,'#ffffff');
+    for(const x of [13,18]){d.p(x,T,c);d.p(x,T+1,c);}                    // 肩ひも
+    for(let y=T+1;y<=hem;y++){sr(d,y,4,cream);d.p(12,y,'#f3ece0');d.p(19,y,'#f3ece0');}  // 本体(ほとんど白。ふちだけ うすいクリーム)
+    sr(d,T+1,4,c);d.p(15,T+1,cream);d.p(16,T+1,cream);                    // 上のふち
+    mp(d,14,T+3,c);                                                        // 胸のボタン
+    sr(d,T+5,5,c);d.r(14,T+5,4,1,hi);                                      // こしのひも
+    for(const s of [0,1]){const x0=s?20:9;                                // 横のリボンと たれ
+      d.e(x0+1,T+5.5,1.6,1.3,c,false);d.p(x0+(s?0:2),T+5,hi);
+      d.r(x0+(s?0:1),T+6,2,3,shade(c,-.08));d.r(x0+(s?0:1),T+8,2,1,shade(c,-.25));}
+    sr(d,hem,5,c);for(let x=12;x<=19;x+=2)d.p(x,hem-1,c);                  // すそのフリル
+    d.r(13,T+8,6,4,c);hr(d,13,18,T+8,shade(c,-.2));                           // ポケット(ピンク)
+    d.p(14,T+9,'#ffffff');d.p(17,T+9,'#ffffff');hr(d,14,17,T+10,'#ffffff');d.p(15,T+11,'#ffffff');d.p(16,T+11,'#ffffff');
     return;}
   const sw=t==='sweater';
   for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
