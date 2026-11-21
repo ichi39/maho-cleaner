@@ -982,6 +982,11 @@ A2('nature',[
  ['ゆきだるま','snowman'],['すみれ','flower',{t:'violet',c:'#b48ae8'}],
  ['ひまわり','flower',{t:'sunflower'}],['もみじ','mapleleaf',{c:'#e8543a'}],['にじ','rainbow'],['やま','mountain']
 ]);
+const SLOT_OF_={startiara:'head',flowercrown:'head',rainbowdress:'body',starcape:'body',wings:'back',wand:'wand',glassshoe:'feet',hat:'head',ribbon:'head',crown:'head',tiara:'head',glasses:'face',tie:'neck',muffler:'neck',shirt:'body',yukata:'body',coat:'body',pajama:'body',skirt:'bottom',pants:'bottom',shoe:'feet',socks:'feet',geta:'feet',sandal:'feet',glove:'hand',bag:'bag',umbrella:'held'};
+const wearKind=it=>it[1]==='wi'?it[2].k:it[1];
+const isWear=it=>!!(it&&SLOT_OF_[wearKind(it)]);
+const slotOf=w=>{const it=IT(w);return it?SLOT_OF_[wearKind(it)]:null;};
+const look=cl=>({hair:cl.hair,dress:cl.dress,hs:cl.hs,sk:cl.sk,fit:cl.fit,acc:cl.acc,c2:cl.c2});
 /* とくべつ(ごほうび) */
 A2('special',[
  ['ほしのティアラ',W('startiara')],['にじいろドレス',W('rainbowdress')],['ようせいのはね',W('wings')],['はなかんむり',W('flowercrown')],['まほうのつえ',W('wand')],
