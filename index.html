@@ -603,11 +603,14 @@ knife(d){const A=Math.SQRT1_2;   /* パンを きる ナイフ: もち手・か�
     else if(s>=7.6&&s<=19.5){const k=(s-7.6)/11.9,edge=-1.7+4.4*(1-Math.pow(k,1.6));
       if(w>=-1.7&&w<=edge)col=w<-.8?'#aab6cc':(w>edge-.9?'#ffffff':'#e6edf6');}
     if(col)d.p(x,y,col);}},
-onigiri(d,o){   /* おにぎり: しろい さんかく、くろい のり、うめぼし */
-  d.t(4,18,11,4,16,'#ffffff');d.e(11,16.5,6,2,'#ffffff');d.r(6,18,10,1,'#e6e8f0');
-  for(let y=6;y<=17;y++)d.p(Math.round(11+(y-4)*.42),y,'#eceef6');
-  d.t(10,19,11,9,13,'#2e3a3a');d.r(7,13,8,6,'#2e3a3a');d.p(8,14,'#4a5a5a');d.p(9,15,'#4a5a5a');
-  d.p(10,7,'#ff7a8a');d.p(11,7,'#ff7a8a');d.p(10,8,'#e8465a');d.p(11,8,'#e8465a');},
+onigiri(d,o){   /* おにぎり: かどが まるい さんかくの ごはん、したに まいた のり(コンビニふう)、うめぼし */
+  const R='#ffffff',R2='#ebedf6',R3='#d4d8e8',N='#2e3a3a';
+  d.t(3,18,11,4,17,R);d.e(11,5.2,2.4,2.2,R);
+  for(const [x,y] of [[3,18],[4,18],[3,17],[18,18],[19,18],[18,17]])d.p(x,y,null);        // したの かどを まるく
+  for(let y=5;y<=17;y++){const xr=Math.round(11+2+(y-3)*.52);d.p(xr,y,R2);d.p(xr-1,y,R2);}  // みぎがわの かげ
+  for(const [x,y] of [[9,6],[12,8],[8,10],[14,11],[10,12],[7,14],[15,14],[9,15]])d.p(x,y,R3);   // ごはんつぶ
+  d.e(11,7.4,1.9,1.7,'#e8465a',false);d.p(10,6,'#ff9aa8');d.p(11,6,'#ff9aa8');d.p(12,8,'#c8344a');          // うめぼし
+  d.t(12,18,11,9,13,N);d.r(7,16,8,3,N);d.p(7,18,null);d.p(14,18,null);d.p(8,13,'#4a5a5a');d.p(9,14,'#4a5a5a');d.p(8,16,'#4a5a5a');},
 soda(d,o){const c=o.c||'#7fd8f0';   /* ソーダ: グラス、しゅわしゅわ、ストロー、さくらんぼ */
   d.t(6,19,11,13,10,'#eaf6ff');d.t(8,18,11,11,8,c);d.r(5,5,12,1,'#ffffff');d.r(7,19,8,1,'#b8d0e0');
   for(const [x,y] of [[8,11],[12,9],[10,14],[13,13],[9,16],[12,17]]){d.p(x,y,'#ffffff');}
@@ -652,13 +655,14 @@ scissors(d){   /* はさみ: ×の はもの、あかと あおの わっか */
   d.l(11,11,7,14,'#aab6cc');d.l(11,11,15,14,'#aab6cc');
   d.e(7,16.5,3.2,3.4,'#e8606a');d.e(7,16.5,1.6,1.8,null,false);d.e(15,16.5,3.2,3.4,'#6a8ad8');d.e(15,16.5,1.6,1.8,null,false);
   d.p(11,10,GOLD);d.p(10,10,GOLD);d.p(6,14,'#ffb0b8');d.p(14,14,'#a8c0f0');},
-brush(d){const A=Math.SQRT1_2;   /* ふで: あかい おび、竹の え、くろい ふくらんだ ほさき */
+brush(d){const A=Math.SQRT1_2;   /* ふで(毛筆): おしりの ふた・竹の え・つなぎ・ふくらんで とがった ほ(もとは 毛いろ、さきは すみ) */
   for(let y=0;y<22;y++)for(let x=0;x<22;x++){
     const px=x+.5-18,py=y+.5-4,s=(-px+py)*A,w=(px+py)*A,aw=Math.abs(w);let col=null;
-    if(s>=0&&s<2.4&&aw<=1.6)col='#e8465a';
-    else if(s>=2.4&&s<11.5&&aw<=1.6)col=w<-.5?'#e8c088':'#c8956a';
-    else if(s>=11.5&&s<12.8&&aw<=1.9)col='#f3c850';
-    else if(s>=12.8&&s<19.4&&aw<=2.1*Math.sin(Math.min(1,(19.4-s)/6.6)*1.4)+.3)col=s>16.8?'#3a3040':(w<0?'#5a4a62':'#3a3040');
+    if(s>=0&&s<1.6&&aw<=1.8)col='#5a3a2a';
+    else if(s>=1.6&&s<9.4&&aw<=1.6){col=w<-.4?'#e8d098':'#c8a868';if(Math.abs(s-4.6)<.5||Math.abs(s-7.2)<.5)col='#9a7840';}
+    else if(s>=9.4&&s<10.6&&aw<=2)col='#6a5a4a';
+    else if(s>=10.6&&s<20.6){const t=(s-10.6)/10,hw=.3+2.6*Math.min(1,t*4)*Math.pow(1-t,.7);
+      if(aw<=hw)col=t<.3?(w<-.3?'#e8d8b8':'#cdb88f'):(w<-.6?'#5a4a62':'#2e2832');}
     if(col)d.p(x,y,col);}},
 crayons(d){   /* クレヨン: 3ぼんの クレヨン(かみの まきがみ つき) */
   for(const [x,col,top] of [[2,'#e8465a',6],[8,'#ffd84a',3],[14,'#4a8ae0',7]]){
@@ -668,11 +672,11 @@ ruler(d){   /* ものさし: めもりの ついた きいろい いた */
   d.r(2,7,18,8,'#ffe27a');d.r(2,7,18,1,'#fff2b0');d.r(2,14,18,1,'#e8c050');
   for(let x=3;x<=19;x+=2){d.r(x,8,1,(x-3)%4===0?4:2,E1);}
   for(const x of [3,11,19])d.p(x,13,'#c89a3a');d.p(5,12,'#c89a3a');d.p(7,12,'#c89a3a');d.p(9,12,'#c89a3a');d.p(13,12,'#c89a3a');d.p(15,12,'#c89a3a');d.p(17,12,'#c89a3a');},
-coloring(d){   /* ぬりえ: しろい ページの ハートの ぬりえ。ひだりがわだけ ぬってある */
+coloring(d){   /* ぬりえ: せんだけの ハートの ページ。ひだりがわだけ ぬってあり、クレヨンが のっている */
   d.r(2,2,18,18,'#ffffff');d.r(2,2,2,18,'#e8465a');d.r(2,19,18,1,'#d8dce8');
-  const H=(x,y,k)=>{const X=(x+.5-11.5)/(7.4*k),Y=-(y+.5-10.6)/(7*k);const a=X*X+Y*Y-1;return a*a*a-X*X*Y*Y*Y<=0;};
+  const H=(x,y,k)=>{const X=(x+.5-11.5)/(7.4*k),Y=-(y+.5-10.9)/(7*k);const a=X*X+Y*Y-1;return a*a*a-X*X*Y*Y*Y<=0;};
   for(let y=3;y<19;y++)for(let x=5;x<20;x++){if(H(x,y,1)){d.p(x,y,H(x,y,.8)?(x<11.5?'#ff9ab8':'#ffffff'):'#6a5a7a');}}
-  d.p(16,4,'#ffd0e0');d.p(5,16,'#9ad0f0');d.p(18,17,'#ffe24a');},
+  d.l(16,19,19,16,'#4a8ae0');d.l(17,19,19,17,'#4a8ae0');d.p(15,19,'#c8dcf8');d.p(16,18,'#8ab0f0');d.p(18,15,'#8ab0f0');},
 flute(d){const A=Math.SQRT1_2;   /* ふえ(リコーダー): くちばしの ふきくち、ならぶ あな、ひろがった さき */
   for(let y=0;y<22;y++)for(let x=0;x<22;x++){
     const px=x+.5-18,py=y+.5-4,s=(-px+py)*A,w=(px+py)*A,aw=Math.abs(w);let col=null;
