@@ -927,12 +927,36 @@ function rawOf(notes,sr,len,wrap){
 function toBuf(r){const b=AU.ctx.createBuffer(1,r.d.length,r.sr);b.getChannelData(0).set(r.d);return b;}
 for(const k in SFX_DEFS){REC=[];SFX_DEFS[k]();const n=REC;REC=null;AU.rawS[k]=rawOf(n,24000);}
 /* BGM の データは すこしずつ つくる(がめんを とめない) */
+/* きょくづくりは 1かい 4ミリびょう まで。パズルの あいだは やすむ(うごきを とめない) */
+const busyNow=()=>screen==='puzzle'||!!(typeof drag!=='undefined'&&drag);
 function buildTrack(key){
   if(AU.rawT[key])return;AU.rawT[key]='building';
   const {notes,len}=songNotes(BGM_SONGS[key]),sr=22050,d=new Float32Array(Math.floor(len*sr));
-  let i=0;const step=()=>{const e=Math.min(notes.length,i+10);synth(d,sr,notes.slice(i,e),true);i=e;
-    if(i<notes.length)setTimeout(step,0);else{let pk=0;for(let q=0;q<d.length;q+=7){const v=Math.abs(d[q]);if(v>pk)pk=v;}if(pk>0){const g=.3/pk;for(let q=0;q<d.length;q++)d[q]*=g;}
-      AU.rawT[key]={d,sr};bgmTick(true);prebuildNext();}};
+  let i=0,ph=0,pk=0,q=0;
+  const step=()=>{
+    if(busyNow()){setTimeout(step,300);return;}
+    const t=performance.now();
+    while(performance.now()-t<4){
+      if(ph===0){if(i<notes.length){synth(d,sr,[notes[i++]],true);continue;}ph=1;}
+      if(ph===1){const e=Math.min(d.length,q+40000);for(;q<e;q+=5){const v=Math.abs(d[q]);if(v>pk)pk=v;}if(q>=d.length){ph=2;q=0;}continue;}
+      if(ph===2){const g=pk>0?.3/pk:1,e=Math.min(d.length,q+40000);for(;q<e;q++)d[q]*=g;if(q>=d.length){AU.rawT[key]={d,sr};makeWav(key);return;}continue;}
+    }
+    setTimeout(step,0);
+  };
+  setTimeout(step,0);
+}
+/* wav にするのも すこしずつ */
+function makeWav(key){
+  const r=AU.rawT[key],n=r.d.length,buf=new ArrayBuffer(44+n*2),dv=new DataView(buf),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i));};
+  ws(0,'RIFF');dv.setUint32(4,36+n*2,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,r.sr,true);dv.setUint32(28,r.sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*2,true);
+  let i=0;const step=()=>{
+    if(busyNow()){setTimeout(step,300);return;}
+    const t=performance.now();
+    while(i<n&&performance.now()-t<4){const e=Math.min(n,i+20000);for(;i<e;i++){const v=Math.max(-1,Math.min(1,r.d[i]*.4));dv.setInt16(44+i*2,v*32767,true);}}
+    if(i<n){setTimeout(step,0);return;}
+    AU.bgmUrl[key]=URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));bgmTick(true);prebuildNext();
+  };
   setTimeout(step,0);
 }
 /* がめんごとの BGM: パズルの あいだは ならさない(よみあげで とまる ため) */
@@ -947,23 +971,18 @@ function wantBgm(){
 /* つかいそうな きょくを さきに すこしずつ つくっておく */
 function prebuildNext(){
   const want=[wantBgm(),...(save.reqs||[]).map(r=>r.cat),'mine','night'].filter(k=>k&&BGM_SONGS[k]&&!AU.rawT[k]);
-  if(want.length&&!Object.values(AU.rawT).includes('building'))setTimeout(()=>buildTrack(want[0]),300);
+  const busy=Object.keys(AU.rawT).some(k=>AU.rawT[k]==='building'||!AU.bgmUrl[k]);
+  if(want.length&&!busy)setTimeout(()=>buildTrack(want[0]),300);
 }
 /* ---- BGM は <audio> で ながす ----
   よみあげの あと Web Audio は タッチ するまで もどせない が、
   いちど タッチで ならした <audio> は タッチ なしでも play() できる。
   iPhone は <audio> の volume を むしするので、おとの おおきさは データに いれておく。 */
 AU.bgmEls=[];AU.bgmUrl={};AU.bgmI=0;AU.curKey=null;
-function wavFrom(r,gain){
-  const n=r.d.length,dv=new DataView(new ArrayBuffer(44+n*2)),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i));};
-  ws(0,'RIFF');dv.setUint32(4,36+n*2,true);ws(8,'WAVE');ws(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
-  dv.setUint32(24,r.sr,true);dv.setUint32(28,r.sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,n*2,true);
-  for(let i=0;i<n;i++){const v=Math.max(-1,Math.min(1,r.d[i]*gain));dv.setInt16(44+i*2,v*32767,true);}
-  return URL.createObjectURL(new Blob([dv],{type:'audio/wav'}));
-}
 function bgmUrl(key){
-  const r=AU.rawT[key];if(!r){buildTrack(key);return null;}if(r==='building')return null;
-  return AU.bgmUrl[key]||(AU.bgmUrl[key]=wavFrom(r,.4));
+  if(AU.bgmUrl[key])return AU.bgmUrl[key];
+  if(!AU.rawT[key])buildTrack(key);
+  return null;
 }
 function unlockBgmEls(){
   if(AU.bgmEls.length)return;
@@ -1077,15 +1096,15 @@ function unlockTTS(){
 }
 ['touchend','click','keydown','pointerup'].forEach(ev=>document.addEventListener(ev,unlockTTS,{capture:true}));
 let curU=null;
-function speakNow(t,onDone){
+function speakNow(t,onDone,queue){
   const ss=speechSynthesis;let started=false,done=false,mine=null;
   const fin=()=>{if(done)return;done=true;if(curU===mine){curU=null;bgmDuck(false);}afterSpeech();onDone&&onDone();};
-  const go=()=>{if(done)return;try{if(ss.paused)ss.resume();const u=mkUtt(t);u.onstart=()=>{started=true;bgmDuck(true);};u.onend=fin;u.onerror=fin;mine=u;curU=u;ss.speak(u);}catch(e){fin();}};
-  const busy=!!(curU&&ss.speaking);
+  const go=()=>{if(done)return;try{if(ss.paused)ss.resume();const u=mkUtt(t);u.onstart=()=>{started=true;bgmDuck(true);if(P.tl&&t===P.word)P.tl.voiceStart=performance.now();};u.onend=fin;u.onerror=fin;mine=u;curU=u;ss.speak(u);}catch(e){fin();}};
+  const busy=!queue&&!!(curU&&ss.speaking);
   if(busy){try{ss.cancel();}catch(e){}setTimeout(go,130);}else go();
   setTimeout(()=>{if(!started&&!done&&!ss.speaking&&!ss.pending){setTimeout(go,60);}},busy?1500:1400);
 }
-function say(t){if(!save.aud.voice||!HAS_TTS||!t)return;speakNow(t);}
+function say(t,onDone,queue){if(!save.aud.voice||!HAS_TTS||!t){onDone&&onDone();return;}speakNow(t,onDone,queue);}
 let holdTok=0;
 function startHold(ch){
   stopHold();
@@ -1114,7 +1133,7 @@ function sndStatus(){
   const el=document.getElementById('sndInfo');if(!el)return;
   const as=navigator.audioSession?navigator.audioSession.type:'-';
   el.textContent=[`web audio: ${AU.ctx?AU.ctx.state:'まだ'}${AU.dead?'(とまった→つぎの タッチで なおす)':''}`,`つくりなおし: ${AU.rebuilds}かい`,`むおんループ: ${AU.sil?(AU.sil.paused?'とまっている':'ながれている'):(IS_IOS?'まだ':'つかわない')}`,
-    `audioSession: ${as}`,`こえ: ${jaVoice?jaVoice.name:'みつからない'}`,`BGM: ${AU.curKey||'なし'}${AU.curKey&&AU.bgmEls[AU.bgmI]&&AU.bgmEls[AU.bgmI].paused?'(とまっている)':''}`].join('\n');
+    `audioSession: ${as}`,`こえ: ${jaVoice?jaVoice.name:'みつからない'}`,`さいごの かんせい: ${AU.lastTl?['うごく '+Math.round(AU.lastTl.dance-AU.lastTl.done)+'ms','こえ '+(AU.lastTl.voiceStart?Math.round(AU.lastTl.voiceStart-AU.lastTl.voiceAsk)+'ms あと':'なし'),'もどる '+Math.round(AU.lastTl.leave-AU.lastTl.done)+'ms'].join(' / '):'まだ'}`,`BGM: ${AU.curKey||'なし'}${AU.curKey&&AU.bgmEls[AU.bgmI]&&AU.bgmEls[AU.bgmI].paused?'(とまっている)':''}`].join('\n');
 }
 
 /* ========= パーティクル ========= */
@@ -1234,6 +1253,7 @@ function updateRoomHud(){updateCoins();
 }
 function openRequest(id){
   initAudio();const r=save.reqs.find(q=>q.id===id);if(!r)return;
+  if(BGM_SONGS[r.cat]&&!AU.rawT[r.cat])buildTrack(r.cat);
   S.r=r;S.done=r.done;S.pop=r.done.map(()=>0);S.tilt=r.done.map((_,j)=>(j%2?1:-1)*rnd(.25,.7));roomParts.length=0;
   show('room');updateRoomHud();$('#clear').classList.remove('on');
   S.hint=false;
@@ -1364,12 +1384,21 @@ function arrive(L){
 function completePuzzle(){
   const tok=P.tok;P.done=true;P.cel=0;P.doneT=0;
   P.L.forEach(l=>{if(l.slot<0)l.st='gone';});
-  P.dance=false;const dur=.9+.1*(P.chars.length-1);
-  setTimeout(()=>{if(tok!==P.tok)return;fanfare(true);P.dance=true;P.doneT=0;P.L.forEach(l=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});},200);
-  setTimeout(()=>{if(tok===P.tok)say(P.word);},200+dur*1000);
-  setTimeout(()=>{if(tok===P.tok)finishItem();},200+dur*1000+1000);
+  const dur=.9+.1*(P.chars.length-1),t0=performance.now();
+  P.tl={done:t0};stopHold(false);
+  fanfare();P.dance=true;P.doneT=0;P.L.forEach(l=>{if(l.slot>=0)lburst(l.x,l.y,10,2.5);});
+  requestAnimationFrame(()=>{if(P.tl)P.tl.dance=performance.now();});
+  let spoke=false,danced=false,left=false;
+  const leave=()=>{if(left||tok!==P.tok)return;if(!(spoke&&danced))return;left=true;
+    setTimeout(()=>{if(tok!==P.tok)return;P.tl.leave=performance.now();AU.lastTl=P.tl;finishItem();},350);};
+  setTimeout(()=>{if(tok!==P.tok)return;danced=true;leave();},dur*1000);
+  /* こえは おどりの とちゅうで よむ。まえの こえは とめずに うしろに ならべる */
+  setTimeout(()=>{if(tok!==P.tok)return;P.tl.voiceAsk=performance.now();
+    say(P.word,()=>{if(P.tl)P.tl.voiceEnd=performance.now();spoke=true;leave();},true);
+    setTimeout(()=>{if(!spoke){spoke=true;leave();}},4500);},Math.min(400,dur*400));
 }
 function finishItem(){
+  if(screen!=='puzzle')return;
   P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;save.got[P.word]=1;addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4,true);
@@ -1385,7 +1414,7 @@ function nearSlot(L,maxD){
   return best;
 }
 lcv.addEventListener('pointerdown',e=>{
-  if(P.done&&P.dance&&P.doneT>.3){finishItem();return;}
+  if(P.done&&P.dance&&P.doneT>.3&&P.tl&&P.tl.voiceEnd){P.tok++;finishItem();return;}
   if(P.done||!P.slots.length)return;initAudio();
   const p=lpt(e);let best=null,bd=P.sz*.75;
   P.L.forEach(L=>{if(L.st!=='free'&&L.st!=='back')return;const d=Math.hypot(p.x-L.x,p.y-L.y);if(d<bd){bd=d;best=L;}});
