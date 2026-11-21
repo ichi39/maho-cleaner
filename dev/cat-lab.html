@@ -325,32 +325,45 @@ crown(d,R,o){
   d.r(15,5,2,1,'#e8465a');d.p(15,5,'#ff9aa8');d.p(13,6,'#7fc8e8');d.p(18,6,'#9be8a0');
 },
 tiara(d,R,o){
-  // 05: ハートのティアラ。ハートの先が、頭に沿う銀の帯につながる
-  const c=o.c,s='#e8ecf8',s2='#aab0c8',hi=shade(c,.5),lo=shade(c,-.25);
-  hr(d,13,14,2,c);hr(d,17,18,2,c);hr(d,13,18,3,c);hr(d,14,17,4,c);hr(d,15,16,5,c);
-  d.p(13,2,hi);d.p(14,3,hi);d.p(17,4,lo);d.p(16,5,lo);d.p(18,3,lo);
-  hr(d,11,20,6,s);hr(d,12,19,7,s2);
-  d.p(12,6,'#ffffff');d.p(19,6,'#ffffff');d.p(14,7,'#ffffff');d.p(17,7,'#ffffff');
+  // 05: ティアラ(参考: 銀の輪に、高さの違うとがり。先に結晶、帯に真珠)
+  const c=o.c,s1='#e6ecf8',s2='#b4bedb',s3='#8e9ac0',cry='#d4f0ff',pearl='#ffffff';
+  hr(d,11,20,6,s2);hr(d,12,19,7,s3);                                   // 頭にそう帯
+  // とがり: 中央がいちばん高く、外にいくほど低い。間は深く切れ込む
+  d.r(15,0,2,1,cry);d.r(15,1,2,4,s1);                                  // 中央(高い・2ドット幅)
+  for(const x of [13,18]){d.p(x,2,cry);d.r(x,3,1,2,s1);}               // 中くらい
+  for(const x of [11,20]){d.p(x,3,cry);d.r(x,4,1,1,s1);}               // 低い
+  hr(d,13,18,5,s1);d.p(11,5,s1);d.p(20,5,s1);                          // とがりの根もと
+  d.p(15,4,c);d.p(16,4,c);d.p(15,3,shade(c,.5));                       // 中央の宝石
+  for(const x of [12,14,17,19])d.p(x,6,pearl);                         // 真珠
+  d.p(15,6,s1);d.p(16,6,s1);
+  d.p(15,0,'#ffffff');d.p(13,2,'#ffffff');d.p(11,3,'#ffffff');         // 結晶のきらめき
+  d.p(12,7,s2);d.p(19,7,s2);
 },
 startiara(d,R,o){
-  // 06: ほしのティアラ。星の足が銀の帯に乗る
-  const Y='#ffd84a',hi='#fff6b0',lo=shade(Y,-.25),s='#e8ecf8',s2='#aab0c8';
-  hr(d,11,20,6,s);hr(d,12,19,7,s2);
+  // 06: ほしのティアラ(銀の帯と真珠に、金の星)
+  const Y='#ffd84a',hi='#fff6b0',lo=shade(Y,-.25),s1='#e6ecf8',s2='#b4bedb',s3='#8e9ac0',pearl='#ffffff';
+  hr(d,11,20,6,s2);hr(d,12,19,7,s3);
+  for(const x of [12,14,17,19])d.p(x,6,pearl);
   hr(d,15,16,1,Y);hr(d,14,17,2,Y);hr(d,12,19,3,Y);hr(d,13,18,4,Y);hr(d,13,14,5,Y);hr(d,17,18,5,Y);
   d.p(15,1,hi);d.p(14,2,hi);d.p(13,3,hi);d.p(18,4,lo);d.p(17,5,lo);d.p(19,3,lo);
   d.r(15,3,2,1,'#ff8fb0');
-  d.p(12,6,'#ff8fb0');d.p(19,6,'#7fc8e8');d.p(14,7,'#ffffff');d.p(17,7,'#ffffff');
+  d.p(15,6,s1);d.p(16,6,s1);d.p(12,7,s2);d.p(19,7,s2);
 },
 flowercrown(d,R,o){
-  // 07: はなかんむり。頭に沿うつるに、大きな花と小さな花
-  const big=o.c,gold=GOLD,leaf='#6fcf8f',leaf2='#4aa86a';
-  for(let x=11;x<=20;x++)d.p(x,7,(x%2)?leaf:leaf2);
-  hr(d,12,19,8,leaf2);
-  for(const [cx,cy] of [[14.8,5],[17.2,5],[16,3.8],[16,6.2]])d.e(cx,cy,1.7,1.7,big,false);
-  d.r(15,4,2,2,gold);d.p(15,4,'#fff6b0');
-  const f3=(x0,y0,pc)=>{d.r(x0,y0,3,3,pc);d.p(x0+1,y0+1,gold);d.p(x0,y0,shade(pc,.3));d.p(x0+2,y0+2,shade(pc,-.15));};
-  f3(10,6,'#ffffff');f3(19,6,'#b8a0f0');
-  d.p(13,8,leaf);d.p(18,8,leaf);
+  // 07: はなかんむり(参考: ユーカリの葉の帯に、黄色い丸い実と白い小花、ベージュの枝)
+  const L1='#8fbf98',L2='#5e9a74',Y='#f2b01e',Y2='#ffd84a',Y3='#c88a10',W='#ffffff',BG='#d2b88c',CY='#ffe9a0';
+  for(let x=10;x<=21;x++)d.p(x,7,(x%2)?L1:L2);                         // 葉の帯
+  for(let x=11;x<=20;x++)d.p(x,8,(x%2)?L2:L1);
+  d.p(9,8,L1);d.p(22,8,L2);
+  // ベージュの枝(上へのびる)
+  for(const [x,y] of [[15,5],[15,4],[18,5],[18,4],[22,6],[23,5],[9,6],[8,5]])d.p(x,y,BG);
+  for(const [x,y] of [[15,3],[18,3],[23,4],[8,4]])d.p(x,y,W);
+  // 黄色い丸い実(大きいのが右、小さいのが中央)
+  [[Y2,Y,Y],[Y,Y3,Y],[Y,Y,Y3]].forEach((r,j)=>r.forEach((c,i)=>d.p(19+i,5+j,c)));
+  [[Y2,Y],[Y,Y3]].forEach((r,j)=>r.forEach((c,i)=>d.p(16+i,6+j,c)));
+  // 白い小花(左と中央)
+  const fl=(cx,cy)=>{d.p(cx,cy-1,W);d.p(cx-1,cy,W);d.p(cx+1,cy,W);d.p(cx,cy+1,W);d.p(cx,cy,CY);d.p(cx-1,cy-1,'#ecf2f8');d.p(cx+1,cy+1,'#dfe6ee');};
+  fl(13,6);fl(10,7);
 },
 /* ---------- かお ---------- */
 glasses(d,R,o){
@@ -406,22 +419,24 @@ shirt(d,R,o){
     for(const x of [9,12,19,22])for(let y=T+3;y<hem-1;y+=3)d.p(x,y,shade(c,-.1));
     return;}
   if(t==='apron'){
-    // 四角いエプロン。肩ひも→胸当て→スカートまで同じ幅で、ストンと落ちる。下に水色のブラウス
-    const cream='#fffdf6',blouse='#bfe2f6',hem=R.fy0-1;
-    for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),blouse);
+    // 参考: 肩ひもが太く、胸当てから裾まで四角い、ギンガムチェックの前かけ。下は長そでのシャツ
+    const top='#fff8ee',cuff=shade(top,-.14),hem=R.fy0-1;
+    const dark=shade(c,-.2),mid=shade(c,.36),light='#fffdf6';
+    const check=(x,y)=>{const u=Math.floor(x/2)%2,v=Math.floor(y/2)%2;return (u&&v)?dark:(u||v)?mid:light;};
+    // 長そでのシャツ
+    for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),top);
     sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);
-    puff(d,R,blouse,'#e4f4ff',shade(blouse,-.18));
-    for(const x of [13,18]){d.p(x,T,c);d.p(x,T+1,c);}                    // 肩ひも
-    for(let y=T+1;y<=hem;y++){sr(d,y,4,cream);d.p(12,y,'#f3ece0');d.p(19,y,'#f3ece0');}  // 本体(ほとんど白。ふちだけ うすいクリーム)
-    sr(d,T+1,4,c);d.p(15,T+1,cream);d.p(16,T+1,cream);                    // 上のふち
-    mp(d,14,T+3,c);                                                        // 胸のボタン
-    sr(d,T+5,5,c);d.r(14,T+5,4,1,hi);                                      // こしのひも
-    for(const s of [0,1]){const x0=s?20:9;                                // 横のリボンと たれ
-      d.e(x0+1,T+5.5,1.6,1.3,c,false);d.p(x0+(s?0:2),T+5,hi);
-      d.r(x0+(s?0:1),T+6,2,3,shade(c,-.08));d.r(x0+(s?0:1),T+8,2,1,shade(c,-.25));}
-    sr(d,hem,5,c);for(let x=12;x<=19;x+=2)d.p(x,hem-1,c);                  // すそのフリル
-    d.r(13,T+8,6,4,c);hr(d,13,18,T+8,shade(c,-.2));                           // ポケット(ピンク)
-    d.p(14,T+9,'#ffffff');d.p(17,T+9,'#ffffff');hr(d,14,17,T+10,'#ffffff');d.p(15,T+11,'#ffffff');d.p(16,T+11,'#ffffff');
+    const len=R.ay1-R.ay0;
+    mr(d,armL(R)-1,R.ay0,R.aw+1,len,top);mr(d,armL(R)-1,R.ay0+len-1,R.aw+1,1,cuff);
+    mr(d,armL(R)+R.aw-1,R.ay0+1,1,len-2,shade(top,-.14));
+    // 肩ひも(太い)
+    for(let y=T;y<=T+1;y++){for(const x of [12,13,18,19])d.p(x,y,check(x,y));}
+    // 本体: 同じ幅でストンと落ちる
+    for(let y=T+2;y<=hem;y++)for(let x=11;x<=20;x++)d.p(x,y,check(x,y));
+    hr(d,11,20,T+2,dark);                                                  // 胸当ての上のふち
+    hr(d,11,20,T+7,dark);                                                  // こしの縫い目(ポケットの上)
+    for(let y=T+8;y<=T+10;y+=2){d.p(12,y,dark);d.p(19,y,dark);}            // ポケットのステッチ
+    hr(d,11,20,hem,mid);hr(d,11,20,hem-1,dark);                            // すその折り返し
     return;}
   const sw=t==='sweater';
   for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
