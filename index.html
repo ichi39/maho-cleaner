@@ -801,7 +801,7 @@ let AUD_PAUSE=0;
 save.aud=Object.assign({bgm:true,sfx:true,voice:true},save.aud||{});
 if(save.snd===false){save.aud={bgm:false,sfx:false,voice:false};}
 delete save.snd;
-const AU={ctx:null,out:null,sfx:null,bgm:null,duck:null,sil:null,buf:{},tracks:{},cur:null,curKey:null,bgmVol:1};
+const AU={ctx:null,out:null,sfx:null,bgm:null,duck:null,sil:null,buf:{},tracks:{},cur:null,curKey:null};
 try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
 let REC=null;
 function tone(f,t0,dur,type='triangle',vol=.12){if(REC)REC.push([f,t0,dur,type,vol]);}
@@ -830,10 +830,6 @@ function synth(data,sr,notes,wrap){
       data[j]+=v*vol*env*1.6;
     }
   }
-}
-function mkBuf(notes,sr,len,wrap){
-  len=len||Math.ceil(sr*(Math.max(...notes.map(n=>n[1]+n[2]))+.08));
-  const b=AU.ctx.createBuffer(1,len,sr);synth(b.getChannelData(0),sr,notes,wrap);return b;
 }
 /* むおんの wav(マナーモードでも ならす ための しかけ) */
 function silentURL(sec){
@@ -865,59 +861,97 @@ function songNotes(S){
   return{notes:out,len:S.bars*4*bt};
 }
 /* すこしずつ つくって がめんを とめない */
+/* おとの データは かずの はいれつで もっておき、AudioContext を つくりなおしても すぐ もどせる ように する */
+AU.rawS={};AU.rawT={};AU.dead=false;AU.bad=0;AU.lastT=-1;AU.rebuilds=0;
+function rawOf(notes,sr,len,wrap){
+  len=len||Math.ceil(sr*(Math.max(...notes.map(n=>n[1]+n[2]))+.08));
+  const d=new Float32Array(len);synth(d,sr,notes,wrap);return{d,sr};
+}
+function toBuf(r){const b=AU.ctx.createBuffer(1,r.d.length,r.sr);b.getChannelData(0).set(r.d);return b;}
+for(const k in SFX_DEFS){REC=[];SFX_DEFS[k]();const n=REC;REC=null;AU.rawS[k]=rawOf(n,24000);}
+/* BGM の データは すこしずつ つくる(がめんを とめない) */
 function buildTrack(key){
-  if(AU.tracks[key]||!AU.ctx)return;AU.tracks[key]='building';
-  const {notes,len}=songNotes(BGM_SONGS[key]),sr=22050,n=Math.floor(len*sr),b=AU.ctx.createBuffer(1,n,sr),d=b.getChannelData(0);
+  if(AU.rawT[key])return;AU.rawT[key]='building';
+  const {notes,len}=songNotes(BGM_SONGS[key]),sr=22050,d=new Float32Array(Math.floor(len*sr));
   let i=0;const step=()=>{const e=Math.min(notes.length,i+10);synth(d,sr,notes.slice(i,e),true);i=e;
-    if(i<notes.length)setTimeout(step,0);else{AU.tracks[key]=b;bgmTick(true);}};
+    if(i<notes.length)setTimeout(step,0);else{AU.rawT[key]={d,sr};AU.tracks={};bgmTick(true);}};
   setTimeout(step,0);
+}
+function trackBuf(key){
+  const r=AU.rawT[key];if(!r||r==='building'){buildTrack(key);return null;}
+  if(!AU.tracks[key])AU.tracks[key]=toBuf(r);return AU.tracks[key];
 }
 function wantBgm(){
   if(!save.aud.bgm)return null;
-  const night=(typeof save!=='undefined'&&save.day&&save.day.closed)||$('#dayEnd').classList.contains('on');
+  const night=(save.day&&save.day.closed)||$('#dayEnd').classList.contains('on');
   return night?'night':'day';
 }
 function bgmTick(force){
-  if(!AU.ctx)return;
+  if(!AU.ctx||AU.dead)return;
   const key=wantBgm(),vol=screen==='puzzle'?.55:1;
   if(AU.bgm){const g=AU.bgm.gain,T=AU.ctx.currentTime;g.cancelScheduledValues(T);g.setTargetAtTime((save.aud.bgm?.3:0)*vol,T,.25);}
   if(key===AU.curKey&&!force)return;
-  if(key&&!(AU.tracks[key] instanceof AudioBuffer)){buildTrack(key);return;}
-  if(key===AU.curKey)return;
+  if(key===AU.curKey&&AU.cur)return;
   const T=AU.ctx.currentTime;
   if(AU.cur){const o=AU.cur;o.g.gain.setTargetAtTime(0,T,.3);setTimeout(()=>{try{o.s.stop();}catch(e){}},1600);AU.cur=null;}
   AU.curKey=key;if(!key)return;
-  const s=AU.ctx.createBufferSource(),g=AU.ctx.createGain();s.buffer=AU.tracks[key];s.loop=true;g.gain.value=0;s.connect(g);g.connect(AU.duck);
+  const b=trackBuf(key);if(!b){AU.curKey=null;return;}
+  const s=AU.ctx.createBufferSource(),g=AU.ctx.createGain();s.buffer=b;s.loop=true;g.gain.value=0;s.connect(g);g.connect(AU.duck);
   s.start(T+.05);g.gain.setTargetAtTime(1,T+.05,.5);AU.cur={s,g};
 }
-setInterval(()=>bgmTick(false),500);
-function bgmDuck(on){if(!AU.duck)return;const T=AU.ctx.currentTime;AU.duck.gain.cancelScheduledValues(T);AU.duck.gain.setTargetAtTime(on?.35:1,T,on?.05:.4);}
+function bgmDuck(on){if(!AU.duck||AU.dead)return;const T=AU.ctx.currentTime;AU.duck.gain.cancelScheduledValues(T);AU.duck.gain.setTargetAtTime(on?.35:1,T,on?.05:.4);}
+function makeCtx(){
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
+  try{AU.ctx=new C({latencyHint:'interactive'});}catch(e){try{AU.ctx=new C();}catch(e2){AU.ctx=null;return false;}}
+  const c=AU.ctx;AU.out=c.createGain();AU.sfx=c.createGain();AU.bgm=c.createGain();AU.duck=c.createGain();
+  AU.duck.connect(AU.bgm);AU.bgm.connect(AU.out);AU.sfx.connect(AU.out);AU.out.connect(c.destination);
+  AU.sfx.gain.value=save.aud.sfx?1:0;AU.bgm.gain.value=0;
+  try{const s=c.createBufferSource();s.buffer=c.createBuffer(1,1,22050);s.connect(c.destination);s.start(0);}catch(e){}
+  AU.buf={};for(const k in AU.rawS)AU.buf[k]=toBuf(AU.rawS[k]);
+  AU.tracks={};AU.cur=null;AU.curKey=null;AU.dead=false;AU.bad=0;AU.lastT=-1;
+  c.onstatechange=()=>{if(c===AU.ctx&&c.state!=='running'&&!document.hidden)AU.bad=Math.max(AU.bad,1);sndStatus();};
+  return true;
+}
+/* こわれた おとの つながりを すてて つくりなおす(タッチの なかで よぶ) */
+function rebuildCtx(){
+  const old=AU.ctx;AU.ctx=null;
+  if(old){try{old.onstatechange=null;old.close();}catch(e){}}
+  if(!makeCtx())return;AU.rebuilds++;
+  try{const p=AU.ctx.resume();p&&p.catch&&p.catch(()=>{});}catch(e){}
+  setTimeout(()=>bgmTick(true),30);
+}
+/* よみあげの あとなどに おとが とまって いないか 0.4びょう ごとに しらべる */
+setInterval(()=>{
+  if(!AU.ctx||document.hidden)return;
+  const c=AU.ctx,t=c.currentTime;
+  if(c.state==='running'&&t>AU.lastT+.05){AU.bad=0;}
+  else{AU.bad++;if(c.state!=='running'){try{c.resume().catch(()=>{});}catch(e){}}if(AU.bad>=2&&!AU.dead){AU.dead=true;AU.cur=null;AU.curKey=null;}}
+  AU.lastT=t;
+  if(AU.sil&&AU.sil.paused&&!document.hidden){try{AU.sil.play().catch(()=>{});}catch(e){}}
+  if(!AU.dead)bgmTick(false);
+},400);
 /* ---- タッチの たびに おとの じゅんびを たしかめる ---- */
 function audioUnlock(){
   if(!AU.ctx){
-    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
-    try{AU.ctx=new C({latencyHint:'interactive'});}catch(e){try{AU.ctx=new C();}catch(e2){return;}}
-    const c=AU.ctx;AU.out=c.createGain();AU.sfx=c.createGain();AU.bgm=c.createGain();AU.duck=c.createGain();
-    AU.duck.connect(AU.bgm);AU.bgm.connect(AU.out);AU.sfx.connect(AU.out);AU.out.connect(c.destination);
-    AU.sfx.gain.value=save.aud.sfx?1:0;AU.bgm.gain.value=0;
-    try{const s=c.createBufferSource();s.buffer=c.createBuffer(1,1,22050);s.connect(c.destination);s.start(0);}catch(e){}
-    for(const k in SFX_DEFS){REC=[];SFX_DEFS[k]();const n=REC;REC=null;AU.buf[k]=mkBuf(n,24000);}
-    c.onstatechange=()=>{sndStatus();};
+    if(!makeCtx())return;
     if(IS_IOS){try{const el=document.createElement('audio');el.setAttribute('playsinline','');el.setAttribute('x-webkit-airplay','deny');el.preload='auto';el.loop=true;el.src=silentURL(1);AU.sil=el;}catch(e){}}
     setTimeout(()=>bgmTick(true),60);
-  }
-  if(AU.ctx.state!=='running'){try{const p=AU.ctx.resume();p&&p.catch&&p.catch(()=>{});}catch(e){}}
+  }else if(AU.dead||(AU.bad>=1&&AU.ctx.state!=='running')){rebuildCtx();}
+  if(AU.ctx&&AU.ctx.state!=='running'){try{const p=AU.ctx.resume();p&&p.catch&&p.catch(()=>{});}catch(e){}}
   if(AU.sil&&AU.sil.paused){try{const p=AU.sil.play();p&&p.catch&&p.catch(()=>{});}catch(e){}}
 }
 ['touchend','pointerup','click','keydown'].forEach(ev=>document.addEventListener(ev,audioUnlock,{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){if(typeof P!=='undefined'&&P.dirty){P.dirty=false;persist();}return;}
+  AU.lastT=-1;AU.bad=0;
   if(AU.ctx&&AU.ctx.state!=='running'){try{AU.ctx.resume().catch(()=>{});}catch(e){}}
 });
 function initAudio(){audioUnlock();}
 function wakeAC(){}
+/* よみあげが おわったら すぐ もどせるか ためす */
+function afterSpeech(){if(!AU.ctx)return;setTimeout(()=>{if(AU.ctx&&AU.ctx.state!=='running'){try{AU.ctx.resume().catch(()=>{});}catch(e){}}},120);}
 function sfx(key){
-  if(!save.aud.sfx||!AU.ctx)return;const b=AU.buf[key];if(!b)return;
+  if(!save.aud.sfx||!AU.ctx||AU.dead)return;const b=AU.buf[key];if(!b)return;
   if(AU.ctx.state!=='running'){try{AU.ctx.resume().catch(()=>{});}catch(e){}}
   try{const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.sfx);s.start();}catch(e){}
 }
@@ -950,7 +984,7 @@ function unlockTTS(){
 let curU=null;
 function speakNow(t,onDone){
   const ss=speechSynthesis;let started=false,done=false,mine=null;
-  const fin=()=>{if(done)return;done=true;if(curU===mine){curU=null;bgmDuck(false);}onDone&&onDone();};
+  const fin=()=>{if(done)return;done=true;if(curU===mine){curU=null;bgmDuck(false);}afterSpeech();onDone&&onDone();};
   const go=()=>{if(done)return;try{if(ss.paused)ss.resume();const u=mkUtt(t);u.onstart=()=>{started=true;bgmDuck(true);};u.onend=fin;u.onerror=fin;mine=u;curU=u;ss.speak(u);}catch(e){fin();}};
   const busy=!!(curU&&ss.speaking);
   if(busy){try{ss.cancel();}catch(e){}setTimeout(go,130);}else go();
@@ -984,7 +1018,7 @@ function setAud(k,on){
 function sndStatus(){
   const el=document.getElementById('sndInfo');if(!el)return;
   const as=navigator.audioSession?navigator.audioSession.type:'-';
-  el.textContent=[`web audio: ${AU.ctx?AU.ctx.state:'まだ'}`,`むおんループ: ${AU.sil?(AU.sil.paused?'とまっている':'ながれている'):(IS_IOS?'まだ':'つかわない')}`,
+  el.textContent=[`web audio: ${AU.ctx?AU.ctx.state:'まだ'}${AU.dead?'(とまった→つぎの タッチで なおす)':''}`,`つくりなおし: ${AU.rebuilds}かい`,`むおんループ: ${AU.sil?(AU.sil.paused?'とまっている':'ながれている'):(IS_IOS?'まだ':'つかわない')}`,
     `audioSession: ${as}`,`こえ: ${jaVoice?jaVoice.name:'みつからない'}`,`BGM: ${AU.curKey||'なし'}`].join('\n');
 }
 
