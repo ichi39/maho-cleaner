@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>どうぶつ にんぎょう ラボ(開発用)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:#fffe;backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:16px;margin:0 0 6px}
+.ctl{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.ctl label{display:flex;gap:4px;align-items:center;white-space:nowrap}
+select,button,input{font:inherit;color:inherit}
+select,button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 6px}
+button{cursor:pointer}button:hover{background:#f0eaff}
+main{padding:12px 16px 60px;max-width:1250px;margin:0 auto}
+h2{font-size:15px;margin:26px 0 4px;border-left:5px solid var(--acc);padding-left:8px}
+p.note{margin:0 0 8px;color:var(--sub);font-size:12px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.card h3{margin:0;font-size:14px}
+.card small{color:var(--sub);display:block;min-height:2.6em}
+.stage{border-radius:8px;display:flex;justify-content:center;align-items:flex-end;gap:10px;padding:6px;margin-top:4px}
+.bgL{background:#fff8ee}.bgD{background:#2e2848}.bgR{background:linear-gradient(#f7e3ea 0 62%,#d9b98f 62%)}
+canvas{image-rendering:pixelated;display:block}
+.outfit{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 10px;margin:6px 0}
+.outfit label{display:flex;flex-direction:column;font-size:12px;color:var(--sub)}
+.outfit select{width:100%}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.matrix{display:grid;grid-template-columns:130px repeat(3,1fr);gap:4px;align-items:center}
+.matrix .slot{grid-column:1/-1;font-weight:bold;margin-top:10px;color:var(--acc)}
+.matrix .nm{font-size:13px}
+.matrix .nm small{color:var(--sub);display:block}
+.matrix .cell{background:var(--card);border:1px solid var(--line);border-radius:8px;display:flex;justify-content:center;padding:2px}
+.matrix .hd{position:sticky;top:78px;background:var(--bg);font-weight:bold;text-align:center;padding:2px;z-index:2}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #0003;vertical-align:-2px}
+a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../index.html" style="font-size:12px;font-weight:normal;margin-right:8px">← ゲームへ</a><a href="doll-lab.html" style="font-size:12px;font-weight:normal;margin-right:8px">にんげん版(22ドット)</a>どうぶつ にんぎょう ラボ <small style="font-weight:normal;color:var(--sub)">(32×32ドット・開発用)</small></h1>
+  <div class="ctl">
+    <label>けのいろ <select id="cFur"></select></label>
+    <label>ふくのいろ <select id="cCol"></select></label>
+    <label>ふちどり <select id="cEdge">
+      <option value="2">2: 全体に1本 + 服の内側を暗く(新)</option>
+      <option value="1">1: 全体に1本だけ</option>
+      <option value="3">3: 部品ごとに縁取り(いまのゲーム)</option></select></label>
+    <label>おおきさ <select id="cScale"><option>5</option><option selected>6</option><option>8</option><option>10</option></select></label>
+    <label>ゲームでの大きさ <select id="cGame"><option value="48">48px(置き物と同じドット)</option><option value="64">64px</option><option value="72" selected>72px(いまの人形と同じ大きさ)</option><option value="96">96px</option></select></label>
+    <label>はいけい <select id="cBg"><option value="bgL">あかるい</option><option value="bgR">へや</option><option value="bgD">くらい</option></select></label>
+    <label><input type="checkbox" id="cGrid">ドットのます</label>
+    <label><input type="checkbox" id="cRig">寸法の線</label>
+  </div>
+</header>
+<main>
+  <h2>1. どうぶつ 3案</h2>
+  <p class="note">体(胴・うで・足)は3案とも同じ寸法で、あたま・みみ・しっぽだけが違います。服は寸法から計算して描くので、3案ともそのまま着られます。右の小さい絵は「ゲームでの大きさ」で描いたものです。</p>
+  <div class="cols" id="forms"></div>
+
+  <h2>2. きせかえ(同じ服を3案に着せて比べる)</h2>
+  <div class="presets" id="presets"></div>
+  <div class="outfit" id="outfit"></div>
+  <div class="cols" id="dress"></div>
+
+  <h2>3. ぜんぶ ならべる(服・くつ 1着ずつ)</h2>
+  <p class="note">各アイテムを、はだかのどうぶつに1つだけ着せています。ずれ・はみ出し・足りない所を探すための表です。</p>
+  <div class="matrix" id="matrix"></div>
+</main>
+
+<script>
+'use strict';
+/* =========================================================
+   どうぶつ にんぎょう ラボ(32x32 ドット)
+   - いまのゲームの人形は 22x22。胴は4行しかなく、服の細かい絵が描けない。
+     ここでは 32x32 に増やして、胴を8行にしている。
+   - 体の寸法(リグ)を3案で共通にし、服は寸法から計算して描く。
+   ========================================================= */
+const N=32, SP=34;               // 絵は 32x32。縁取りを付けて 34x34 の canvas にする
+const INK='#6a4a62',GOLD='#f3c850',CR='#fff6e6',E1='#4a3a5a';
+
+function shade(c,a){
+  if(c.length===4)c='#'+c.slice(1).replace(/./g,m=>m+m);
+  const n=parseInt(c.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;
+  if(a<0){r*=1+a;g*=1+a*.85;b*=1+a*.6;}else{r+=(255-r)*a;g+=(255-g)*a;b+=(255-b)*a;}
+  return '#'+[r,g,b].map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+}
+class D{
+  constructor(){this.g=Array.from({length:N},()=>Array(N).fill(null));}
+  p(x,y,c){x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<N&&y<N)this.g[y][x]=c;}
+  r(x,y,w,h,c){for(let j=0;j<h;j++)for(let i=0;i<w;i++)this.p(x+i,y+j,c);}
+  e(cx,cy,rx,ry,c,sh=true){
+    for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(let x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){
+      const dx=(x+.5-cx)/rx,dy=(y+.5-cy)/ry;
+      if(dx*dx+dy*dy<=1.0001){const u=dx*.6+dy*.8;this.p(x,y,(!sh||c===null)?c:u>.6?shade(c,-.1):u<-.65?shade(c,.14):c);}
+    }
+  }
+  l(x1,y1,x2,y2,c){const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1))||1;for(let i=0;i<=n;i++)this.p(x1+(x2-x1)*i/n,y1+(y2-y1)*i/n,c);}
+}
+
+/* ---- 左右対称の道具。対称の軸は マス15 と マス16 のあいだ(34x34の中心) ----
+   マス x の反対側は 31-x */
+const MX=x=>31-x;
+const mp=(d,x,y,c)=>{d.p(x,y,c);d.p(MX(x),y,c);};
+const mr=(d,x,y,w,h,c)=>{d.r(x,y,w,h,c);d.r(32-x-w,y,w,h,c);};
+const sr=(d,y,hw,c)=>{for(let x=16-hw;x<=15+hw;x++)d.p(x,y,c);};         // 中心から左右 hw マス
+const hr=(d,x0,x1,y,c)=>{for(let x=x0;x<=x1;x++)d.p(x,y,c);};
+
+/* =========================================================
+   リグ(体の寸法)。3案で共通。単位はマス
+   ch あご  ty0..ty1 どうたい  tw[] 行ごとの半分の幅
+   ax,aw うで(左うでの左端は 16-ax)  ly0 足のつけね  lx,lw 足  fy0..fy1 くつ
+   ========================================================= */
+const BODY={ch:16,ty0:17,ty1:24,tw:[4,5,5,5,5,5,5,6],ax:8,aw:3,ay0:17,ay1:23,ly0:25,lx:5,lw:4,fy0:29,fy1:31};
+const ANIMALS={
+ rabbit:{key:'rabbit',name:'うさぎ',sub:'長い耳。耳が高いので帽子は耳のあいだに乗る。いちばん「かわいい」寄り。',
+   fur:'#fff1f0',inner:'#ffb8c8',ht:6,hy:11.5,hrx:8,hry:5.7,ey:10,ex:11},
+ bear:{key:'bear',name:'くま',sub:'まるい耳とまるい顔。顔が大きく、体との釣り合いが一番「ぬいぐるみ」らしい。',
+   fur:'#c98a5a',inner:'#e8b890',ht:3,hy:10,hrx:8.5,hry:7,ey:10,ex:11},
+ cat:{key:'cat',name:'ねこ',sub:'とがった耳と、しっぽ。ひげと縞で、他の2案よりキャラの違いが出る。',
+   fur:'#f0b070',inner:'#ffb0b8',ht:5,hy:11,hrx:8,hry:5.8,ey:10,ex:11},
+};
+for(const k in ANIMALS)Object.assign(ANIMALS[k],BODY);
+const hwAt=(R,y)=>R.tw[Math.max(0,Math.min(R.tw.length-1,y-R.ty0))];
+const armL=R=>16-R.ax, armR=R=>15+R.ax, legL=R=>16-R.lx;
+
+/* =========================================================
+   体を描く
+   ========================================================= */
+function bodyLayers(R,P){
+  const fur=P.fur||R.fur,fu2=shade(fur,-.14),fu3=shade(fur,-.26),belly=shade(fur,.42);
+  const back=new D(),b=new D();
+  // --- しっぽ(うしろ) ---
+  if(R.key==='cat'){
+    for(const [x,y] of [[22,29],[23,30],[24,30],[25,29],[26,28],[27,26],[27,24],[26,22]])back.r(x-(x>25?0:0),y-1,2,2,fur);
+    back.r(26,21,2,2,fu3);back.r(27,24,1,3,fu2);
+  }
+  if(R.key==='rabbit'){back.e(23.5,27.5,2.6,2.6,'#ffffff');back.p(22,26,'#f0eaff');}
+  // --- 足 ---
+  mr(b,legL(R),R.ly0,R.lw,R.fy0-R.ly0,fur);
+  mr(b,legL(R)-1,R.fy0,R.lw+1,3,fur);
+  mp(b,legL(R)-1,R.fy0,null);                                       // つま先を丸く
+  mr(b,legL(R)-1,R.fy1,R.lw+1,1,fu2);
+  mp(b,legL(R)+1,R.fy1,R.key==='cat'?'#ffb0b8':fu3);mp(b,legL(R)+2,R.fy1,R.key==='cat'?'#ffb0b8':fu3);   // にくきゅう
+  mr(b,legL(R)+R.lw-1,R.ly0+1,1,R.fy0-R.ly0-1,fu2);                 // 足の内がわの影
+  // --- どうたい ---
+  for(let y=R.ty0;y<=R.ty1;y++)sr(b,y,hwAt(R,y),fur);
+  b.e(16,21.2,3.6,3.6,belly,false);
+  for(let y=R.ty0;y<=R.ty1;y++){b.p(16-hwAt(R,y),y,fu2);b.p(15+hwAt(R,y),y,fu2);}
+  mp(b,16-hwAt(R,R.ty0),R.ty0,null);
+  // --- うで ---
+  mr(b,armL(R),R.ay0,R.aw,R.ay1-R.ay0+1,fur);
+  mr(b,armL(R),R.ay0+1,1,R.ay1-R.ay0,fu2);                           // うでの外がわの影
+  mp(b,armL(R),R.ay1,null);                                          // 手の先を丸く
+  mr(b,armL(R)+1,R.ay1,1,1,belly);                                   // てのひら
+  return {back,body:b,head:headLayer(R,P),ears:earsLayer(R,P)};
+}
+
+function earsLayer(R,P){
+  const d=new D(),fur=P.fur||R.fur,fu2=shade(fur,-.14),inn=R.inner;
+  if(R.key==='rabbit'){
+    for(let y=0;y<=9;y++){
+      const cx=11.6+1.4*(y/9),hw=y<2?1.3:2.1;
+      const x0=Math.round(cx-hw),x1=Math.round(cx+hw)-1;
+      hr(d,x0,x1,y,y>=7?fu2:fur);mp(d,x0,y,null);mp(d,x0,y,null);
+      hr(d,x0,x1,y,fur);mp(d,x0,y,fu2);   // 外がわのふち
+      if(y>=2&&y<=8){hr(d,Math.round(cx-1),Math.round(cx)  ,y,inn);}
+    }
+    // 右がわは左の鏡
+    const g=d.g;for(let y=0;y<N;y++)for(let x=0;x<16;x++)g[y][MX(x)]=g[y][x];
+    return d;
+  }
+  if(R.key==='bear'){
+    d.e(10,5,3.2,3.2,fur);d.e(10.3,5.5,1.7,1.7,inn,false);
+    d.e(21,5,3.2,3.2,fur);d.e(20.7,5.5,1.7,1.7,inn,false);
+    return d;
+  }
+  // cat
+  const L=[[2,9,10],[3,9,11],[4,8,12],[5,8,13],[6,8,14]],I=[[3,10,10],[4,10,11],[5,10,12],[6,10,12]];
+  for(const [y,a,c] of L){hr(d,a,c,y,fur);d.p(a,y,fu2);}
+  for(const [y,a,c] of I)hr(d,a,c,y,inn);
+  const g=d.g;for(let y=0;y<N;y++)for(let x=0;x<16;x++)if(g[y][x])g[y][MX(x)]=g[y][x];
+  return d;
+}
+
+function headLayer(R,P){
+  const d=new D(),fur=P.fur||R.fur,fu2=shade(fur,-.12),fu3=shade(fur,-.26),hl=shade(fur,.35),muz=shade(fur,.55);
+  d.e(16,R.hy,R.hrx,R.hry,fur);
+  // あごのかげ・ほっぺの毛
+  hr(d,16-Math.floor(R.hrx)+2,15+Math.floor(R.hrx)-2,R.hy+Math.floor(R.hry),fu2);
+  const ex=R.ex,ey=R.ey;
+  if(R.key==='rabbit'){
+    d.e(16,14.3,3.9,2.4,'#fffafa',false);                              // くち元
+    mr(d,ex,ey,2,3,E1);mp(d,ex,ey,'#ffffff');mp(d,ex+1,ey+2,'#9a7ac0');   // め
+    mr(d,ex-3,ey+3,3,1,'#ffb0c0');mr(d,ex-3,ey+4,2,1,'#ffc8d4');       // ほっぺ
+    d.r(15,13,2,1,'#ff8fa0');                                           // はな
+    mp(d,14,14,E1);d.r(15,15,2,1,E1);                                   // くち(ω)
+    mp(d,13,15,null);
+  }else if(R.key==='bear'){
+    d.e(16,14.2,5.2,3.6,'#f7e3c4',false);                               // くち元
+    mr(d,ex,ey,2,3,E1);mp(d,ex,ey,'#ffffff');
+    mr(d,ex-3,ey+3,3,1,'#f0a090');
+    d.r(14,12,4,1,E1);d.r(15,13,2,1,E1);mp(d,15,12,'#7a6a8a');          // はな
+    d.r(15,14,2,1,E1);mp(d,13,15,E1);d.r(14,16,4,1,null);mp(d,14,15,E1);   // くち
+  }else{
+    mr(d,ex,ey,2,3,E1);mp(d,ex,ey,'#ffffff');mp(d,ex+1,ey+2,'#5a9a6a');
+    mr(d,ex-3,ey+3,3,1,'#ffb0b8');
+    d.r(15,13,2,1,'#ff8fa0');mp(d,13,14,E1);mp(d,14,15,E1);mp(d,15,15,E1);   // はな・くち(わらった口)
+    // ひげ
+    for(const y of [12,14]){hr(d,5,8,y,fu3);mp(d,5,y,fu3);}
+    for(let x=5;x<=7;x++){d.p(x,12,fu3);d.p(MX(x),12,fu3);}
+    // しま
+    mr(d,13,R.ht+1,1,2,fu3);d.r(15,R.ht+1,2,3,fu3);mr(d,12,R.ht+2,1,1,fu3);
+  }
+  return d;
+}
+
+/* =========================================================
+   服(ぜんぶリグ R から計算する)
+   ========================================================= */
+const SLOTS={back:{z:-2},feet:{z:0},bottom:{z:1},body:{z:2},neck:{z:3},bag:{z:4},held:{z:-1},face:{z:5},head:{z:6},hand:{z:7},wand:{z:8}};
+const ITEMS=[
+ ['head','hat','ぼうし','hat',null,'#e8a0b8'],
+ ['head','helmet','ヘルメット','hat','helmet','#f3c850'],
+ ['head','ribbon','リボン','ribbon',null,'#e8606a'],
+ ['head','crown','かんむり','crown',null,GOLD],
+ ['head','tiara','ティアラ','tiara',null,'#ff8fb0'],
+ ['head','startiara','ほしのティアラ','startiara',null,'#ffd84a'],
+ ['head','flowercrown','はなかんむり','flowercrown',null,'#ff8fb0'],
+ ['face','glasses','めがね','glasses',null,'#c08f3a'],
+ ['neck','tie','ネクタイ','tie',null,'#5a8ad8'],
+ ['neck','muffler','マフラー','muffler',null,'#e8465a'],
+ ['body','shirt','シャツ','shirt',null,'#9ac8f0'],
+ ['body','sweater','セーター','shirt','sweater','#f0b878'],
+ ['body','dress','ドレス','shirt','dress','#f0a0c8'],
+ ['body','apron','エプロン','shirt','apron','#f0a0c8'],
+ ['body','cape','マント','shirt','cape','#8a7ad8'],
+ ['body','yukata','ゆかた','yukata',null,'#7fa8e8'],
+ ['body','coat','コート','coat',null,'#c8956a'],
+ ['body','pajama','パジャマ','pajama',null,'#bfe0f8'],
+ ['body','rainbowdress','にじいろドレス','rainbowdress',null,'#ffffff'],
+ ['body','starcape','ほしぞらマント','starcape',null,'#2e2e70'],
+ ['bottom','skirt','スカート','skirt',null,'#e86a8a'],
+ ['bottom','pants','ズボン','pants',null,'#5a7ac8'],
+ ['feet','shoe','くつ','shoe',null,'#e8606a'],
+ ['feet','boots','ブーツ','shoe','tall','#9a6a5a'],
+ ['feet','socks','くつした','socks',null,'#ffffff'],
+ ['feet','geta','げた','geta',null,'#e8465a'],
+ ['feet','sandal','サンダル','sandal',null,'#ffb347'],
+ ['feet','glassshoe','ガラスのくつ','glassshoe',null,'#d8f4ff'],
+ ['hand','glove','てぶくろ','glove',null,'#e8606a'],
+ ['bag','bag','かばん','bag',null,'#c8784a'],
+ ['back','wings','ようせいのはね','wings',null,'#d8f0ff'],
+ ['wand','wand','まほうのつえ','wand',null,'#c89a6a'],
+ ['held','umbrella','かさ','umbrella',null,'#8fb8e8'],
+];
+const FIXED_COLOR=new Set(['crown','startiara','flowercrown','rainbowdress','starcape','wings','wand','glassshoe']);
+// 耳を服の上に出す(耳が帽子の穴から出ているように見せる)
+const EAR_THROUGH=new Set(['hat','helmet','crown','tiara','startiara','flowercrown']);
+
+const WEAR={
+/* ---------- あたま ---------- */
+hat(d,R,o){
+  const c=o.c,t=o.t,T=R.ht,h=Math.round(R.hrx),lo=shade(c,-.25),hi=shade(c,.4);
+  if(t==='helmet'){
+    [[T-3,h-4],[T-2,h-2],[T-1,h],[T,h+1]].forEach(([y,w])=>sr(d,y,w,c));
+    for(let y=T+1;y<=R.ey-2;y++)sr(d,y,h+1,c);
+    sr(d,R.ey-2,h+2,lo);sr(d,R.ey-3,h+1,shade(c,-.1));                      // ひさし
+    for(let y=R.ey-1;y<=R.ey+4;y++){hr(d,16-h-1,16-h,y,c);hr(d,15+h,15+h+1,y,c);}   // みみあて
+    mr(d,16-h-1,R.ey+4,2,1,lo);
+    d.r(15,T-5,2,3,hi);d.r(15,T-3,2,1,lo);                                 // とさか
+    d.r(14,R.ey-6,4,3,'#e8465a');d.r(14,R.ey-6,4,1,'#ff9aa8');d.p(15,R.ey-5,'#ffffff');   // バッジ
+    for(let x=16-h+1;x<=15+h-1;x+=3)d.p(x,T-1,hi);                          // つや
+    return;}
+  [[T-3,h-3],[T-2,h-1],[T-1,h],[T,h+1],[T+1,h+1]].forEach(([y,w])=>sr(d,y,w,c));
+  sr(d,T+1,h+1,lo);                                                         // 帯
+  for(let x=16-h+1;x<=15+h-1;x+=3)d.p(x,T+1,shade(c,-.1));
+  hr(d,16-h-3,15+h+3,T+2,shade(c,-.1));hr(d,16-h-2,15+h+2,T+3,lo);            // つば
+  hr(d,16-h-3,15+h+3,T+2,c);
+  mp(d,16-h-3,T+2,hi);mp(d,16-h-2,T+2,hi);
+  d.r(15,T-3,2,1,hi);d.r(14,T-2,2,1,hi);
+  // 帯のリボン
+  d.e(21,T+1,2,1.6,'#ffffff');d.e(24,T+1,2,1.6,'#ffffff');d.r(22,T,2,3,shade('#ffffff',-.15));
+},
+ribbon(d,R,o){
+  const c=o.c,cx=15+Math.round(R.hrx)-3,cy=R.ht+2,lo=shade(c,-.25),hi=shade(c,.4);
+  d.e(cx-3,cy,3,2.4,c);d.e(cx+4,cy,3,2.4,c);
+  d.r(cx-1,cy-1,3,3,lo);d.p(cx,cy-1,hi);
+  d.r(cx-2,cy+2,2,3,c);d.r(cx+1,cy+2,2,3,shade(c,-.12));d.r(cx-2,cy+4,2,1,lo);d.r(cx+1,cy+4,2,1,lo);
+  d.p(cx-4,cy-1,hi);d.p(cx+3,cy-1,hi);
+},
+crown(d,R,o){
+  const T=R.ht,hw=Math.round(R.hrx)-2,g=GOLD,lo=shade(g,-.28),hi=shade(g,.5);
+  for(let y=T;y<=T+1;y++)sr(d,y,hw,g);
+  sr(d,T+1,hw,lo);
+  for(const x of [16-hw,16-hw+3]){d.r(x,T-3,1,3,g);d.p(x,T-4,hi);mp(d,x,T-4,hi);d.r(MX(x),T-3,1,3,g);}
+  d.r(15,T-4,2,4,g);d.r(15,T-5,2,1,hi);
+  d.p(15,T-1,hi);
+  mr(d,16-hw+1,T,1,1,'#7fc8e8');mr(d,16-hw+4,T,1,1,'#9be8a0');d.r(15,T,2,1,'#e8465a');d.p(15,T,'#ff9aa8');
+  for(const x of [16-hw,16-hw+3])d.p(x,T-3,hi);
+},
+tiara(d,R,o){
+  const T=R.ht,h=Math.round(R.hrx),s='#e8ecf8',s2='#b8bcd0',c=o.c;
+  sr(d,T+2,h-1,s);sr(d,T+1,h-3,s);sr(d,T,3,s);
+  mp(d,15,T+2,null);sr(d,T+2,h-1,s);
+  d.r(14,T-2,4,2,s);d.r(15,T-3,2,1,s);d.r(15,T-1,2,3,c);d.p(15,T-1,'#ffffff');
+  mr(d,16-h+3,T+1,1,2,c);mr(d,16-h+1,T+2,1,1,c);
+  hr(d,16-h+1,15+h-1,T+3,s2);
+},
+startiara(d,R,o){
+  const T=R.ht,h=Math.round(R.hrx),Y='#ffd84a',s='#e8ecf8',s2='#b8bcd0';
+  sr(d,T+2,h-1,s);sr(d,T+1,h-3,s);sr(d,T,3,s);hr(d,16-h+1,15+h-1,T+3,s2);
+  // おおきな星
+  d.r(15,T-6,2,1,Y);d.r(15,T-5,2,1,Y);d.r(14,T-4,4,1,Y);d.r(11,T-3,10,1,Y);d.r(12,T-2,8,1,Y);d.r(13,T-1,6,1,Y);d.r(12,T,3,1,Y);d.r(17,T,3,1,Y);
+  d.p(15,T-4,'#ffffff');d.p(14,T-3,'#ffffff');
+  mr(d,16-h+2,T+1,1,2,'#ff8fb0');mr(d,16-h+4,T,1,1,'#7fc8e8');
+},
+flowercrown(d,R,o){
+  const T=R.ht,fc=['#ff8fb0','#ffe24a','#ffffff','#b8a0f0'];
+  [[3,T],[6,T+1],[9,T+3]].forEach(([off,cy],i)=>{
+    for(const cx of [16-off,15+off]){
+      d.e(cx,cy,2.2,2.2,fc[(i*2+(cx<16?0:1))%4]);d.p(cx-.5,cy-.5,GOLD);d.p(cx+.5,cy-.5,GOLD);
+      d.p(cx-3,cy+2,'#6fcf8f');d.p(cx+3,cy+2,'#6fcf8f');
+    }});
+  hr(d,13,18,T+1,'#6fcf8f');
+},
+/* ---------- かお ---------- */
+glasses(d,R,o){
+  const c=o.c,x0=R.ex-2,y0=R.ey-1,hi=shade(c,.5);
+  for(let s=0;s<2;s++){
+    const xx=s?MX(x0+5):x0;
+    d.r(xx,y0,6,1,c);d.r(xx,y0+4,6,1,c);d.r(xx,y0,1,5,c);d.r(xx+5,y0,1,5,c);
+    d.p(xx+1,y0+1,hi);
+  }
+  d.r(14,y0+1,4,1,c);
+  d.p(x0-1,y0+1,c);d.p(MX(x0-1),y0+1,c);
+},
+/* ---------- くび ---------- */
+tie(d,R,o){
+  const c=o.c,T=R.ty0,lo=shade(c,-.25),hi=shade(c,.4);
+  d.r(14,T,4,2,lo);d.r(15,T,2,1,c);
+  d.r(15,T+2,2,2,c);d.r(14,T+4,4,3,c);d.r(15,T+7,2,1,c);d.p(15,T+7,lo);
+  d.p(15,T+2,hi);d.p(14,T+4,hi);d.p(17,T+5,lo);d.p(16,T+7,lo);
+  for(const y of [T+4,T+6])d.p(15,y,hi);
+},
+muffler(d,R,o){
+  const c=o.c,y=R.ch,hi=shade(c,.45),lo=shade(c,-.25);
+  sr(d,y,6,c);sr(d,y+1,6,c);sr(d,y+2,5,lo);
+  for(let x=10;x<=21;x+=3){d.p(x,y,hi);d.p(x+1,y+1,hi);}
+  // たれ下がり(右)
+  d.r(17,y+2,4,8,c);d.r(17,y+2,4,1,lo);
+  for(let k=0;k<4;k++){d.r(17,y+4+k*2,4,1,hi);}
+  for(let x=17;x<=20;x+=2){d.r(x,y+10,1,2,c);d.p(x,y+11,lo);}
+},
+/* ---------- どうたい ---------- */
+shirt(d,R,o){
+  const c=o.c,t=o.t,T=R.ty0,B=R.ty1,hi=shade(c,.38),lo=shade(c,-.2),aw=R.aw;
+  const sleeve=(len,cuff)=>{mr(d,armL(R)-1,R.ay0,aw+1,len,c);mr(d,armL(R)-1,R.ay0+len-1,aw+1,1,cuff||lo);mr(d,armL(R)-1,R.ay0,1,len-1,shade(c,-.08));};
+  if(t==='dress'){
+    const hem=R.fy0-1;
+    for(let y=T;y<=T+3;y++)sr(d,y,hwAt(R,y),c);
+    mr(d,armL(R)-2,T,aw+2,3,c);mr(d,armL(R)-2,T+2,aw+2,1,lo);mr(d,armL(R)-2,T,aw+1,1,hi);   // ふくらんだそで
+    sr(d,T+3,5,lo);d.r(14,T+3,4,1,hi);d.r(13,T+4,2,2,hi);d.r(17,T+4,2,2,hi);d.r(15,T+3,2,2,lo);   // リボン
+    for(let y=T+4;y<=hem;y++)sr(d,y,5+Math.round((y-T-4)*.55),c);
+    for(let x=16-9;x<=15+9;x++)if((x%2)===0&&(d.g[hem][x]))d.p(x,hem,hi);
+    sr(d,hem-1,5+Math.round((hem-1-T-4)*.55),shade(c,.12));
+    for(const x of [12,15,18,21,10])for(let y=T+7;y<hem-1;y++)if(d.g[y][x])d.p(x,y,shade(c,-.1));
+    for(const [x,y] of [[13,T+6],[19,T+7],[9,hem-3],[22,hem-3],[16,hem-4],[12,hem-2]])if(d.g[y][x])d.p(x,y,hi);
+    d.r(13,T,6,1,CR);d.r(14,T+1,4,1,CR);d.p(15,T+1,GOLD);d.p(16,T+1,GOLD);
+    return;}
+  if(t==='cape'){
+    const hem=R.fy0-1;
+    for(let y=T;y<=hem;y++)sr(d,y,Math.min(11,7+Math.floor((y-T)/2.4)),c);
+    for(let y=T+1;y<=hem;y++){d.p(15,y,null);d.p(16,y,null);d.p(14,y,lo);d.p(17,y,lo);}
+    sr(d,hem,11,lo);sr(d,hem-1,11,shade(c,-.1));
+    for(let x=6;x<=25;x+=3)d.p(x,hem-1,hi);
+    d.r(12,T,8,1,hi);d.r(14,T,4,1,GOLD);mp(d,15,T,'#e8465a');
+    for(const x of [9,12,19,22])for(let y=T+3;y<hem-1;y+=3)d.p(x,y,shade(c,-.1));
+    return;}
+  if(t==='apron'){
+    const hem=R.ly0+2;
+    for(let y=T+1;y<=T+4;y++){sr(d,y,3,c);d.p(13,y,CR);d.p(18,y,CR);}
+    sr(d,T+1,3,CR);mp(d,12,T,c);mp(d,12,T-0,c);d.p(12,T,c);d.p(19,T,c);
+    sr(d,T+5,5,lo);d.r(14,T+5,4,1,hi);
+    for(let y=T+6;y<=hem;y++)sr(d,y,5+Math.floor((y-T-6)/2),c);
+    sr(d,hem,6+Math.floor((hem-T-6)/2),CR);sr(d,hem-1,5+Math.floor((hem-1-T-6)/2),hi);
+    d.r(13,T+8,6,3,hi);d.r(13,T+8,6,1,CR);d.r(13,T+10,6,1,lo);d.r(15,T+9,2,1,'#ff6a8a');d.p(15,T+8,'#ff6a8a');d.p(16,T+8,'#ff6a8a');
+    return;}
+  const sw=t==='sweater';
+  for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
+  if(sw){
+    sleeve(R.ay1-R.ay0+1,hi);
+    sr(d,B,hwAt(R,B)+1,hi);sr(d,B-1,hwAt(R,B-1)+1,shade(c,.2));          // すそのゴム編み
+    sr(d,T,4,hi);sr(d,T+1,5,shade(c,.2));                                  // えり
+    for(let y=T+3;y<=T+5;y++)for(let x=16-hwAt(R,y);x<=15+hwAt(R,y);x++)if((x+y)%2===0)d.p(x,y,shade(c,.22));   // あみもよう
+    for(const y of [T+3,T+5]){sr(d,y,hwAt(R,y),CR);mr(d,armL(R)-1,y,R.aw+1,1,CR);}                 // よこしま(体とそでを通す)
+    mr(d,armL(R)+R.aw-1,T+1,1,R.ay1-T-2,shade(c,-.18));                                            // そでと胴のさかい目
+  }else{
+    sleeve(4);mr(d,armL(R)+R.aw-1,T+1,1,3,shade(c,-.18));
+    sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);sr(d,T+1,2,CR);d.p(15,T+1,c);d.p(16,T+1,c);     // えり
+    for(let y=T+2;y<=B;y++)d.p(15,y,lo);                                    // ボタンの列
+    for(let y=T+2;y<=B-1;y+=2)d.p(16,y,CR);
+    d.r(12,T+4,3,3,hi);d.r(12,T+4,3,1,CR);d.p(12,T+6,lo);d.p(13,T+6,lo);d.p(14,T+6,lo);     // ポケット
+    sr(d,B,hwAt(R,B),lo);
+    for(let y=T+2;y<=B-1;y++)d.p(16-hwAt(R,y),y,shade(c,-.1));
+  }
+},
+yukata(d,R,o){
+  const c=o.c,c2=GOLD,hi=shade(c,.5),lo=shade(c,-.2),T=R.ty0,B=R.ty1,hem=R.fy0-1;
+  for(let y=T;y<=hem;y++)sr(d,y,y<=B?hwAt(R,y)+1:Math.max(5,hwAt(R,B)+1-Math.floor((y-B)/3)),c);
+  mr(d,armL(R)-2,T,R.aw+2,R.ay1-T+2,c);mp(d,armL(R)-2,R.ay1+1,null);mr(d,armL(R)-2,R.ay1,R.aw+2,1,lo);   // ひろいそで
+  sr(d,T+4,hwAt(R,T+4)+1,c2);sr(d,T+5,hwAt(R,T+5)+1,shade(c2,.2));sr(d,T+6,hwAt(R,T+6)+1,shade(c2,-.25));    // おび
+  for(let x=10;x<=21;x+=2)d.p(x,T+5,shade(c2,-.2));
+  d.r(18,T+4,4,4,shade(c2,.1));d.r(18,T+4,4,1,shade(c2,.4));d.p(20,T+6,shade(c2,-.4));                        // おびの むすび目
+  d.l(13,T,15,T+3,CR);d.l(18,T,16,T+3,CR);d.l(14,T,16,T+3,CR);d.l(17,T,15,T+3,CR);                            // えり(V)
+  d.p(15,T+3,null);d.p(16,T+3,null);
+  for(const [x,y] of [[12,T+8],[18,T+9],[13,T+11],[20,T+11],[10,T+9],[15,T+10],[22,T+9]])if(d.g[y]&&d.g[y][x]&&y<hem)d.p(x,y,hi);
+  for(const [x,y] of [[6,T+2],[7,T+5],[24,T+3],[25,T+6]])d.p(x,y,hi);
+  sr(d,hem,Math.max(5,hwAt(R,B)+1-Math.floor((hem-B)/3)),lo);
+},
+coat(d,R,o){
+  const c=o.c,T=R.ty0,B=R.ty1,hem=R.fy0-2,hi=shade(c,.4),lo=shade(c,-.25);
+  for(let y=T;y<=hem;y++)sr(d,y,hwAt(R,Math.min(y,B))+1+(y>B?1:0),c);
+  mr(d,armL(R)-1,R.ay0,R.aw+1,R.ay1-R.ay0+1,c);mr(d,armL(R)-1,R.ay1-1,R.aw+1,2,lo);mr(d,armL(R)-1,R.ay1-1,R.aw+1,1,shade(c,-.12));
+  mr(d,armL(R)-1,R.ay0,1,R.ay1-R.ay0-1,shade(c,-.08));
+  for(let y=T+1;y<=hem;y++){d.p(15,y,lo);d.p(16,y,lo);}                       // あわせ
+  for(let k=0;k<4;k++){mp(d,13,T+3+k*2,GOLD);mp(d,13,T+3+k*2,GOLD);}
+  for(let k=0;k<4;k++){d.p(14,T+3+k*2,hi);d.p(17,T+3+k*2,hi);}
+  d.l(11,T,14,T+3,hi);d.l(20,T,17,T+3,hi);d.l(11,T+1,13,T+3,hi);d.l(20,T+1,18,T+3,hi);      // えり(ラペル)
+  sr(d,T,5,hi);
+  mr(d,10,B,4,1,lo);mr(d,10,B+1,4,1,shade(c,-.12));                              // ポケットのふた
+  sr(d,hem,hwAt(R,B)+2,lo);
+},
+pajama(d,R,o){
+  const c=o.c,hi=shade(c,.45),lo=shade(c,-.2),T=R.ty0,B=R.ty1,legEnd=R.fy0-1,star='#ffd84a';
+  for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y),c);
+  mr(d,armL(R)-1,R.ay0,R.aw+1,R.ay1-R.ay0+1,c);mr(d,armL(R)-1,R.ay1,R.aw+1,1,hi);mr(d,armL(R)-1,R.ay1-1,R.aw+1,1,lo);
+  sr(d,B,hwAt(R,B),lo);
+  mr(d,legL(R)-1,R.ly0,R.lw+1,legEnd-R.ly0+1,c);sr(d,R.ly0,hwAt(R,B),c);
+  mr(d,legL(R)-1,legEnd,R.lw+1,1,hi);mr(d,legL(R)-1,legEnd-1,R.lw+1,1,lo);
+  sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);sr(d,T+1,2,hi);                       // えりのふち
+  for(let y=T+2;y<=B-1;y++)d.p(15,y,lo);
+  const st=(x,y)=>{d.p(x,y,star);d.p(x-1,y,star);d.p(x+1,y,star);d.p(x,y-1,star);d.p(x,y+1,star);};
+  [[12,T+3],[19,T+5],[13,B-1],[10,T+6],[21,T+2]].forEach(([x,y])=>{if(d.g[y][x]&&d.g[y][x+1]&&d.g[y][x-1]&&d.g[y+1]&&d.g[y+1][x]&&d.g[y-1][x])st(x,y);});
+  mp(d,legL(R)+1,R.ly0+2,star);mp(d,legL(R)+2,R.ly0+1,star);
+  d.r(12,T+5,2,2,hi);d.p(12,T+6,lo);d.p(13,T+6,lo);
+},
+rainbowdress(d,R,o){
+  const rb=['#ff6a8a','#ffa850','#ffe24a','#7fd08a','#6ab0f0','#a88ae0'],T=R.ty0,hem=R.fy0-1;
+  for(let y=T;y<=T+3;y++)sr(d,y,hwAt(R,y),'#ffffff');
+  mr(d,armL(R)-2,T,R.aw+2,3,'#ffffff');mr(d,armL(R)-2,T+2,R.aw+2,1,'#e8dcf8');
+  sr(d,T,3,'#ffd0e0');d.p(15,T,null);d.p(16,T,null);
+  d.r(14,T+3,4,1,'#ff8fb0');d.r(13,T+4,2,2,'#ff8fb0');d.r(17,T+4,2,2,'#ff8fb0');d.r(15,T+3,2,2,'#e0607a');
+  for(let i=0,y=T+4;y<=hem;y++,i++)sr(d,y,5+Math.round(i*.55),i<6?rb[i]:rb[i-6]);
+  for(let x=7;x<=24;x+=2)if(d.g[hem][x])d.p(x,hem,'#ffffff');
+  for(const [x,y] of [[12,T+6],[19,T+8],[10,T+10],[21,T+10],[15,T+9]])if(d.g[y][x])d.p(x,y,'#ffffff');
+},
+starcape(d,R,o){
+  const nv='#2e2e70',T=R.ty0,hem=R.fy0-1,lo=shade(nv,-.3);
+  for(let y=T;y<=hem;y++)sr(d,y,Math.min(11,7+Math.floor((y-T)/2.4)),nv);
+  for(let y=T+1;y<=hem;y++){d.p(15,y,null);d.p(16,y,null);d.p(14,y,shade(nv,.28));d.p(17,y,shade(nv,.28));}
+  sr(d,hem,11,GOLD);sr(d,hem-1,11,shade(GOLD,-.2));
+  const stars=[[7,T+4],[10,T+2],[21,T+3],[24,T+6],[8,T+9],[23,T+10],[12,T+7],[19,T+9],[6,T+7],[26,T+9],[11,T+11],[20,T+12]];
+  for(const [x,y] of stars)if(y<hem-1&&d.g[y][x]){d.p(x,y,'#ffe27a');if((x+y)%3===0){d.p(x-1,y,'#ffe27a');d.p(x+1,y,'#ffe27a');d.p(x,y-1,'#ffe27a');d.p(x,y+1,'#ffe27a');}}
+  d.r(12,T,8,1,GOLD);d.r(14,T,4,1,shade(GOLD,.2));mp(d,15,T,'#7fc8e8');
+},
+/* ---------- した ---------- */
+skirt(d,R,o){
+  const c=o.c,B=R.ty1,hem=R.fy0-1,hi=shade(c,.45),lo=shade(c,-.25);
+  sr(d,B,hwAt(R,B),lo);
+  for(let y=B+1;y<=hem;y++)sr(d,y,6+Math.round((y-B)*.75),c);
+  sr(d,hem,6+Math.round((hem-B)*.75),hi);sr(d,hem-1,6+Math.round((hem-1-B)*.75),shade(c,.15));
+  for(const x of [10,13,16,19,22])for(let y=B+2;y<hem-1;y++)if(d.g[y][x])d.p(x,y,shade(c,-.15));
+  d.r(14,B,4,1,GOLD);d.p(15,B,shade(GOLD,.4));
+},
+pants(d,R,o){
+  const c=o.c,hi=shade(c,.35),lo=shade(c,-.28),end=R.fy0-1;
+  sr(d,R.ty1,hwAt(R,R.ty1),lo);sr(d,R.ly0,hwAt(R,R.ty1),c);
+  mr(d,legL(R)-1,R.ly0,R.lw+1,end-R.ly0+1,c);
+  mr(d,legL(R)-1,end,R.lw+1,1,hi);mr(d,legL(R)-1,end-1,R.lw+1,1,shade(c,-.12));
+  d.r(15,R.ty1,2,1,GOLD);
+  mp(d,legL(R)+1,R.ly0,hi);mp(d,legL(R)+1,R.ly0+1,hi);                        // ステッチ
+  mp(d,legL(R)+R.lw-1,R.ly0+1,lo);mp(d,legL(R)+R.lw-1,R.ly0+2,lo);
+  mp(d,legL(R),R.ly0+2,hi);
+},
+/* ---------- あし ---------- */
+shoe(d,R,o){
+  const c=o.c,tall=o.t==='tall',x=legL(R)-1,w=R.lw+1,hi=shade(c,.45),lo=shade(c,-.3);
+  if(tall){
+    mr(d,legL(R),R.fy0-3,R.lw,3,c);mr(d,legL(R),R.fy0-3,R.lw,1,hi);mr(d,legL(R),R.fy0-2,R.lw,1,shade(c,-.1));
+    mp(d,legL(R)+R.lw-1,R.fy0-1,lo);mp(d,legL(R),R.fy0-1,GOLD);
+  }
+  mr(d,x,R.fy0,w,3,c);mp(d,x,R.fy0,null);
+  mr(d,x,R.fy1,w,1,lo);
+  mr(d,x,R.fy1-1,w,1,shade(c,-.08));
+  mp(d,x+1,R.fy0,hi);mp(d,x+2,R.fy0,hi);                                      // つま先のつや
+  if(!tall){mp(d,x+3,R.fy0,CR);mp(d,x+3,R.fy0+1,shade(c,-.12));mp(d,x+2,R.fy0+1,CR);}   // ひも
+  mp(d,x+4,R.fy1,shade(c,-.45));
+},
+socks(d,R,o){
+  const c=o.c,c2=o.c2||'#ff8fb0',x=legL(R)-1;
+  mr(d,legL(R),R.fy0-3,R.lw,3,c);mr(d,legL(R),R.fy0-3,R.lw,1,c2);mr(d,legL(R),R.fy0-2,R.lw,1,shade(c,-.1));
+  mr(d,x,R.fy0,R.lw+1,3,c);mp(d,x,R.fy0,null);
+  mr(d,x,R.fy1,R.lw+1,1,shade(c,-.18));
+  mp(d,legL(R),R.fy0-1,c2);mp(d,legL(R)+2,R.fy0-1,c2);
+  mp(d,x+4,R.fy0+1,shade(c,-.12));mp(d,x+4,R.fy0+2,shade(c,-.18));
+},
+geta(d,R,o){
+  const c=o.c,w='#d8a870',x=legL(R)-1,dk=shade(w,-.3);
+  mr(d,x,R.fy1-1,R.lw+1,1,shade(w,.2));mr(d,x,R.fy1-1,R.lw+1,1,w);
+  mr(d,x,R.fy1,1,1,dk);mr(d,x+4,R.fy1,1,1,dk);mr(d,x+1,R.fy1,3,1,null);
+  mp(d,x+2,R.fy0,c);mp(d,x+2,R.fy0+1,c);mp(d,x+1,R.fy0+1,c);mp(d,x+3,R.fy0+1,c);mp(d,x+2,R.fy0-1,c);
+  mp(d,x,R.fy1-1,shade(w,.35));
+},
+sandal(d,R,o){
+  const c=o.c,x=legL(R)-1,hi=shade(c,.45);
+  mr(d,x,R.fy1,R.lw+1,1,c);mr(d,x,R.fy1-1,R.lw+1,1,shade(c,-.2));mr(d,x,R.fy1-1,1,1,null);mp(d,x,R.fy1-1,null);
+  mp(d,x+1,R.fy1-1,c);mp(d,x+3,R.fy1-1,c);
+  mp(d,x+2,R.fy0,c);mp(d,x+2,R.fy0+1,hi);mp(d,x+1,R.fy0+1,c);
+  mr(d,legL(R),R.fy0-1,R.lw,1,c);mp(d,legL(R)+R.lw-1,R.fy0-1,GOLD);mp(d,legL(R),R.fy0-2,hi);
+},
+glassshoe(d,R,o){
+  const g='#d8f4ff',x=legL(R)-1,g2='#9ad0f0';
+  mr(d,legL(R),R.fy0-2,R.lw,2,g);mr(d,legL(R),R.fy0-2,R.lw,1,'#ffffff');
+  mr(d,x,R.fy0,R.lw+1,3,g);mp(d,x,R.fy0,null);mr(d,x,R.fy1,R.lw+1,1,g2);mr(d,x,R.fy1-1,R.lw+1,1,shade(g,-.08));
+  mp(d,x+1,R.fy0,'#ffffff');mp(d,x+2,R.fy0+1,'#ffffff');mp(d,x+3,R.fy0,'#ff8fb0');mp(d,legL(R)+1,R.fy0-1,'#ff8fb0');
+  mp(d,x+4,R.fy1,'#7ab0d8');
+},
+/* ---------- て・もちもの ---------- */
+glove(d,R,o){
+  const c=o.c,y=R.ay1,x=armL(R)-1,w=R.aw+1,hi=shade(c,.4),lo=shade(c,-.2);
+  mr(d,x,y-3,w,2,hi);mr(d,x,y-1,w,2,c);mr(d,x,y+0,w,1,c);
+  mp(d,x,y,null);mr(d,x,y-1,1,1,lo);
+  mr(d,x+1,y-3,1,2,shade(hi,.2));
+  mr(d,x,y-1,w,1,c);mr(d,x+2,y-1,1,2,shade(c,-.1));
+},
+bag(d,R,o){
+  const c=o.c,s='#8a5a3a',lo=shade(c,-.25),hi=shade(c,.4);
+  d.l(12,R.ty0,22,R.ty1-2,s);d.l(13,R.ty0,23,R.ty1-2,s);
+  const bx=20,by=R.ty1-2;
+  d.r(bx,by,7,7,c);d.r(bx,by,7,3,lo);d.r(bx,by+3,7,1,shade(c,-.1));
+  d.r(bx+3,by+2,1,2,GOLD);d.p(bx+3,by+2,shade(GOLD,.4));
+  d.r(bx+1,by+5,5,1,hi);d.p(bx,by+6,lo);d.r(bx,by+6,7,1,lo);
+  for(const y of [by+4])for(let x=bx+1;x<=bx+5;x+=2)d.p(x,y,hi);
+},
+/* ---------- うしろ・もつ ---------- */
+wings(d,R,o){
+  const a='#d8f0ff',b='#f0d8ff',T=R.ty0,v='#ffffff';
+  for(const s of [0,1]){
+    const cx=s?MX(16-R.ax-3):16-R.ax-3,sg=s?1:-1;
+    d.e(cx,T+1,3.7,6.4,a);d.e(cx-sg*0.5,T+8,2.7,3.2,b);
+    d.l(cx,T-3,cx-sg*1,T+7,v);d.l(cx,T-1,cx+sg*2,T+3,shade(a,-.12));
+    d.p(cx-sg,T,v);d.p(cx+sg,T+4,v);d.p(cx,T+9,v);
+  }
+},
+wand(d,R,o){
+  const hx=armR(R)-1,hy=R.ay1,tx=Math.min(28,hx+5),ty=Math.max(9,hy-12),Y='#ffd84a';
+  d.l(hx,hy,tx,ty,'#c89a6a');d.l(hx+1,hy,tx+1,ty,'#c89a6a');d.l(hx,hy-1,tx,ty-1,shade('#c89a6a',.25));
+  d.p(tx,ty-7,Y);d.r(tx-1,ty-6,3,1,Y);d.r(tx-1,ty-5,3,1,Y);d.r(tx-3,ty-4,7,1,Y);d.r(tx-2,ty-3,5,1,Y);d.r(tx-1,ty-2,3,1,Y);d.p(tx-2,ty-1,Y);d.p(tx+2,ty-1,Y);
+  d.p(tx,ty-5,'#ffffff');d.p(tx-1,ty-4,'#ffffff');d.p(tx-4,ty-6,'#ffffff');d.p(tx+4,ty-3,'#ffffff');d.p(tx-3,ty-2,'#ff8fb0');
+  d.r(hx+2,hy-4,2,1,'#ff8fb0');
+},
+umbrella(d,R,o){
+  const c=o.c,px=armR(R),cx=Math.min(px+1,24);
+  d.l(px,5,px,R.ay1+1,'#a8785a');d.p(px-1,R.ay1+2,'#a8785a');
+  d.e(cx,4,7,4.2,c);d.r(0,7,32,10,null);
+  for(let i=-5;i<=5;i+=5)d.e(cx+i+.5,7,2.6,1.4,c);
+  for(const dx of [-4,-2,0,2,4])d.l(cx+dx,1,cx+dx*1.2,7,shade(c,.3));
+  d.p(cx,0,GOLD);d.r(cx-6,5,12,1,shade(c,-.12));
+},
+};
+
+/* =========================================================
+   合成(ふちどり3方式)
+   ========================================================= */
+function bakeD(d){
+  const cv=document.createElement('canvas');cv.width=cv.height=SP;const x=cv.getContext('2d');
+  const f=(i,j)=>(d.g[j-1]&&d.g[j-1][i-1])||null;
+  for(let j=1;j<=N;j++)for(let i=1;i<=N;i++){const c=f(i,j);if(c){x.fillStyle=c;x.fillRect(i,j,1,1);}}
+  x.fillStyle=INK;
+  for(let j=0;j<SP;j++)for(let i=0;i<SP;i++)if(!f(i,j)&&(f(i+1,j)||f(i-1,j)||f(i,j+1)||f(i,j-1)))x.fillRect(i,j,1,1);
+  return cv;
+}
+function blit(dst,src){for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(src.g[y][x])dst.g[y][x]=src.g[y][x];}
+function innerEdge(dst,layer){
+  const out=layer.g.map(r=>r.slice());
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const c=layer.g[y][x];if(!c)continue;
+    let touch=false;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=N||ny>=N)continue;
+      if(!layer.g[ny][nx]&&dst.g[ny][nx]){touch=true;break;}
+    }
+    if(touch)out[y][x]=shade(c,-.3);
+  }
+  layer.g=out;
+}
+function makeLayers(R,P,outfit){
+  const body=bodyLayers(R,P),front=[],behind=[];
+  for(const [slot,id,nm,k,t,c0] of ITEMS){
+    if(outfit[slot]!==id)continue;
+    const o={c:P.col&&!FIXED_COLOR.has(id)?P.col:c0,t,k:id};
+    const d=new D();WEAR[k](d,R,o);
+    (slot==='back'?behind:front).push({d,z:SLOTS[slot].z,slot});
+  }
+  // 耳は頭の上に重ねる(輪郭が出る)。帽子のときは帽子より手前に出して、穴から出ているように見せる
+  front.push({d:body.ears,z:(outfit.head&&EAR_THROUGH.has(outfit.head))?6.5:.5,slot:'ears'});
+  behind.sort((a,b)=>a.z-b.z);front.sort((a,b)=>a.z-b.z);
+  return {body,front,behind};
+}
+function renderDoll(form,P,outfit,mode){
+  const R=ANIMALS[form],L=makeLayers(R,P,outfit);
+  if(mode==='3'){
+    const cv=document.createElement('canvas');cv.width=cv.height=SP;const x=cv.getContext('2d');
+    const bodyAll=new D();blit(bodyAll,L.body.back);blit(bodyAll,L.body.body);blit(bodyAll,L.body.head);
+    for(const l of L.behind)x.drawImage(bakeD(l.d),0,0);
+    x.drawImage(bakeD(bodyAll),0,0);
+    for(const l of L.front)x.drawImage(bakeD(l.d),0,0);
+    return cv;
+  }
+  const all=new D();
+  for(const l of L.behind){if(mode==='2')innerEdge(all,l.d);blit(all,l.d);}
+  blit(all,L.body.back);blit(all,L.body.body);blit(all,L.body.head);
+  for(const l of L.front){if(mode==='2')innerEdge(all,l.d);blit(all,l.d);}
+  return bakeD(all);
+}
+
+/* =========================================================
+   画面
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const FURS=[['もとのいろ',null],['しろ','#fff1f0'],['ちゃいろ','#c98a5a'],['オレンジ','#f0b070'],['はいいろ','#b8b4c8'],['くろ','#5a4e66'],['ピンク','#f2a7b8']];
+const COLORS=[['もとのいろ',null],['あか','#e8606a'],['ももいろ','#f5a0c0'],['だいだい','#ffa850'],['きいろ','#ffd84a'],['みどり','#7fcf8f'],['みずいろ','#8fd0f0'],['あお','#6a8ad8'],['むらさき','#a88ae0']];
+const fill=(sel,list)=>{sel.innerHTML=list.map(([n],i)=>`<option value="${i}">${n}</option>`).join('');};
+fill($('#cFur'),FURS);fill($('#cCol'),COLORS);
+const P=()=>({fur:FURS[$('#cFur').value][1],col:COLORS[$('#cCol').value][1]});
+const SLOT_LABEL={head:'あたま',face:'かお',neck:'くび',body:'からだ',bottom:'した',feet:'あし',hand:'て',bag:'かばん',back:'せなか',wand:'つえ',held:'かさ'};
+const SLOT_ORDER=['head','face','neck','body','bottom','feet','hand','bag','back','wand','held'];
+const outfit={};
+
+function drawOnto(cv,sprite,scale,R){
+  const s=SP*scale;cv.width=s;cv.height=s;const x=cv.getContext('2d');x.imageSmoothingEnabled=false;
+  x.drawImage(sprite,0,0,s,s);
+  if($('#cGrid').checked){x.strokeStyle='#0002';x.lineWidth=1;x.beginPath();
+    for(let i=0;i<=SP;i++){x.moveTo(i*scale+.5,0);x.lineTo(i*scale+.5,s);x.moveTo(0,i*scale+.5);x.lineTo(s,i*scale+.5);}x.stroke();}
+  if($('#cRig').checked&&R){
+    const row=(y,col,label)=>{const py=(y+1)*scale;x.strokeStyle=col;x.lineWidth=1.5;x.beginPath();x.moveTo(0,py+.5);x.lineTo(s,py+.5);x.stroke();
+      x.fillStyle=col;x.font='bold 11px sans-serif';x.fillText(label,2,py-2);};
+    row(R.ht,'#e0407a','あたま');row(R.ch+1,'#d08020','あご');row(R.ty0,'#2a9a5a','かた');row(R.ty1+1,'#2a7ac0','こし');row(R.ly0,'#7a4ac0','あしのつけね');row(R.fy0,'#c04a4a','くつ');
+    x.strokeStyle='#e0407a88';x.beginPath();x.moveTo(16*scale+.5,0);x.lineTo(16*scale+.5,s);x.stroke();
+  }
+}
+function previewBlock(sprite,R){
+  const wrap=document.createElement('div');wrap.className='stage '+$('#cBg').value;
+  const big=document.createElement('canvas'),small=document.createElement('canvas');
+  drawOnto(big,sprite,+$('#cScale').value,R);
+  const V=+$('#cGame').value;
+  small.width=small.height=V;const sx=small.getContext('2d');sx.imageSmoothingEnabled=false;sx.drawImage(sprite,0,0,V,V);
+  wrap.appendChild(big);wrap.appendChild(small);return wrap;
+}
+function card(title,sub){const c=document.createElement('div');c.className='card';c.innerHTML=`<h3>${title}</h3><small>${sub||''}</small>`;return c;}
+function renderForms(){
+  const box=$('#forms');box.innerHTML='';
+  for(const k of Object.keys(ANIMALS)){const R=ANIMALS[k],c=card(R.name,R.sub);
+    c.appendChild(previewBlock(renderDoll(k,P(),{},$('#cEdge').value),R));box.appendChild(c);}
+}
+function renderDress(){
+  const box=$('#dress');box.innerHTML='';
+  for(const k of Object.keys(ANIMALS)){const R=ANIMALS[k],c=card(R.name,'');c.querySelector('small').style.minHeight='0';
+    c.appendChild(previewBlock(renderDoll(k,P(),outfit,$('#cEdge').value),R));box.appendChild(c);}
+}
+function renderOutfitUI(){
+  const box=$('#outfit');box.innerHTML='';
+  for(const slot of SLOT_ORDER){
+    const lab=document.createElement('label');lab.textContent=SLOT_LABEL[slot];
+    const sel=document.createElement('select');
+    sel.innerHTML='<option value="">(なし)</option>'+ITEMS.filter(i=>i[0]===slot).map(i=>`<option value="${i[1]}">${i[2]}</option>`).join('');
+    sel.value=outfit[slot]||'';
+    sel.onchange=()=>{if(sel.value)outfit[slot]=sel.value;else delete outfit[slot];renderDress();};
+    lab.appendChild(sel);box.appendChild(lab);
+  }
+}
+const PRESETS=[
+ ['はだか',{}],
+ ['ふだんぎ',{body:'shirt',bottom:'pants',feet:'shoe'}],
+ ['おんなのこ',{head:'ribbon',body:'shirt',bottom:'skirt',feet:'socks',bag:'bag'}],
+ ['ドレス',{head:'tiara',body:'dress',feet:'glassshoe'}],
+ ['ゆかた',{body:'yukata',feet:'geta'}],
+ ['ふゆ',{head:'hat',neck:'muffler',body:'coat',bottom:'pants',feet:'boots',hand:'glove'}],
+ ['パジャマ',{body:'pajama',feet:'socks'}],
+ ['まほうつかい',{head:'startiara',body:'starcape',bottom:'skirt',feet:'boots',wand:'wand'}],
+ ['ようせい',{head:'flowercrown',body:'rainbowdress',feet:'sandal',back:'wings'}],
+ ['かさ',{body:'sweater',bottom:'skirt',feet:'shoe',held:'umbrella'}],
+ ['めがね',{face:'glasses',neck:'tie',body:'shirt',bottom:'pants',feet:'shoe'}],
+ ['ぜんぶのせ',{head:'crown',face:'glasses',neck:'muffler',body:'apron',bottom:'skirt',feet:'boots',hand:'glove',bag:'bag',back:'wings',wand:'wand'}],
+];
+function renderPresets(){
+  const box=$('#presets');box.innerHTML='';
+  for(const [n,o] of PRESETS){const b=document.createElement('button');b.textContent=n;
+    b.onclick=()=>{for(const k of Object.keys(outfit))delete outfit[k];Object.assign(outfit,o);renderOutfitUI();renderDress();};box.appendChild(b);}
+}
+function renderMatrix(){
+  const box=$('#matrix');box.innerHTML='';
+  box.insertAdjacentHTML('beforeend','<div></div>'+Object.values(ANIMALS).map(f=>`<div class="hd">${f.name}</div>`).join(''));
+  const scale=Math.min(+$('#cScale').value,5);
+  let last='';
+  for(const [slot,id,nm,k,t,c0] of ITEMS){
+    if(slot!==last){last=slot;box.insertAdjacentHTML('beforeend',`<div class="slot">${SLOT_LABEL[slot]}</div>`);}
+    const label=document.createElement('div');label.className='nm';
+    label.innerHTML=`${nm}<small><span class="swatch" style="background:${c0}"></span> ${id}</small>`;box.appendChild(label);
+    for(const fk of Object.keys(ANIMALS)){
+      const cell=document.createElement('div');cell.className='cell '+$('#cBg').value;
+      const cv=document.createElement('canvas');drawOnto(cv,renderDoll(fk,P(),{[slot]:id},$('#cEdge').value),scale,ANIMALS[fk]);
+      cell.appendChild(cv);box.appendChild(cell);
+    }
+  }
+}
+function renderAll(){renderForms();renderDress();renderMatrix();}
+for(const id of ['#cFur','#cCol','#cEdge','#cScale','#cGame','#cBg','#cGrid','#cRig'])$(id).addEventListener('change',renderAll);
+Object.assign(outfit,PRESETS[2][1]);
+renderPresets();renderOutfitUI();renderAll();
+</script>
+</body>
+</html>
