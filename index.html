@@ -2458,7 +2458,7 @@ function refreshLocks(){
 }
 onShow.title=refreshLocks;
 refreshLocks();
-$('#bReset').addEventListener('click',()=>{const ans=prompt('ぜんぶ きえて さいしょから やりなおします。\nやりなおすなら「はい」と いれてね');if(ans!==null&&ans.trim()==='はい'){try{localStorage.removeItem('maho-cleaner-3');}catch(e){}location.reload();}});
+$('#bReset').addEventListener('click',()=>{const ans=prompt('ぜんぶ きえて さいしょから やりなおします。\nやりなおすなら「はい」と いれてね');if(ans===null)return;const a=ans.trim();if(a==='はい'){try{localStorage.removeItem('maho-cleaner-3');}catch(e){}location.reload();}else if(a.toLowerCase()==='dev'){location.href='dev/doll-lab.html';}});
 renderSndBtns();
 updateVoiceNote();setTimeout(()=>{pickVoice();updateVoiceNote();},1500);
 let last=0;
