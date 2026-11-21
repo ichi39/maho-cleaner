@@ -293,6 +293,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #switch{position:absolute;bottom:22px;left:14px;width:72px;height:72px;image-rendering:pixelated;pointer-events:none;z-index:2}
 #switch.walk{animation:wbob .22s infinite}
 @keyframes wbob{50%{transform:translateY(-5px)}}
+.back.exitb::before{display:none}
+.back.exitb{border-radius:12px;background:linear-gradient(#fffaf0,#ffe9c8);border-color:var(--gold)}
+.back.exitb canvas{width:36px;height:36px;margin:2px auto 0;display:block;image-rendering:pixelated}
 </style>
 </head>
 <body>
@@ -332,7 +335,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   <div class="stwrap" id="stwrap"><div class="street" id="street"></div></div>
  </section>
  <section id="shop" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><button class="back" id="bShopBack">◀</button><h2 id="shopName" style="color:#fff"></h2><span id="shopCoin" style="color:#ffe27a;min-width:46px;text-align:right"></span></div>
+  <div class="bar" style="background:#2a2550"><button class="back exitb" id="bShopBack"><canvas width="24" height="24"></canvas></button><h2 id="shopName" style="color:#fff"></h2><span id="shopCoin" style="color:#ffe27a;min-width:46px;text-align:right"></span></div>
   <div class="cvwrap"><canvas id="spc" width="240" height="150"></canvas></div>
   <div class="shopsay" id="shopSay"><canvas id="sayC" width="24" height="24"></canvas><p id="sbub"></p></div>
   <div id="shopPanel"></div>
@@ -618,6 +621,10 @@ toybox(d,o){const w='#d89a5a',w2=shade('#d89a5a',-.22),r='#ff8fb0';
   d.e(6,19,1.4,1.2,r);d.e(15,19,1.4,1.2,'#8fd0f0');
   if(o.open){d.r(1,2,20,3,shade(w,.1));d.r(1,4,20,1,w2);d.l(2,5,3,10,w2);d.l(19,5,18,10,w2);d.r(3,11,16,2,'#5a3a2a');}
   else{d.r(1,8,20,4,shade(w,.1));d.r(1,11,20,1,w2);d.r(10,9,2,2,GOLD);}},
+exitdoor(d,o){d.r(3,1,16,21,INK);d.r(4,2,14,20,'#bfe3f7');d.r(4,13,14,9,'#d8c4a4');d.r(4,12,14,1,'#a8d4b0');
+  d.r(5,6,4,6,'#f6c9c9');d.r(4,5,6,1,'#c06a6a');d.r(12,8,5,4,'#cfe8d8');d.r(11,7,7,1,'#7fb89a');d.p(7,9,'#fff3b0');d.p(14,10,'#fff3b0');
+  d.r(14,2,4,20,'#b07a50');d.r(15,3,2,18,'#c8956a');d.p(15,12,GOLD);
+  d.r(5,15,8,2,'#ffffff');d.p(5,14,'#ffffff');d.p(6,13,'#ffffff');d.p(5,17,'#ffffff');d.p(6,18,'#ffffff');d.p(4,15,'#ffffff');d.p(4,16,'#ffffff');},
 person(d,o){
   if(o.hs&&!o.witch){
     const h=o.hair||'#c98a5a',dr=o.dress||'#e58fa5',c2=o.c2||shade(dr,-.3),skin=o.sk||'#ffe0c8',hs=o.hs,fit=o.fit||'dress',acc=o.acc||'';
@@ -1639,7 +1646,7 @@ $('#bStreetBack').addEventListener('click',()=>leaveStreet());
 /* ---- おみせの なか ---- */
 const spc=$('#spc'),sx=spc.getContext('2d');sx.imageSmoothingEnabled=false;
 const SH={cat:null,sel:null,anim:null,parts:[],coins:[]};
-const SSLOT=[[36,62],[84,62],[156,62],[204,62],[36,118],[204,118]],KX=120,KY=78;
+const SSLOT=[[40,62],[86,62],[156,62],[204,62],[40,118],[204,118]],KX=120,KY=78;
 function openShop(cat,o){
   SH.cat=cat;SH.sel=null;SH.anim=null;SH.parts.length=0;SH.coins.length=0;stockOf(cat);
   $('#shopName').textContent=CATS[cat].name;if(o)transit('shop','in',o);else show('shop');
@@ -1686,6 +1693,9 @@ function drawShop(t,dt){
       drawCoinS(sx,x-w/2+4,y+5.5);sx.font='bold 8px sans-serif';sx.textAlign='left';sx.textBaseline='middle';sx.fillStyle=e.sale?'#fff':INK;sx.fillText(String(p),x-w/2+8,y+6);
       if(e.sale&&Math.sin(t*4+e.slot)>-.2){sx.fillStyle='#ffe27a';sx.fillRect(x+12,y-30,5,1);sx.fillRect(x+14,y-32,1,5);}}
   });
+  /* でぐち(ひだりの かべ): タップで しょうてんがいへ */
+  {const glow=!SH.sel&&!A&&Math.sin(t*3)>.2;if(glow){sx.fillStyle='rgba(255,236,160,.45)';sx.fillRect(0,64,22,62);}
+   sx.drawImage(spr('exitdoor').c,-2,74,26,52);}
   /* みせばん と カウンター */
   const cl=CLIENTS[keeperOf(cat)],happy=A&&A.t>.5&&A.t<2.2;
   sx.drawImage(spr('person',look(cl)).c,KX-24,KY-4-(happy?Math.round(Math.abs(Math.sin(t*10))*2):Math.round(Math.sin(t*2))),48,48);
@@ -1715,6 +1725,7 @@ function drawShop(t,dt){
 function drawCoinS(c,x,y){x=Math.round(x);y=Math.round(y);c.fillStyle='#c08f3a';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);c.fillStyle='#f3c850';c.fillRect(x-2,y-2,5,5);c.fillStyle='#fff6b0';c.fillRect(x-1,y-2,2,1);}
 spc.addEventListener('pointerdown',e=>{
   if(SH.anim)return;initAudio();const p=roomPoint(spc,e,RW,RH);
+  if(p.x<20&&p.y>70&&p.y<130){$('#bShopBack').click();return;}
   const st=stockOf(SH.cat);let hit=null;
   for(const q of st){if(!q.tz&&hasK(q.k))continue;const [x,y]=SSLOT[q.slot];if(Math.abs(p.x-x)<18&&p.y>y-36&&p.y<y+12){hit=q;break;}}
   if(Math.abs(p.x-KX)<22&&p.y>KY&&p.y<KY+40&&!hit){shopTalk(pick(CLIENTS[keeperOf(SH.cat)].fl),3.5);return;}
@@ -1725,6 +1736,7 @@ spc.addEventListener('pointerdown',e=>{
   else shopTalk(`「${baseW(hit.k)}」は ${priceE(hit)}コイン だよ。`+(save.coins<priceE(hit)?' おかねが ちょっと たりないね。':''),3);
   renderShopPanel();
 });
+$('#bShopBack').querySelector('canvas').getContext('2d').drawImage(spr('exitdoor').c,0,0);
 $('#bShopBack').addEventListener('click',()=>{if(SH.anim||TR)return;initAudio();bellSfx();transit('shelf','out',S.doorO||{ox:50,oy:50});});
 /* ---- じぶんの おへやに とどいた はこ ---- */
 /* ---- じぶんの おへやに とどいた はこ ----
@@ -2344,7 +2356,7 @@ function comeHome(){H.w.x=DOOR.x-10;H.w.tx=46;H.w.hide=false;H.door=1;H.w.cb=nul
 /* ---- しょうてんがいの まじょ ---- */
 function streetWitch(){let w=$('#switch');if(!w){w=cvOf(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c);w.id='switch';}$('#street').appendChild(w);return w;}
 function walkStreet(x,cb){
-  const w=$('#switch'),cur=parseFloat(w.style.left)||0,dist=Math.abs(x-cur),ms=Math.max(250,dist/260*1000);
+  const w=$('#switch'),cur=parseFloat(w.style.left)||0,dist=Math.abs(x-cur),ms=Math.min(600,Math.max(220,dist/700*1000));
   w.style.transition=`left ${ms}ms linear`;w.classList.add('walk');w.style.left=x+'px';
   clearTimeout(w._t);w._t=setTimeout(()=>{w.classList.remove('walk');cb&&cb();},ms);
 }
@@ -2357,7 +2369,9 @@ function placeStreetWitch(){
 }
 function enterShop(cat,b){
   if(TR||SH.walking)return;SH.walking=true;
-  const el=$('#stwrap');el.scrollTo({left:Math.max(0,b.offsetLeft-60),behavior:'smooth'});
+  const el=$('#stwrap'),w=$('#switch'),cur=parseFloat(w.style.left)||0,tx=frontX(b);
+  if(Math.abs(tx-cur)>260){w.style.transition='none';w.style.left=(tx+(tx>cur?-150:150))+'px';void w.offsetWidth;}
+  el.scrollTo({left:Math.max(0,b.offsetLeft-60),behavior:'smooth'});
   walkStreet(frontX(b),()=>{
     const cv=b.querySelector('canvas');cv.replaceWith(drawFront(cat,true,true));bellSfx();
     const r=b.getBoundingClientRect(),app=$('#app').getBoundingClientRect();
@@ -2368,6 +2382,7 @@ function enterShop(cat,b){
 }
 function leaveStreet(){
   if(TR||SH.walking)return;SH.walking=true;initAudio();
+  {const w=$('#switch'),el=$('#stwrap');if((parseFloat(w.style.left)||0)>200){el.scrollLeft=0;w.style.transition='none';w.style.left='120px';void w.offsetWidth;}}
   $('#stwrap').scrollTo({left:0,behavior:'smooth'});
   walkStreet(-80,()=>{SH.walking=false;const to=S.streetFrom||'home';
     if(to==='home'){transit('home','l');comeHome();}else transit(to,'l');});
