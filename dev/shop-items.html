@@ -62,7 +62,7 @@ canvas{image-rendering:pixelated;display:block}
 <main>
   <div id="err"></div>
   <h2>1. お店ごとのアイテム(3けたの番号つき)</h2>
-  <p class="note">番号は「お店の番号 × 100 + そのお店の中の順番」です(1xx ようふく / 2xx おもちゃ / 3xx くだもの / 4xx おかし / 5xx ほん / 6xx おんがく / 7xx でんき / 8xx もり / 9xx おうち / 0xx ごほうびの とくべつ)。ゲームの ITEMS の並び順で振っているので、アイテムを足すと番号がずれることがあります。</p>
+  <p class="note" id="numNote"></p>
   <div id="shops"></div>
 
   <h2>2. もじ → アイテム(ひらがな・カタカナ)</h2>
@@ -100,6 +100,7 @@ async function loadGame(){
   const shopKeys=Object.keys(CATS);
   const shopNo=k=>k==='special'?0:shopKeys.indexOf(k)+1;
   const groups=[...shopKeys,'special'];
+  $('#numNote').textContent='番号は「お店の番号 × 100 + そのお店の中の順番」です('+shopKeys.map((k,i)=>`${i+1}xx ${CATS[k].name}`).join(' / ')+' / 0xx ごほうびの とくべつ)。ゲームの ITEMS の並び順で振っているので、アイテムを足すと番号がずれることがあります。';
   const gname=k=>k==='special'?'とくべつ(ごほうび)':CATS[k].name;
 
   /* ---- アイテムに3けたの番号を振る ---- */
