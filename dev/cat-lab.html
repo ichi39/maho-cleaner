@@ -63,18 +63,18 @@ a{color:var(--acc)}
   </div>
 </header>
 <main>
-  <h2>1. 肩の3案(+いまの形)</h2>
-  <p class="note">毛は白に固定。「寸法の線」を入れると、うでが始まる行(緑)が見えます。いまの形は、うでがあごのすぐ下から真横に出るので、肩が上がって見えます。</p>
+  <h2>1. ほおの3案(肩は B に決定)</h2>
+  <p class="note">毛は白、肩は B で固定。「まえ」はへこんで見える状態です。顔だけが違い、体と服は同じです。</p>
   <div class="cols" id="forms"></div>
 
-  <h2>2. きせかえ(同じ服を4つの肩に着せて比べる)</h2>
+  <h2>2. きせかえ(同じ服を4つの顔に着せて比べる)</h2>
   <div class="presets" id="presets"></div>
   <div class="row"><b>ばんごうで きせる</b><input type="text" id="numIn" placeholder="例: 12 22 23 30" size="22"><button id="numGo">きせる</button><span class="note" style="margin:0">アイテムの番号(#01〜)をスペースで区切って入れる。同じ部位は後の番号が勝つ。</span></div>
   <div class="outfit" id="outfit"></div>
   <div class="cols" id="dress"></div>
 
   <h2>3. アイテムの ちょうせい</h2>
-  <p class="note">選んだアイテムを1ドット単位でずらしたり、色を変えたりして試せます(全部の肩に同じ調整が入ります)。最後の「いまの設定」をコピーして伝えてください。URLにも保存されるので、リロードしても残ります。</p>
+  <p class="note">選んだアイテムを1ドット単位でずらしたり、色を変えたりして試せます(全部の顔に同じ調整が入ります)。最後の「いまの設定」をコピーして伝えてください。URLにも保存されるので、リロードしても残ります。</p>
   <div class="panel">
     <div class="row"><b>アイテム</b><select id="aItem"></select><button id="aWear">着せる</button>
       <b>よこ</b><span class="step"><button id="aL">◀</button><span id="adx">0</span><button id="aR">▶</button></span>
@@ -138,13 +138,15 @@ const BODY={ch:16,ty0:17,ty1:24,tw:[4,5,5,5,5,5,5,6],ax:8,aw:3,ay0:17,ay1:23,ly0
 const CAT={key:'cat',fur:'#fff8f2',inner:'#ffb0b8',ht:5,hy:11,hrx:8,hry:5.8,ey:10,ex:11};
 /* 肩の4パターン。変えるのは「うでが始まる行(ay0)」「うでの位置(ax,aw)」「どうたいの幅(tw)」「肩の丸め(cut)」だけ。
    cut=[k0,k1,...] は、うでの1行目からk0マス・2行目からk1マス、外がわを削って肩をなだらかにする */
+/* 肩は B(うで内よせ)に決定。ここでは「ほお」の3案を比べる。cheek=0 は修正前 */
+const SH_B={tw:[3,4,4,5,5,5,5,6],ax:7,aw:3,ay0:18,ay1:23,cut:[1,1]};
 const FORMS={
- now:{name:'いま(参考)',sub:'うでが胴と同じ高さから真横に出る。あごのすぐ下で肩が角ばり、怒り肩に見える。',tw:[4,5,5,5,5,5,5,6],ax:8,aw:3,ay0:17,ay1:23,cut:[]},
- A:{name:'A なで肩',sub:'うでを1行下げて、肩の角を2マス+1マス削る。いちばん自然ななで肩。',tw:[3,4,5,5,5,5,5,6],ax:8,aw:3,ay0:18,ay1:23,cut:[2,1]},
- B:{name:'B うで内よせ',sub:'うでを胴に1マス近づけ、胴も少し細くする。肩幅がせまく、ぬいぐるみ寄り。',tw:[3,4,4,5,5,5,5,6],ax:7,aw:3,ay0:18,ay1:23,cut:[1,1]},
- C:{name:'C ほそうで',sub:'うでを2マス幅に細くして、胴に寄せる。いちばんすっきり。服のそでも細くなる。',tw:[3,5,5,5,5,5,5,6],ax:7,aw:2,ay0:18,ay1:22,cut:[1,0]},
+ old:{name:'まえ(参考)',sub:'あごの線が急に内側へ入り、そこからひげが飛び出すので、ほおがへこんで見える。',cheek:0},
+ p1:{name:'1 ほお ふっくら(小)',sub:'あごの横に小さなふくらみを足し、輪郭をなめらかにつなぐ。ひげはほおの外から出す。',cheek:1},
+ p2:{name:'2 ほお ふっくら(大)',sub:'ふくらみを大きくして、ほおを横に張り出す。いちばん丸く、やわらかい顔。',cheek:2},
+ p3:{name:'3 ほお ふっくら(上)',sub:'ふくらみを目の下まで上げる。ほおが高く、にっこりして見える。',cheek:3},
 };
-for(const k in FORMS)Object.assign(FORMS[k],BODY,CAT,{tw:FORMS[k].tw,ax:FORMS[k].ax,aw:FORMS[k].aw,ay0:FORMS[k].ay0,ay1:FORMS[k].ay1});
+for(const k in FORMS)Object.assign(FORMS[k],BODY,CAT,SH_B);
 const ADJ={};   // アイテムごとの微調整 { id:{dx,dy,c} }
 function mix(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);
   const f=(s)=>Math.round(((A>>s)&255)*(1-t)+((B>>s)&255)*t);return '#'+[16,8,0].map(s=>f(s).toString(16).padStart(2,'0')).join('');}
@@ -200,14 +202,25 @@ function earsLayer(R,P){
   return d;
 }
 function headLayer(R,P){
-  const d=new D(),{fur,fu2,fu3}=furSet(R,P),ex=R.ex,ey=R.ey;
+  const d=new D(),{fur,fu2,fu3}=furSet(R,P),ex=R.ex,ey=R.ey,ck=R.cheek||0;
   d.e(16,R.hy,R.hrx,R.hry,fur);
-  hr(d,16-Math.floor(R.hrx)+2,15+Math.floor(R.hrx)-2,R.hy+Math.floor(R.hry),fu2);   // あごのかげ
+  // ほおのふくらみ(あごの横を外へ張り出して、輪郭をなめらかにつなぐ)
+  const CK={1:[10.4,14.2,2.7,2.3],2:[9.6,14.2,3.7,2.8],3:[9.8,13.2,3.6,3.2]};
+  if(ck){const [cx,cy,rx,ry]=CK[ck];d.e(cx,cy,rx,ry,fur);d.e(31-cx,cy,rx,ry,fur);}
+  // あごのかげ(ほおのふくらみがあるときは、まん中だけ)
+  if(ck)hr(d,12,19,R.hy+Math.floor(R.hry),fu2);
+  else hr(d,16-Math.floor(R.hrx)+2,15+Math.floor(R.hrx)-2,R.hy+Math.floor(R.hry),fu2);
   mr(d,ex,ey,2,3,E1);mp(d,ex,ey,'#ffffff');mp(d,ex+1,ey+2,'#6a9ad8');               // め
   mr(d,ex-3,ey+3,3,1,'#ffb0b8');                                                      // ほっぺ
+  if(ck)mr(d,ex-2,ey+4,2,1,'#ffc8d0');
   d.r(15,13,2,1,'#ff8fa0');mp(d,13,14,E1);mp(d,14,15,E1);mp(d,15,15,E1);             // はな・くち
-  for(const y of [12,14]){hr(d,5,8,y,fu3);mp(d,5,y,fu3);}                              // ひげ
-  for(let x=5;x<=7;x++){d.p(x,12,fu3);d.p(MX(x),12,fu3);}
+  if(!ck){
+    for(const y of [12,14]){hr(d,5,8,y,fu3);mp(d,5,y,fu3);}                            // ひげ(まえ)
+    for(let x=5;x<=7;x++){d.p(x,12,fu3);d.p(MX(x),12,fu3);}
+  }else{
+    const ox={1:5,2:3,3:3}[ck],wy=ck===3?[12,14]:[13,15];                                // ひげ(ほおの外から)
+    wy.forEach((y,i)=>{const len=i?2:3;for(let x=ox;x<ox+len;x++)mp(d,x,y,fu3);});
+  }
   mr(d,13,R.ht+1,1,2,fu2);d.r(15,R.ht+1,2,3,fu2);mr(d,12,R.ht+2,1,1,fu2);            // ひたいのしま
   return d;
 }
@@ -280,10 +293,10 @@ hat(d,R,o){
   d.e(21,T+1,2,1.6,'#ffffff');d.e(24,T+1,2,1.6,'#ffffff');d.r(22,T,2,3,shade('#ffffff',-.15));
 },
 ribbon(d,R,o){
-  const c=o.c,cx=15+Math.round(R.hrx)-3,cy=R.ht+2,lo=shade(c,-.25),hi=shade(c,.4);
+  const c=o.c,cx=15+Math.round(R.hrx)-3,cy=R.ht+1,lo=shade(c,-.25),hi=shade(c,.4);
   d.e(cx-3,cy,3,2.4,c);d.e(cx+4,cy,3,2.4,c);
   d.r(cx-1,cy-1,3,3,lo);d.p(cx,cy-1,hi);
-  d.r(cx-2,cy+2,2,3,c);d.r(cx+1,cy+2,2,3,shade(c,-.12));d.r(cx-2,cy+4,2,1,lo);d.r(cx+1,cy+4,2,1,lo);
+  d.r(cx-2,cy+2,2,2,c);d.r(cx+1,cy+2,2,2,shade(c,-.12));d.r(cx-2,cy+3,2,1,lo);d.r(cx+1,cy+3,2,1,lo);   // たれは目にかからない長さ
   d.p(cx-4,cy-1,hi);d.p(cx+3,cy-1,hi);
 },
 crown(d,R,o){
