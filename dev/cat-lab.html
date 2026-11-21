@@ -621,21 +621,17 @@ wand(d,R,o){
   for(const [x,y] of [[30,14],[20,3]]){d.p(x,y,'#ffffff');d.p(x-1,y,'#ffe0f0');d.p(x+1,y,'#ffe0f0');d.p(x,y-1,'#ffe0f0');d.p(x,y+1,'#ffe0f0');}
 },
 umbrella(d,R,o){
-  // 33: かさ(単色。骨のすじ・左上のつや・右とすそのかげで、かさに見せる)
-  const c=o.c,cx=24,tip=GOLD,hi=shade(c,.28),lo=shade(c,-.14),lo2=shade(c,-.28);
+  // 33: かさ(単色。縞は入れない。左上のつや・右下のかげ・なみ形のすその かげだけで丸みを出す)
+  const c=o.c,cx=24,tip=GOLD,hi=shade(c,.26),lo=shade(c,-.16),lo2=shade(c,-.3);
   d.e(cx,7,8,6.2,c,false);d.r(0,8,32,24,null);
   for(const i of [-5.3,0,5.3])d.e(cx+i,8.2,2.9,1.7,c,false);
   const has=(x,y)=>y>=0&&y<N&&x>=0&&x<N&&d.g[y][x];
   for(let y=0;y<10;y++)for(let x=0;x<N;x++){if(!has(x,y))continue;
-    let col=c;
-    if(x<cx-2&&y<6)col=hi;                 // 左上のつや
-    else if(x>cx+3)col=lo;                 // 右がわのかげ
-    if(y>=8)col=lo;                        // なみ形のすそはかげ
+    const u=((x+.5-cx)/8)*.75+((y+.5-1)/8)*.55;                 // 左上 → 右下 の向き
+    let col=u<-.38?hi:u>.34?lo:c;
+    if(y>=8)col=lo;                                              // なみ形のすそ
     d.g[y][x]=col;}
-  // 骨(中心からすそへの すじ)
-  for(let k=1;k<=7;k++){const xb=cx-8+2*k;
-    const n=9;for(let i=1;i<=n;i++){const x=Math.round(cx+(xb-cx)*i/n),y=Math.round(1+(8-1)*i/n);if(has(x,y))d.g[y][x]=lo2;}}
-  for(let x=0;x<N;x++)if(has(x,9))d.g[9][x]=lo2;                       // すその影
+  for(let x=0;x<N;x++)if(has(x,9))d.g[9][x]=lo2;                 // すそのふち
   d.p(24,0,tip);d.p(24,1,tip);d.p(23,1,shade(tip,.4));d.p(25,1,shade(tip,-.2));
   d.l(24,10,23,23,'#c8a070');
   d.p(23,24,'#c8a070');d.p(22,25,'#c8a070');d.p(21,25,'#c8a070');d.p(21,24,'#c8a070');
