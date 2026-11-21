@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>開発メニュー(魔法のお掃除屋さん)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.6 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:20px;margin:0 0 4px}
+p.sub{color:var(--sub);margin:0 0 16px;font-size:13px}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--acc);box-shadow:0 2px 10px #8a7ad822}
+a.card b{font-size:16px;color:var(--acc)}
+a.card small{display:block;color:var(--sub);font-size:12px;margin-top:2px}
+.game{background:#fff8ee}
+</style>
+</head>
+<body>
+<main>
+  <h1>開発メニュー</h1>
+  <p class="sub">ゲームとは別の、確認用ページの一覧です。ゲームのタイトル右下「はじめから」で <b>dev</b> と入れると、ここに来ます。</p>
+  <a class="card game" href="../index.html"><b>← ゲームにもどる</b><small>公開中のゲーム本体</small></a>
+  <a class="card" href="shop-items.html"><b>お店のアイテム・もじ表</b><small>各お店で売る物を3けたの番号つきで一覧。ひらがな・カタカナの分解と、もじ → アイテムの表(ことばが無いもじも分かる)。ゲーム本体を読み込んで表示。</small></a>
+  <a class="card" href="cat-lab.html"><b>ねこ にんぎょう ラボ(白ねこ・32ドット)</b><small>いまの本命。服・くつ・小物33点に番号(#01〜)つき。着せ替え、番号入力、1ドット単位の調整、設定のコピー。</small></a>
+  <a class="card" href="animal-lab.html"><b>どうぶつ 3案(うさぎ・くま・ねこ)</b><small>32×32ドットの、どうぶつ人形3案。同じ服を着せて比べる。</small></a>
+  <a class="card" href="doll-lab.html"><b>にんげん版 人形ラボ(22ドット)</b><small>最初の案。にんげん3フォルムと、服の見比べ。</small></a>
+</main>
+</body>
+</html>

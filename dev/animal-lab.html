@@ -37,11 +37,14 @@ canvas{image-rendering:pixelated;display:block}
 .matrix .hd{position:sticky;top:78px;background:var(--bg);font-weight:bold;text-align:center;padding:2px;z-index:2}
 .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #0003;vertical-align:-2px}
 a{color:var(--acc)}
+.devnav{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin-bottom:2px}
+.devnav a{color:var(--acc)}
 </style>
 </head>
 <body>
 <header>
-  <h1><a href="../index.html" style="font-size:12px;font-weight:normal;margin-right:8px">← ゲームへ</a><a href="doll-lab.html" style="font-size:12px;font-weight:normal;margin-right:8px">にんげん版(22ドット)</a><a href="cat-lab.html" style="font-size:12px;font-weight:normal;margin-right:8px">ねこ(白・肩3案)</a>どうぶつ にんぎょう ラボ <small style="font-weight:normal;color:var(--sub)">(32×32ドット・開発用)</small></h1>
+  <nav class="devnav"><a href="../index.html">← ゲーム</a><a href="index.html">開発メニュー</a><a href="doll-lab.html">にんげん</a><a href="animal-lab.html">どうぶつ</a><a href="cat-lab.html">ねこ</a><a href="shop-items.html">お店アイテム・もじ表</a></nav>
+  <h1>どうぶつ にんぎょう ラボ <small style="font-weight:normal;color:var(--sub)">(32×32ドット・開発用)</small></h1>
   <div class="ctl">
     <label>けのいろ <select id="cFur"></select></label>
     <label>ふくのいろ <select id="cCol"></select></label>
