@@ -1150,7 +1150,11 @@ function pickItems(cat,n){
   const hardOf=it=>[...it[0]].length>=4||hasDaku(it[0])||hasSmall(it[0])||it[0].includes('ー');
   const maxHard=n>=4?2:1;
   const add=it=>{if(out.includes(it))return false;if(hardOf(it)&&out.filter(hardOf).length>=maxHard)return false;const nv=novelOf(it[0]);if(new Set([...nov,...nv]).size>(early?7:5))return false;out.push(it);nv.forEach(c=>nov.add(c));return true;};
-  const pool=shuffle(ok.filter(it=>it[3]===cat)).sort((a,b)=>recentW.has(a[0])-recentW.has(b[0])).sort((a,b)=>early?(isWear(b)-isWear(a)):0);
+  /* おなじ ものばかり でないように: さいきん だした ものは うしろへ、なおした かいすうが すくない ものを さきへ(ゆらぎ つき)。
+     むずかしさは allowed / hardOf / novelOf で きまるので、ここでは ならびだけを かえる */
+  const waitW=new Set((save.reqs||[]).flatMap(r=>r.items.map(i=>i[0])));   /* いま まっている おきゃくさんの ものは さける */
+  const fixN=w=>(save.fixN&&save.fixN[w])||0,score=new Map(ok.map(it=>[it,(recentW.has(it[0])?100:0)+(waitW.has(it[0])?200:0)+Math.min(fixN(it[0]),8)*.6+Math.random()*3]));
+  const pool=ok.filter(it=>it[3]===cat).sort((a,b)=>score.get(a)-score.get(b)).sort((a,b)=>early?(isWear(b)-isWear(a)):0);
   /* まだ なれて いない もじを ふくむ ものを ひとつ さきに(すべての もじに であえる ように) */
   {const k=pool.findIndex(it=>novelOf(it[0]).length>0);if(k>0&&Math.random()<.8)pool.unshift(pool.splice(k,1)[0]);}
   for(const it of pool){if(out.length>=n)break;add(it);}
@@ -1183,11 +1187,12 @@ function makeRequest(){
     const others=avail.filter(c=>c!==cl.fav&&c!==cl.dis);
     cat=(save.made<2&&avail.includes('clothes'))?'clothes':(save.made<6&&r<.4&&avail.includes('clothes'))?'clothes':(r<.55&&avail.includes(cl.fav))?cl.fav:(r<.65&&avail.includes(cl.dis))?cl.dis:pick(others.length?others:avail);
     items=pickItems(cat,n);key=cat+':'+items.map(i=>i[0]).sort().join(',');tries++;
-  }while(tries<12&&(save.recent.includes(key)||(tries<6&&save.reqs.some(r=>r.cat===cat))));
+  }while(tries<12&&(save.recent.includes(key)||(tries<6&&save.reqs.some(r=>r.cat===cat))||(tries<5&&(save.recentCat||[]).slice(-2).includes(cat))));
   save.made=(save.made||0)+1;
-  save.recent=[...save.recent,key].slice(-8);
+  save.recent=[...save.recent,key].slice(-12);
   save.lastCl=[...save.lastCl,ci].slice(-4);
-  save.recentW=[...save.recentW,...items.map(i=>i[0])].slice(-12);
+  save.recentW=[...save.recentW,...items.map(i=>i[0])].slice(-30);
+  save.recentCat=[...(save.recentCat||[]),cat].slice(-3);
   const used=save.reqs.map(r=>r.theme);let theme;
   for(let k=0;k<6;k++){theme=Math.random()*8|0;if(!used.includes(theme))break;}
   return{id:Date.now()+Math.random(),again,ci,cat,items:items.map(i=>hasColor(i)?[i[0],i[1],Object.assign({},i[2],(()=>{const ci=pickColor(i[0],cl);return{c:COLS[ci][0],ci};})())]:[i[0],i[1],i[2]]),pos:shuffle([0,1,2,3,4]).slice(0,items.length),done:items.map(()=>false),theme};
@@ -1771,7 +1776,7 @@ function completePuzzle(){
 }
 function finishItem(){
   if(screen!=='puzzle')return;
-  P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;{const _c=ITEMS.find(i=>i[0]===P.word),_was=_c&&shopOpen(_c[3]);save.got[P.word]=1;if(_c&&!_was&&_c[3]!=='special'&&CATS[_c[3]]){(save.newShops=save.newShops||[]).push(_c[3]);addEvent({type:'shop',cat:_c[3]});}}addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
+  P.dirty=false;const j=P.j;P.tok++;S.done[j]=true;S.pop[j]=.7;{const _c=ITEMS.find(i=>i[0]===P.word),_was=_c&&shopOpen(_c[3]);save.got[P.word]=1;(save.fixN=save.fixN||{})[P.word]=(save.fixN[P.word]||0)+1;if(_c&&!_was&&_c[3]!=='special'&&CATS[_c[3]]){(save.newShops=save.newShops||[]).push(_c[3]);addEvent({type:'shop',cat:_c[3]});}}addDiary(S.r,j);if(save.day){const it=S.r.items[j];save.day.coins+=3;save.day.items.push(it[2].ci!=null?it[0]+'#'+it[2].ci:it[0]);}{const ci=S.r.items[j][2].ci;if(ci!=null){const a=save.gotC[P.word]=save.gotC[P.word]||[];if(!a.includes(ci))a.push(ci);}}save.coins+=3;persist();
   show('room');updateRoomHud();
   const [px,py]=POS[S.r.pos[j]];burst(roomParts,px,py-22,30,2);chime(4,true);
   if(S.done.every(Boolean))setTimeout(()=>{if(screen==='room')showClear();},1500);
@@ -1932,23 +1937,49 @@ function keeperOf(cat){
 }
 /* ---- まいあさの しなぞろえ ---- */
 function ensureStock(){const n=save.day?save.day.n:1;if(!save.stock||save.stock.n!==n){save.stock={n,shops:{}};persist();}}
+/* なおした ものが かならず いつか ならぶように、「いつ さいごに ならべたか」を おぼえる(save.offered)。
+   まだ ならべていない ものを さきに、きょう なおした ものは いちばん さきに。 */
+function offeredOf(k){return (save.offered&&save.offered[k])||0;}
+function markOffered(k){const n=save.day?save.day.n:1;(save.offered=save.offered||{})[k]=n;}
+const todayFixed=()=>new Set((save.day&&save.day.items)||[]);
+/* この おみせで かえる(なおした・まだ もっていない)ものの かぎ。いろちがいは ぜんぶ */
+function freshKeys(it){
+  const g=hasColor(it)?(save.gotC[it[0]]||[]):[];
+  const keys=hasColor(it)&&g.length?g.map(ci=>it[0]+'#'+ci):[it[0]];   /* いろの きろくが ない ふるい セーブも かえるように */
+  return keys.filter(k=>!hasK(k));
+}
 function genStock(cat){
-  const kataOpen=knownN('hira')>=46,rr=Math.random;
+  const kataOpen=knownN('hira')>=46,rr=Math.random,fx=todayFixed();
   const items=ITEMS.filter(it=>it[3]===cat&&notSp(it)&&(scriptOf(it[0])==='hira'||kataOpen||save.got[it[0]]));
-  const cand=[];
+  let cand=[];const markOf={};
   for(const it of items){if(!save.got[it[0]])continue;
-    const keys=hasColor(it)?(save.gotC[it[0]]||[]).map(ci=>it[0]+'#'+ci):[it[0]];
-    const fresh=keys.filter(k=>!hasK(k));if(fresh.length)cand.push(pick(fresh));}
-  shuffle(cand);
+    const fresh=freshKeys(it);if(!fresh.length)continue;
+    const k=shuffle(fresh.slice()).sort((a,b)=>(fx.has(b)-fx.has(a))||(offeredOf(a)-offeredOf(b)))[0];
+    markOf[k]=Math.max(0,...hasColor(it)?(save.gotC[it[0]]||[]).map(ci=>offeredOf(it[0]+'#'+ci)).concat(offeredOf(it[0])):[offeredOf(it[0])]);   /* ならびの じゅんは「ものぜんたい」で きめる */
+    cand.push(k);}
+  cand=shuffle(cand).sort((a,b)=>(fx.has(b)-fx.has(a))||(markOf[a]-markOf[b]));   /* きょうの → ながく ならんで いない じゅん */
   const N=Math.min(6,4+(rr()<.5?1:0)+(cand.length>8?1:0));
   const list=cand.slice(0,N).map(k=>({k}));
+  list.forEach(e=>markOffered(e.k));
   const tz=shuffle(items.filter(it=>!save.got[it[0]]));
   while(list.length<Math.min(N,3)&&tz.length)list.push({k:tz.pop()[0],tz:1});
   if(list.length<N&&tz.length&&rr()<.6)list.push({k:tz.pop()[0],tz:1});
   const buy=list.filter(e=>!e.tz&&!hasK(e.k));if(buy.length)pick(buy).sale=1;
   return shuffle(list).map((e,i)=>Object.assign(e,{slot:i}));
 }
-function stockOf(cat){ensureStock();const s=save.stock.shops;if(!s[cat]){s[cat]=genStock(cat);persist();}return s[cat];}
+/* そのひの うちに あとから なおした ものも、すぐ ならぶ(たなが いっぱいなら、はてなの たな か ふつうの たなと いれかえる) */
+function topUpStock(cat,st){
+  const fx=todayFixed();let ch=false;
+  for(const it of ITEMS){if(it[3]!==cat||!notSp(it)||!save.got[it[0]])continue;
+    const ks=freshKeys(it).filter(k=>fx.has(k));
+    for(const k of ks){
+      if(st.some(e=>e.k===k||(!e.tz&&baseW(e.k)===it[0])))continue;
+      const used=new Set(st.map(e=>e.slot));let slot=[0,1,2,3,4,5].find(i=>!used.has(i));
+      if(slot==null){const v=st.find(e=>e.tz)||st.find(e=>!e.sale&&!fx.has(e.k))||st.find(e=>!fx.has(e.k));if(!v)continue;slot=v.slot;st.splice(st.indexOf(v),1);}
+      st.push({k,slot});markOffered(k);ch=true;}}
+  return ch;
+}
+function stockOf(cat){ensureStock();const s=save.stock.shops;if(!s[cat]){s[cat]=genStock(cat);persist();}else if(topUpStock(cat,s[cat]))persist();return s[cat];}
 const priceE=e=>e.sale?Math.max(2,Math.round(priceOf(e.k)*.6)):priceOf(e.k);
 /* ---- しょうてんがい ---- */
 const tierOf=cat=>{if(!shopOpen(cat))return 0;const its=ITEMS.filter(it=>it[3]===cat&&notSp(it)),f=its.filter(it=>save.got[it[0]]).length/its.length;return f>=.7?3:f>=.35?2:1;};
@@ -2979,7 +3010,8 @@ function renderMine(){
     save.deliv.forEach((k,i)=>{const c=cvOf(spr('present',{c:boxCol(k)}).c);c.addEventListener('click',()=>{initAudio();openBoxUI(i);});r.appendChild(c);});tr.appendChild(r);}
   if(!save.owned.length&&!save.deliv.length){tr.innerHTML='<div class="info">'+(save.deliv.length?'はこを タップして あけてね':'おみせで かった ものが ここに とどくよ')+'</div>';}
   else{
-    const wear=save.owned.filter(w=>isWear(IT(w)));
+    const WORD=['head','face','neck','body','bottom','feet','back','hand','bag','held','wand'];   /* あたま → からだ → あし → こもの の じゅん */
+    const wear=save.owned.filter(w=>isWear(IT(w))).map((w,i)=>[w,i]).sort((a,b)=>WORD.indexOf(slotOf(a[0]))-WORD.indexOf(slotOf(b[0]))||a[1]-b[1]).map(x=>x[0]);
     if(wear.length)row(spr('doll').c,wear,w=>{
       initAudio();const sl=slotOf(w);save.doll.wear=save.doll.wear||{};
       if(save.doll.wear[sl]===w)delete save.doll.wear[sl];else save.doll.wear[sl]=w;

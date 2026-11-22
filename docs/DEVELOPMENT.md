@@ -110,6 +110,7 @@
 | `stamps` / `servedTotal` | スタンプの数 / 支払いを受けた合計人数 |
 | `diary` / `events` / `dayLog` | 日記の3つのタブの中身 |
 | `aud` | 音の設定 `{bgm,sfx,voice}` |
+| `offered` / `fixN` / `recentCat` | お店に最後に並べた日(`{かぎ:日}`、並べる順を回すため) / 言葉ごとに直した回数(依頼で少ない物を優先) / 直近の依頼のお店 |
 | `tut`, `tutDrag`, `shopSeen`, `mineUnlocked`, `diaryNew`, `made`, `recent*`, `lastCl` | 案内を出したか、などの小さな記録 |
 
 **互換性を壊す変更**をするときは、キーの名前(`maho-cleaner-3`)を上げるか、`cleanSave()` に変換を書いてください。今までに2回キーを変えて、記録を消しています。
