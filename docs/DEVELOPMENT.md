@@ -11,7 +11,7 @@
 | `<style>` | すべての CSS |
 | `<body>` の各 `<section class="screen">` | 画面ごとの HTML。モーダルも同じ場所にある |
 | `<script>/*VOICE_DATA_START*/…/*VOICE_DATA_END*/</script>` | 声のデータ(`tools/make-voice.js` が書き換える。今は空 `{}`) |
-| `<script>/*BGM_DATA_START*/…/*BGM_DATA_END*/</script>` | BGM のデータ(約2.7MB。`tools/make-bgm.js` が書き換える) |
+| `<script>/*BGM_DATA_START*/…/*BGM_DATA_END*/</script>` | BGM のデータ(約3.0MB。`tools/make-bgm.js` が書き換える) |
 | `<script>'use strict'; …</script>` | ゲーム本体 |
 
 - **しるし(START/END)の中は手で直さないでください。** 道具が丸ごと書き換えます。
@@ -141,6 +141,7 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 - タイトル左下の「おとテスト」で、音の状態と、直前に完成したパズルの時間の記録が見られます。
 
 ### BGM を変える
+(おしろのクリア曲 `castle` は、手書きのメロディとコード(`mel` / `ch`)で作る曲です。メロディに重ねる音は `dbl` で決めます。)
 1. `tools/make-bgm.js` の `BGM_SONGS`(テンポ・調・コード・リズム・楽器)を直す。
 2. `node tools/make-bgm.js` を実行して、`index.html` の `BGM_DATA` を書き換える。
 - 曲は IMA ADPCM(4bit、16kHz)で埋め込んでいます。ゲームの中では wav に戻して `<audio>` で流します。
