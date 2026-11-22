@@ -13,7 +13,9 @@ const NOLEARN='ーッっァィゥェォゃゅょャュョぁぃぅぇぉ';
 
 function voiceList(){
   const html=fs.readFileSync(FILE,'utf8');
-  const a=html.indexOf('const ITEMS=[];'),b=html.indexOf('const SLOT_OF_=',a);
+  // ITEMS の A2(...) ブロックを、とくべつ(ごほうびの ふく)の ブロックの 手前まで よむ。
+  // (とくべつは これまでも 読み上げの 対象外。ほかの 定義の 位置に 左右されないよう、目印は A2('special' にしている)
+  const a=html.indexOf('const ITEMS=[];'),b=html.indexOf("A2('special'",a);
   if(a<0||b<0)throw new Error('ITEMS が みつかりません');
   const seg=html.slice(a,b),words=[];
   for(const m of seg.matchAll(/\[\s*'([^'#]+)'\s*,/g))if(/^[\u3040-\u30ff]+$/.test(m[1])&&!words.includes(m[1]))words.push(m[1]);
