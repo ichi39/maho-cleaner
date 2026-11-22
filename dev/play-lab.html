@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>あそび かくにん ラボ(開発用)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#fffe;border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:16px;margin:0 0 4px}
+.devnav{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px}.devnav a{color:var(--acc)}
+.wrap{display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px 60px;max-width:1100px;margin:0 auto;align-items:flex-start}
+.game{flex:none;width:min(100%,400px)}
+iframe{width:100%;height:min(640px,86dvh);border:3px solid var(--acc);border-radius:12px;background:#2a2550}
+.ctl{flex:1;min-width:300px}
+h2{font-size:15px;margin:18px 0 4px;border-left:5px solid var(--acc);padding-left:8px}
+h2:first-child{margin-top:0}
+p.note{margin:0 0 6px;color:var(--sub);font-size:12px}
+.btns{display:flex;flex-wrap:wrap;gap:5px}
+button{font:inherit;color:inherit;border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;cursor:pointer}
+button:hover{background:#f0eaff}button:disabled{opacity:.4;cursor:wait}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.kind{margin:6px 0 2px;font-size:12px;color:var(--sub)}
+#st{font-size:12px;color:var(--sub);margin:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <nav class="devnav"><a href="../index.html">← ゲーム</a><a href="index.html">開発メニュー</a></nav>
+  <h1>あそび かくにん ラボ <small style="font-weight:normal;color:var(--sub)">(ゲームを <code>?lab</code> つきで読み込む。セーブは読まず、書かない)</small></h1>
+</header>
+<div class="wrap">
+  <div class="game"><iframe id="g" src="../index.html?lab" title="ゲーム"></iframe>
+    <div id="st">読み込み中…</div>
+    <p class="note">音は、いちど ゲームの中を タップすると 鳴ります。ファイルを直接開く(file://)と動かないことがあります。<code>python3 -m http.server</code> か、公開ページから開いてください。</p></div>
+  <div class="ctl">
+    <h2>食べ物のリアクション</h2>
+    <p class="note">ボタンを押すと、自分の部屋の人形に食べさせます(同じ物でも、毎回少し変わります)。</p>
+    <div class="btns"><button id="again">もう一度(同じ物)</button><button id="ten">3回つづけて</button></div>
+    <div id="foods"></div>
+    <h2>人形の持ち物(顔の重なりを見る)</h2>
+    <div class="btns" id="wear"></div>
+    <h2>時間・場面</h2>
+    <p class="note">窓の外の景色と、商店街の空を見比べます。</p>
+    <div class="btns" id="times"></div>
+    <div class="btns" style="margin-top:6px" id="scr"></div>
+    <h2>1日の流れ</h2>
+    <div class="btns" id="flow"></div>
+    <p class="note">「閉店の演出」は、時計を閉店時刻にして お店の画面を見せます。「1日のまとめ」を出したあと、ゲームの「あさに する」を押すと朝の演出を見られます。</p>
+  </div>
+</div>
+<script>
+const F=document.getElementById('g'),st=document.getElementById('st');
+let ready=false,last=null;
+const KINDS=[['sweet','あまい'],['love','だいすき'],['yummy','ほくほく'],['juicy','じゅわー'],['crunch','さくさく'],['fresh','しゃきしゃき'],['sour','すっぱい'],['bitter','にがい'],['cry','つーん'],['hot','あつい'],['cold','つめたい'],['fizz','しゅわしゅわ']];
+const ev=c=>F.contentWindow.eval(c);
+function need(){if(!ready){st.textContent='まだ読み込み中です';return false;}return true;}
+function toMine(){ev("(()=>{initAudio();save.mineUnlocked=true;if(screen!=='mine')show('mine');M.eat=null;M.fx.length=0;})()");}
+function eat(w){if(!need())return;last=w;toMine();ev(`(()=>{const w=${JSON.stringify(w)};if(!save.owned.includes(w))save.owned.push(w);M.eat=null;startEat(w);})()`);st.textContent='食べた: '+w;}
+function build(){
+  const foods=ev("Object.keys(FOOD).map(w=>[w,FOOD[w][0]])");
+  const box=document.getElementById('foods');
+  for(const [k,nm] of KINDS){
+    const ws=foods.filter(f=>f[1]===k).map(f=>f[0]);if(!ws.length)continue;
+    const d=document.createElement('div');d.innerHTML=`<div class="kind">${nm} (${k})</div>`;
+    const b=document.createElement('div');b.className='btns';
+    ws.forEach(w=>{const x=document.createElement('button');x.textContent=w;x.onclick=()=>eat(w);b.appendChild(x);});
+    d.appendChild(b);box.appendChild(d);
+  }
+  const W=[['ぬぐ',null],['めがね','めがね'],['ぼうし','ぼうし#3'],['かんむり','かんむり'],['リボン','リボン#0'],['ヘルメット','ヘルメット#3']];
+  for(const [nm,key] of W){const x=document.createElement('button');x.textContent=nm;
+    x.onclick=()=>{if(!need())return;toMine();ev(key?`(()=>{const k=${JSON.stringify(key)};if(!save.owned.includes(k))save.owned.push(k);save.doll.wear=save.doll.wear||{};if(slotOf(k))save.doll.wear[slotOf(k)]=k;renderMine();})()`:"(()=>{save.doll.wear={};renderMine();})()");};
+    document.getElementById('wear').appendChild(x);}
+  const T=[['朝 9:00',540,0],['昼 12:00',720,0],['夕方 16:00',960,0],['夕焼け 18:30',1110,0],['夜(閉店後)',1140,1]];
+  for(const [nm,m,c] of T){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>setTime(m,c);document.getElementById('times').appendChild(x);}
+  for(const [nm,id] of [['お店','home'],['自分の部屋','mine'],['商店街','shelf']]){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>{if(!need())return;ev(`(()=>{initAudio();save.mineUnlocked=true;show(${JSON.stringify(id)});})()`);};document.getElementById('scr').appendChild(x);}
+  const FL=[['閉店の演出',()=>ev("(()=>{initAudio();const D=DAY();D.closed=false;D.min=CLK.START+60;H.clk=D.min;H.nk=0;lampOn=false;show('home');setTimeout(()=>{D.min=D.end;},400);})()")],
+            ['1日のまとめ',()=>ev("(()=>{initAudio();const D=DAY();D.closed=true;D.min=D.end;D.stamped=false;show('home');showDayEnd();})()")],
+            ['スタンプを4つに',()=>ev("(()=>{save.stamps=4;persist();})()")]];
+  for(const [nm,fn] of FL){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>{if(need())fn();};document.getElementById('flow').appendChild(x);}
+}
+function setTime(m,closed){if(!need())return;
+  ev(`(()=>{const D=DAY();D.closed=${closed?'true':'false'};D.min=${m};H.clk=${m};H.nk=${closed?1:0};lampOn=${closed?'true':'false'};const s=screen;show(s==='title'?'home':s);})()`);st.textContent='時間: '+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+(closed?'(夜)':'');}
+document.getElementById('again').onclick=()=>{if(last)eat(last);};
+document.getElementById('ten').onclick=()=>{if(!last)return;eat(last);setTimeout(()=>eat(last),3200);setTimeout(()=>eat(last),6400);};
+F.addEventListener('load',()=>{try{build();ready=true;st.textContent='準備できました';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
+</script>
+</body>
+</html>

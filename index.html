@@ -1094,9 +1094,11 @@ const CLIENTS=[
 ];
 /* 保存 */
 let save={made:0,gotC:{},doll:{x:120,y:90,wear:{}},reqs:[],got:{},coins:0,owned:[],shown:[],seen:{},recent:[],recentW:[],lastCl:[],snd:true};
-try{const s=JSON.parse(localStorage.getItem('maho-cleaner-3')||'null');if(s)save=Object.assign(save,s);}catch(e){}
+/* ?lab つきで ひらくと(dev/play-lab.html)、セーブを よまず かかない */
+const LAB=/[?&]lab(=|&|$)/.test(location.search);
+if(!LAB)try{const s=JSON.parse(localStorage.getItem('maho-cleaner-3')||'null');if(s)save=Object.assign(save,s);}catch(e){}
 try{cleanSave();}catch(e){}
-const persist=()=>{try{localStorage.setItem('maho-cleaner-3',JSON.stringify(save));}catch(e){}};
+const persist=()=>{if(LAB)return;try{localStorage.setItem('maho-cleaner-3',JSON.stringify(save));}catch(e){}};
 let soundOn=save.snd!==false;
 /* ========= 依頼づくり(むずかしさは裏で自動調整) ========= */
 const pick=a=>a[Math.random()*a.length|0];
