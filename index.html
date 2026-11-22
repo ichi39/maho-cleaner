@@ -141,6 +141,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .shopbtn.shake,#bShelf.shake{animation:shake .35s}
 .trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;justify-content:flex-start;background:rgba(255,255,255,.1);border-radius:12px;padding:4px 6px}
 #mineTray canvas.ricon{width:40px;height:40px;background:#ffe27a;border-radius:50%;padding:3px}
+#mineTray canvas.dg{touch-action:none;-webkit-user-select:none;user-select:none}
+#mineTray canvas.dgsrc{opacity:.35}
+.dgghost{position:fixed;z-index:99;width:64px;height:64px;margin:-32px 0 0 -32px;pointer-events:none;image-rendering:pixelated;filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
 #mineTray canvas.worn{outline:3px solid #ffe27a;background:rgba(255,226,122,.3)}
 .modal{position:absolute;inset:0;background:rgba(20,15,50,.62);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
 .modal.on{display:flex;animation:fade .25s}
@@ -2971,9 +2974,9 @@ function stepEat(dt){
 }
 function renderMine(){
   const tr=$('#mineTray');tr.innerHTML='';
-  const row=(icon,list,click,mark)=>{
+  const row=(icon,list,click,mark,dragKind)=>{
     const r=document.createElement('div');r.className='trow';const ic=cvOf(icon);ic.className='ricon';r.appendChild(ic);
-    list.forEach(w=>{const it=IT(w);const c=cvOf(spr(it[1],it[2]).c);if(mark&&mark(w))c.className='worn';if(w===M.newK){c.classList.add('newk');M.newK=null;}c.addEventListener('click',()=>click(w));r.appendChild(c);});
+    list.forEach(w=>{const it=IT(w);const c=cvOf(spr(it[1],it[2]).c);if(mark&&mark(w))c.className='worn';if(w===M.newK){c.classList.add('newk');M.newK=null;}c.addEventListener('click',()=>{if(TD.skip){TD.skip=false;return;}click(w);});if(dragKind){c.classList.add('dg');c.addEventListener('pointerdown',e=>trayDown(e,c,w,dragKind));}r.appendChild(c);});
     tr.appendChild(r);
   };
   if(save.deliv.length){const r=document.createElement('div');r.className='trow boxes';const ic=cvOf(spr('present',{c:'#ff8fb0'}).c);ic.className='ricon';r.appendChild(ic);
@@ -2990,17 +2993,17 @@ function renderMine(){
     const food=save.owned.filter(w=>isFood(IT(w)));
     if(food.length)row(spr(...IT('りんご').slice(1,3)).c,food,w=>{
       initAudio();if(M.eat)return;M.food=M.food===w?null:w;chime(M.food?3:1);if(M.food)M.hop=.35;renderMine();
-    },w=>M.food===w);
+    },w=>M.food===w,'food');
     /* かざる もの: タップで おく、おいてある もの(きいろい わく)を もういちど タップで しまう */
     const deco=save.owned.filter(w=>!isWear(IT(w))&&!isFood(IT(w)));
     if(deco.length)row(spr('chair').c,deco,w=>{
       initAudio();if(M.stow)return;const p0=save.placed.find(p=>p.w===w);
       if(p0){save.placed=save.placed.filter(p=>p!==p0);if(M.sel===p0)M.sel=null;M.stow={w,x:p0.x,y:p0.y,t:0};sfx('c3');persist();renderMine();return;}
       const p={w,x:rnd(30,190),y:rnd(50,120)};save.placed.push(p);M.sel=p;persist();chime(2);burst(M.parts,p.x,p.y,10);renderMine();
-    },w=>save.placed.some(p=>p.w===w));
+    },w=>save.placed.some(p=>p.w===w),'deco');
   }
   if(M.food&&!save.owned.includes(M.food))M.food=null;
-  $('#mineHint').textContent=M.food?'にんぎょうを タップして たべさせてね':save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
+  $('#mineHint').textContent=M.food?'ふきだしか にんぎょうを タップして たべさせてね':save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
 }
 onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;renderMine();};
 function drawMine(t,dt){
@@ -3015,11 +3018,11 @@ function drawMine(t,dt){
       mc.fillStyle='rgba(80,50,80,.18)';mc.fillRect(Math.round(p.x-10),Math.round(p.y+MSZ/2-5),20,3);
       const lift=(M.drag&&M.drag.o===p)?-3:0;
       mc.drawImage(spr(it[1],it[2]).c,Math.round(p.x-MSZ/2),Math.round(p.y-MSZ/2+lift),MSZ,MSZ);}
-    if(p===M.sel){const z=e.doll?DSZ:MSZ;mc.fillStyle='#ffe27a';const x=Math.round(p.x-z/2),y=Math.round(p.y-z/2),k=4+(Math.sin(t*6)>0?1:0);
+    if(p===M.sel||(e.doll&&M.dropHot)){const z=e.doll?DSZ:MSZ;mc.fillStyle='#ffe27a';const x=Math.round(p.x-z/2),y=Math.round(p.y-z/2),k=4+(Math.sin(t*6)>0?1:0);
       for(const [a,b,dx,dy] of [[x,y,1,1],[x+z-1,y,-1,1],[x,y+z-1,1,-1],[x+z-1,y+z-1,-1,-1]]){mc.fillRect(Math.min(a,a+dx*k),b,k,1);mc.fillRect(a,Math.min(b,b+dy*k),1,k);}}
   }
   if(M.eat&&M.eat.fly){const f=M.eat.fly;mc.drawImage(spr(M.eat.it[1],M.eat.it[2]).c,f.x-f.sz/2,f.y-f.sz/2,f.sz,f.sz);}
-  if(M.food&&!M.eat){const it=IT(M.food);if(it){const d=save.doll,bx=Math.round(d.x+18),by=Math.round(d.y-DSZ/2-24+Math.sin(t*4)*2);
+  if(M.food&&!M.eat){const it=IT(M.food);if(it){const b=foodBubble(t),bx=b.x,by=b.y;
     mc.fillStyle='#f3c850';mc.fillRect(bx-1,by-1,30,28);mc.fillStyle='#fff';mc.fillRect(bx,by,28,26);mc.fillStyle='#f3c850';mc.fillRect(bx+4,by+27,4,2);mc.fillStyle='#fff';mc.fillRect(bx+4,by+26,4,2);
     mc.drawImage(spr(it[1],it[2]).c,bx+2,by+1,24,24);}}
   drawEatTop(mc,t);drawEatFx(mc,dt);
@@ -3031,6 +3034,7 @@ mcv.addEventListener('pointerdown',e=>{
   if(tapBox(p)){renderMine();return;}
   const list=[...save.placed.map(o=>({o})),{o:save.doll,doll:1}].sort((a,b)=>a.o.y-b.o.y);let hit=null;
   for(let i=list.length-1;i>=0;i--){const q=list[i],h=(q.doll?DSZ:MSZ)/2;if(Math.abs(p.x-q.o.x)<h&&Math.abs(p.y-q.o.y)<h){hit=q;break;}}
+  if(M.food&&!M.eat){const b=foodBubble();if(p.x>=b.x-4&&p.x<=b.x+b.w+4&&p.y>=b.y-4&&p.y<=b.y+b.h+4){startEat(M.food);return;}}
   if(hit&&hit.doll&&M.food&&!M.eat){startEat(M.food);return;}
   if(hit){mcv.setPointerCapture(e.pointerId);M.sel=hit.o;M.drag={o:hit.o,doll:!!hit.doll,dx:hit.o.x-p.x,dy:hit.o.y-p.y,moved:false};
     if(hit.doll){M.hop=.5;chime(6);}else chime(2);}
@@ -3045,6 +3049,44 @@ const endMine=()=>{if(!M.drag)return;const d=M.drag;M.drag=null;
   if(!d.doll&&d.moved&&nearTB(d.o)){const p=d.o;save.placed=save.placed.filter(q=>q!==p);if(M.sel===p)M.sel=null;M.stow={w:p.w,x:p.x,y:p.y,t:0};sfx('c3');}
   persist();};
 mcv.addEventListener('pointerup',endMine);mcv.addEventListener('pointercancel',endMine);
+/* ふきだし の いち(タップの あたりにも つかう。ゆれは え だけ) */
+function foodBubble(t){const d=save.doll;return{x:Math.round(d.x+18),y:Math.round(d.y-DSZ/2-24+(t?Math.sin(t*4)*2:0)),w:28,h:26};}
+/* したの もちもの から ドラッグ&ドロップ: ごはん → にんぎょうに ドロップで たべる / かざりもの → ドロップした ばしょに おく */
+const TD={on:null,skip:false};
+const dollHit=p=>Math.abs(p.x-save.doll.x)<DSZ/2+6&&Math.abs(p.y-save.doll.y)<DSZ/2+6;
+function overRoom(e){const r=mcv.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;}
+function trayDown(e,c,w,kind){
+  if(e.button>0||TD.on||M.eat||M.stow)return;
+  TD.on={w,kind,c,sx:e.clientX,sy:e.clientY,id:e.pointerId,g:null};
+  try{c.setPointerCapture(e.pointerId);}catch(_){}
+  c.addEventListener('pointermove',trayMove);c.addEventListener('pointerup',trayUp);c.addEventListener('pointercancel',trayUp);
+}
+function trayMove(e){
+  const D=TD.on;if(!D||e.pointerId!==D.id)return;
+  if(!D.g){if(Math.hypot(e.clientX-D.sx,e.clientY-D.sy)<8)return;
+    initAudio();const g=cvOf(spr(IT(D.w)[1],IT(D.w)[2]).c);g.className='dgghost';document.body.appendChild(g);D.g=g;D.c.classList.add('dgsrc');chime(2);}
+  D.g.style.left=e.clientX+'px';D.g.style.top=e.clientY+'px';
+  M.dropHot=D.kind==='food'&&overRoom(e)&&dollHit(roomPoint(mcv,e,RW,RH));
+}
+function trayUp(e){
+  const D=TD.on;if(!D||e.pointerId!==D.id)return;
+  D.c.removeEventListener('pointermove',trayMove);D.c.removeEventListener('pointerup',trayUp);D.c.removeEventListener('pointercancel',trayUp);
+  TD.on=null;M.dropHot=false;
+  if(!D.g)return;   /* うごかさなければ ふつうの タップ */
+  D.g.remove();D.c.classList.remove('dgsrc');TD.skip=true;setTimeout(()=>{TD.skip=false;},50);
+  if(e.type==='pointercancel'||!overRoom(e))return;
+  const p=roomPoint(mcv,e,RW,RH);
+  if(D.kind==='food'){
+    if(dollHit(p)&&!M.eat){M.food=D.w;startEat(D.w);}
+    else{M.food=D.w;M.hop=.35;chime(3);renderMine();}   /* ほかに おとしたら ふきだしが でる */
+  }else{
+    if(M.stow)return;
+    const h=MSZ/2,x=Math.max(h,Math.min(RW-h,p.x)),y=Math.max(h,Math.min(RH-h,p.y));
+    const p0=save.placed.find(q=>q.w===D.w);
+    if(p0){p0.x=x;p0.y=y;M.sel=p0;}else{const n={w:D.w,x,y};save.placed.push(n);M.sel=n;burst(M.parts,x,y,10);}
+    persist();chime(2);renderMine();
+  }
+}
 /* おもちゃばこ: おいた ものを ひっぱって いれると しまえる */
 const TB={x:212,y:140,r:26};
 const nearTB=q=>Math.hypot(q.x-TB.x,q.y-(TB.y-14))<TB.r;
