@@ -46,6 +46,11 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
     <p class="note">窓の外の景色と、商店街の空を見比べます。</p>
     <div class="btns" id="times"></div>
     <div class="btns" style="margin-top:6px" id="scr"></div>
+    <h2>商店街・ゴール</h2>
+    <p class="note">「まほうの みち」の進み(ゴールの門のひ・旗)と、お店のにぎわい(段階)、クリア後のお祭りを確認します。</p>
+    <div class="kind">進み(旗の数)</div><div class="btns" id="stg"></div>
+    <div class="kind">お店のにぎわい(全店いっぺんに)</div><div class="btns" id="tiers"></div>
+    <div class="kind">クリア</div><div class="btns" id="clr"></div>
     <h2>1日の流れ</h2>
     <div class="btns" id="flow"></div>
     <p class="note">「閉店の演出」は、時計を閉店時刻にして お店の画面を見せます。「1日のまとめ」を出したあと、ゲームの「あさに する」を押すと朝の演出を見られます。</p>
@@ -76,6 +81,12 @@ function build(){
   const T=[['朝 9:00',540,0],['昼 12:00',720,0],['夕方 16:00',960,0],['夕焼け 18:30',1110,0],['夜(閉店後)',1140,1]];
   for(const [nm,m,c] of T){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>setTime(m,c);document.getElementById('times').appendChild(x);}
   for(const [nm,id] of [['お店','home'],['自分の部屋','mine'],['商店街','shelf']]){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>{if(!need())return;ev(`(()=>{initAudio();save.mineUnlocked=true;show(${JSON.stringify(id)});})()`);};document.getElementById('scr').appendChild(x);}
+  const goStreet=()=>ev("(()=>{initAudio();save.mineUnlocked=true;show('shelf');onShow.shelf();})()");
+  const setStage=(hn,kn)=>{if(!need())return;ev(`(()=>{save.seen={};POOL.hira.slice(0,${hn}).forEach(c=>save.seen[norm(c)]=2);POOL.kata.slice(0,${kn}).forEach(c=>save.seen[norm(c)]=2);})()`);goStreet();st.textContent='旗: ひらがな'+hn+'字・カタカナ'+kn+'字';};
+  for(const [nm,h,k] of [['0',0,0],['1',10,0],['2',23,0],['3の途中',30,0],['3',36,0],['4',46,0],['5',46,15],['6',46,30],['7(ぜんぶ)',46,44]]){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>setStage(h,k);document.getElementById('stg').appendChild(x);}
+  const setTier=f=>{if(!need())return;ev(`(()=>{ITEMS.forEach(it=>delete save.got[it[0]]);if(${f}>0)Object.keys(CATS).forEach(cat=>{const its=ITEMS.filter(it=>it[3]===cat&&notSp(it));its.slice(0,Math.max(1,Math.ceil(its.length*${f}))).forEach(it=>save.got[it[0]]=1);});})()`);goStreet();st.textContent='お店の段階: '+f;};
+  for(const [nm,f] of [['ぜんぶ閉まっている',0],['段階1(開店)',.05],['段階2(にぎわい)',.4],['段階3(大繁盛)',.8]]){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>setTier(f);document.getElementById('tiers').appendChild(x);}
+  for(const [nm,fn] of [['クリア済みにして商店街へ(お祭り・花火)',()=>{setStage(46,44);ev("(()=>{save.cleared=true;save.festSeen=false;show('shelf');onShow.shelf();})()");}],['お祝い画面を見る',()=>ev("(()=>{initAudio();showAllClear(()=>{});})()")],['花火だけ',()=>ev("(()=>{initAudio();launchFireworks(4000);})()")]]){const x=document.createElement('button');x.textContent=nm;x.onclick=()=>{if(need())fn();};document.getElementById('clr').appendChild(x);}
   const FL=[['閉店の演出',()=>ev("(()=>{initAudio();const D=DAY();D.closed=false;D.min=CLK.START+60;H.clk=D.min;H.nk=0;lampOn=false;show('home');setTimeout(()=>{D.min=D.end;},400);})()")],
             ['1日のまとめ',()=>ev("(()=>{initAudio();const D=DAY();D.closed=true;D.min=D.end;D.stamped=false;show('home');showDayEnd();})()")],
             ['スタンプを4つに',()=>ev("(()=>{save.stamps=4;persist();})()")]];

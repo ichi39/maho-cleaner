@@ -103,6 +103,7 @@
 | `reqs` | 今ある依頼(`items`, `done`, `leaving`, `hx` = 元いた位置, `gain`) |
 | `day` | その日の状態(`n`, `min`(時計・分), `end`(閉店時刻・分), `cap`(最大人数), `spawned`, `done`, `served`, `met`, `items`, `coins`, `closed`, `next`) |
 | `stageP` / `stageDone` / `stagePending` / `cleared` | まほうの みち(進み具合・もらった段・未受取のごほうび・クリア済み) |
+| `cleared` / `festSeen` | クリア済み(商店街にちょうちん) / 商店街の花火を見せた |
 | `conste` / `newShops` | 完成した星座 / 開いたばかりのお店(お店に戻ったとき知らせる) |
 | `stock` | その日の品ぞろえ `{n:日, shops:{お店:[{k,slot,sale,tz}]}}` |
 | `keeper` | お店ごとの店番(お客さんの番号) |
