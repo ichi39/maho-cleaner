@@ -69,6 +69,7 @@ if(api){
   run('いちにち と とけい','onShow.home();for(let i=0;i<60;i++)drawHome(i/10,.1);dayHandled({gain:1},true);save.day.min=save.day.end;for(let i=0;i<60;i++)drawHome(10+i/10,.1);showDayEnd();goMorning();for(let i=0;i<60;i++)drawHome(20+i/10,.1)');
   run('とけいの すう字','if(fmtT(540)!=="09:00"||fmtT(1140)!=="19:00")throw new Error("fmtT");const D=newDay(1);if(D.end!==900||D.cap!==4)throw new Error("newDay");ensureClock({n:2,done:2});');
   run('まほうの みち と ほしぞら','POOL.hira.forEach(c=>save.seen[norm(c)]=2);if(Math.floor(stageP())!==4)throw new Error("stageP "+stageP());checkConste();renderPath(0,4.5);renderSky();gaugeHTML();');
+  run('たべさせる','const miss=ITEMS.filter(it=>(it[3]==="fruit"||it[3]==="sweets")&&!isFood(it)).map(i=>i[0]);if(miss.join()!=="コーヒー,ワイン")throw new Error("FOOD もれ: "+miss);save.owned=["りんご","レモン","アイス"];for(const w of Object.keys(FOOD)){save.owned.push(w);}M.food="りんご";startEat("りんご");for(let i=0;i<200;i++){emitEatFx(FOOD[M.eat?M.eat.w:"りんご"][0],save.doll,FOOD["りんご"]);drawMine(i/10,.05);}for(const k of ["sweet","love","yummy","fresh","juicy","crunch","sour","bitter","cry","hot","cold","fizz"]){M.eat={w:"りんご",it:IT("りんご"),F:["'+'"+k+"'+'","x","😋"],t:1,pt:0};for(let i=0;i<60;i++)drawMine(i/10,.05);}');
 }
 console.log(path.basename(file),'→ エラー',errs.length);
 for(const e of errs.slice(0,15))console.log('  ',e.join(' | '));
