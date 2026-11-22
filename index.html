@@ -3719,7 +3719,7 @@ const ccv=$('#cc'),cc=ccv.getContext('2d');cc.imageSmoothingEnabled=false;
 const CA={parts:[],conf:[],hop:0,cheer:[],fw:0,fws:[],bg:null,say:null,sayT:0,sayI:-1};
 const WINS=[[22,12],[178,12]],WW=40,WH=58;
 const CASTLE_SAY=['おめでとう!','すごいね!','やったね!','ありがとう!','だいすき!','ぜんぶ おぼえたね!','いっしょに おいわい!','えらいね!'];
-const DOLL_SC=.62,DOLL_X=142,DOLL_Y=116;
+const DOLL_SC=.43,DOLL_X=146,DOLL_Y=123;   /* にんぎょうは まじょ(48ドット)の 6わりくらい(68×.43≒29ドット)。あしもとを まじょと そろえる */
 function castleBg(){
   if(CA.bg)return CA.bg;const c=document.createElement('canvas');c.width=RW;c.height=RH;const x=c.getContext('2d');
   const R=(col,a,b,w,h)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
@@ -3784,7 +3784,7 @@ function drawCastle(t,dt){
 }
 ccv.addEventListener('pointerdown',e=>{
   initAudio();const p=roomPoint(ccv,e,RW,RH);
-  if(Math.abs(p.x-DOLL_X)<24&&Math.abs(p.y-DOLL_Y)<26){CA.hop=.5;chime(6);burst(CA.parts,DOLL_X,DOLL_Y-24,16,1.2);return;}
+  if(Math.abs(p.x-DOLL_X)<20&&Math.abs(p.y-DOLL_Y)<22){CA.hop=.5;chime(6);burst(CA.parts,DOLL_X,DOLL_Y-18,14,1.1);return;}
   for(let wi=0;wi<WINS.length;wi++){const [wx,wy]=WINS[wi];if(p.x>=wx&&p.x<=wx+WW&&p.y>=wy&&p.y<=wy+WH){castleFirework(wi,p.x,p.y);return;}}
   if(p.x<20&&p.y>70&&p.y<130){$('#bCastleBack').click();return;}
   let hit=-1,best=1e9;CASTLE_SPOTS.forEach((s,i)=>{const d=Math.hypot(p.x-s[0],p.y-(s[1]-20));if(d<22&&d<best){best=d;hit=i;}});
