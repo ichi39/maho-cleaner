@@ -62,7 +62,7 @@ if(api){
   run('品ぞろえ','Object.keys(CATS).forEach(c=>stockOf(c))');
   run('ぜんぶの絵','ITEMS.forEach(it=>spr(it[1],it[2]));Object.values(CATS).forEach(c=>spr(...c.icon))');
   run('おへや(持ち物の段)','save.owned=ITEMS.map(i=>i[0]);renderMine()');
-  run('きせかえの がめん','save.owned=ITEMS.map(i=>i[0]);save.doll.wear={};show("dress");onShow.dress();for(const sl of WSLOT_ORDER){for(let i=0;i<40;i++)dressStep(sl,i%3?1:-1);}for(let i=0;i<5;i++)drawDress(i/10,.1);renderMine();');
+  run('きせかえの がめん','save.owned=ITEMS.map(i=>i[0]);save.doll.wear={};show("dress");onShow.dress();for(const g of DRESS_ROWS){for(let i=0;i<40;i++)dressStep(g,i%3?1:-1);if(Object.keys(save.doll.wear).filter(k=>g.includes(k)).length>1)throw new Error("1つだけ");}for(let i=0;i<5;i++)drawDress(i/10,.1);renderMine();');
   run('ねこの にんぎょう','for(const it of ITEMS.filter(isWear)){const ks=hasColor(it)?[...Array(10).keys()].map(ci=>it[0]+"#"+ci):[it[0]];for(const k of ks){save.doll.wear={[slotOf(k)]:k};drawDoll(mc,120,90,0,0);}}');
   run('ねこ(ぜんぶのせ)','save.doll.wear={head:"かんむり",face:"めがね",neck:"マフラー",body:"エプロン",bottom:"スカート",feet:"ブーツ",hand:"てぶくろ",bag:"かばん",back:"ようせいのはね",wand:"まほうのつえ"};drawDoll(mc,120,90,1,.5)');
   run('部屋の背景','for(let i=0;i<THEMES.length;i++)makeBg(i);makeBg("home");makeBg("mine")');
