@@ -2791,8 +2791,8 @@ function drawFace(ctx,f){
       case 'happy':PM(11,10,2,1,INK,m);PM(10,11,1,1,INK,m);PM(13,11,1,1,INK,m);break;
       case 'closed':PM(10,11,4,1,INK,m);break;
       case 'squint':PM(10,10,1,1,INK,m);PM(11,11,2,1,INK,m);PM(10,12,1,1,INK,m);break;
-      case 'wide':PM(10,9,4,4,INK,m);PM(10,9,1,1,FUR,m);PM(13,9,1,1,FUR,m);PM(10,12,1,1,FUR,m);PM(13,12,1,1,FUR,m);PM(11,10,1,1,WH,m);PM(12,12,1,1,'#6a9ad8',m);break;
-      case 'sparkle':PM(10,9,4,4,INK,m);PM(10,9,1,1,FUR,m);PM(13,9,1,1,FUR,m);PM(10,12,1,1,FUR,m);PM(13,12,1,1,FUR,m);PM(11,10,1,1,'#fff6a0',m);PM(12,11,1,1,WH,m);PM(12,12,1,1,'#ffd84a',m);break;
+      case 'wide':PM(11,10,2,3,INK,m);PM(11,10,1,1,WH,m);PM(12,12,1,1,'#6a9ad8',m);break;   /* ふつうの おおきさが さいだい */
+      case 'sparkle':PM(11,10,2,3,INK,m);PM(11,10,1,1,'#fff6a0',m);PM(12,11,1,1,WH,m);PM(12,12,1,1,'#ffd84a',m);break;
       case 'heart':PM(10,10,1,1,'#ff5a7a',m);PM(12,10,1,1,'#ff5a7a',m);PM(10,11,3,1,'#ff5a7a',m);PM(11,12,1,1,'#ff5a7a',m);break;
       case 'sad':PM(11,11,2,2,INK,m);PM(11,11,1,1,WH,m);PM(10,9,2,1,INK,m);PM(12,10,1,1,INK,m);break;
     }
@@ -2815,7 +2815,7 @@ function drawFace(ctx,f){
   }
 }
 /* ---- たべさせる ---- */
-const EAT={CHEW:.35,REACT:.9,END:2.7};
+const EAT={CHEW:.4,REACT:1.5,END:5.2};   /* とぶ → もぐもぐ(1.1びょう) → リアクション(3.7びょう) */
 /* たべものの しゅるいごとの リアクション。v は「かお」の ばりえーション(まいかい ランダムに えらぶ) */
 const REACT={
  sweet:{glow:'#ff9ab8',blush:'#ff8fa0',v:[{eye:'heart',mouth:'open'},{eye:'happy',mouth:'smile'},{eye:'sparkle',mouth:'tongue'}]},
@@ -2840,8 +2840,9 @@ function startEat(w){
   const R=REACT[F[0]],v=pick(R.v);
   /* まいかい すこし ちがう: かおの ばりえーション・おおきさ・むき・はやさ・おとの たかさ */
   M.food=null;M.eat={w,it,F,R,v,t:0,pt:0,pw:rnd(.8,1.25),dir:Math.random()<.5?-1:1,fr:rnd(.85,1.2),pitch:Math.random()*3|0,alt:Math.random()<.5};M.hop=0;
-  [350,520,690].forEach(ms=>setTimeout(()=>{if(screen==='mine'&&M.eat)chime(1);},ms));
-  (EAT_SND[F[0]]||[]).forEach(([ms,k])=>setTimeout(()=>{if(screen==='mine'&&M.eat)typeof k==='number'?chime(k+M.eat.pitch):sfx(k);},900+ms));
+  [450,700,950,1200].forEach(ms=>setTimeout(()=>{if(screen==='mine'&&M.eat)chime(1);},ms));
+  const snd=EAT_SND[F[0]]||[],again=!['bitter','cry','sour'].includes(F[0]);
+  [0,...(again?[1500]:[])].forEach((off,r)=>snd.forEach(([ms,k])=>setTimeout(()=>{if(screen==='mine'&&M.eat)typeof k==='number'?chime(k+M.eat.pitch+r):sfx(k);},EAT.REACT*1000+off+ms)));
   renderMine();
 }
 function emitEatFx(k,d,F,E){
@@ -2901,22 +2902,24 @@ function stepEat(dt){
     fx.face={eye:E.alt?'happy':'closed',mouth:Math.sin(t*26)>0?'pucker':'flat'};}
   else{
     const r=(t-EAT.REACT)*E.fr,env=Math.max(0,Math.min(1,(EAT.END-.3-t)/.4)),ab=v=>Math.abs(Math.sin(v)),pw=E.pw,dr=E.dir;
+    const dec=Math.max(0,1-r/3.6),bst=(r%1.5)<1?1:0;   /* だんだん しずまる / くりかえす ちいさな ひとやま */
     switch(k){
-      case 'sweet':fx.dy=-ab(r*7)*8*pw*(r<1?1:0);fx.rot=Math.sin(r*7)*.05*dr;break;
-      case 'yummy':case 'juicy':fx.dy=-ab(r*5)*5*pw*(r<1.2?1:0);fx.rot=Math.sin(r*5)*.04*dr;break;
+      case 'sweet':fx.dy=-ab(r*7)*8*pw*dec;fx.rot=Math.sin(r*7)*.05*dr*dec;break;
+      case 'yummy':case 'juicy':fx.dy=-ab(r*5)*5*pw*dec;fx.rot=Math.sin(r*5)*.04*dr;break;
       case 'crunch':case 'fresh':{const w=Math.sin(r*30);fx.sx=1+.05*w;fx.sy=1-.05*w;fx.dy=-ab(r*10)*2*pw;break;}
-      case 'sour':fx.dx=Math.sin(r*60)*2*pw*(r<.9?1:0);fx.sx=.92;fx.sy=1.05;break;
+      case 'sour':fx.dx=Math.sin(r*60)*2*pw*bst;fx.sx=.92;fx.sy=1.05;break;
       case 'bitter':fx.rot=(-.12*Math.min(1,r*3)+Math.sin(r*8)*.03)*dr;fx.dy=2;break;
       case 'cry':fx.rot=Math.sin(r*5)*.1*dr;fx.dy=2;fx.dx=Math.sin(r*40)*.8;break;
-      case 'hot':fx.dy=-ab(r*12)*6*pw*(r<1?1:0);fx.rot=Math.sin(r*12)*.06*dr;break;
-      case 'cold':fx.dx=Math.sin(r*70)*1.3*pw*(r<1.3?1:0);fx.sy=.96;break;
+      case 'hot':fx.dy=-ab(r*12)*6*pw*bst;fx.rot=Math.sin(r*12)*.06*dr;break;
+      case 'cold':fx.dx=Math.sin(r*70)*1.3*pw*(bst?1:.3);fx.sy=.96;break;
       case 'love':fx.rot=Math.sin(r*4)*.13*dr;fx.sx=1+.03*Math.sin(r*8);fx.sy=1-.03*Math.sin(r*8);break;
-      case 'fizz':fx.dy=-ab(r*6)*4*pw-(r>1&&r<1.25?6:0);break;
+      case 'fizz':fx.dy=-ab(r*6)*4*pw*dec-((r>1&&r<1.25)||(r>2.5&&r<2.75)?6:0);break;
     }
     fx.dx*=env;fx.dy*=env;fx.rot*=env;fx.sx=1+(fx.sx-1)*env;fx.sy=1+(fx.sy-1)*env;
     E.pt-=dt;if(t<EAT.END-.4&&E.pt<=0){E.pt=(k==='cry'?.18:.09)/pw;emitEatFx(k,d,E.F,E);}
     if(env>.35){let m=E.v.mouth;
-      if(m==='open'||m==='tongue'){if(r>1.1)m='smile';}
+      if(m==='open'){if(Math.floor(r/.9)%2)m='smile';}
+      else if(m==='tongue'){if(r>2.6)m='smile';}
       else if(m==='chew')m=Math.sin(r*26)>0?'pucker':'flat';
       else if(m==='wavy')m=Math.sin(r*24)>0?'wavy':'wavy2';
       fx.face={eye:E.v.eye,mouth:m,blush:E.R.blush};}

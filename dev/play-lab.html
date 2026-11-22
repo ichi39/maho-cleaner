@@ -95,7 +95,7 @@ function build(){
 function setTime(m,closed){if(!need())return;
   ev(`(()=>{const D=DAY();D.closed=${closed?'true':'false'};D.min=${m};H.clk=${m};H.nk=${closed?1:0};lampOn=${closed?'true':'false'};const s=screen;show(s==='title'?'home':s);})()`);st.textContent='時間: '+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+(closed?'(夜)':'');}
 document.getElementById('again').onclick=()=>{if(last)eat(last);};
-document.getElementById('ten').onclick=()=>{if(!last)return;eat(last);setTimeout(()=>eat(last),3200);setTimeout(()=>eat(last),6400);};
+document.getElementById('ten').onclick=()=>{if(!last)return;eat(last);setTimeout(()=>eat(last),5600);setTimeout(()=>eat(last),11200);};
 F.addEventListener('load',()=>{try{build();ready=true;st.textContent='準備できました';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
 </script>
 </body>
