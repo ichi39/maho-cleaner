@@ -144,26 +144,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #mineTray canvas.dg{touch-action:none;-webkit-user-select:none;user-select:none}
 #mineTray canvas.dgsrc{opacity:.35}
 .dgghost{position:fixed;z-index:99;width:64px;height:64px;margin:-32px 0 0 -32px;pointer-events:none;image-rendering:pixelated;filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
-#bToDress{position:absolute;left:6px;top:6px;width:54px;height:54px;border-radius:50%;border:3px solid #c08f3a;background:radial-gradient(circle at 35% 30%,#fff6a0,#ffd84a 65%,#e8b830);box-shadow:0 3px 0 #c79a3c;cursor:pointer;padding:0}
 #bMineBack{animation:none}
-#bToDress canvas{width:44px;height:44px;display:block;margin:auto;image-rendering:pixelated;background:none}
-#dressBody{position:relative;flex:1;width:100%;min-height:0;display:flex}
-#dressShelf{display:none;position:absolute;inset:0;background:#2a2550;border-top:3px solid #ffe27a}
-#dressShelf.on{display:flex}
-#shelfGrid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:flex-start;padding:10px 54px 10px 8px;overflow:auto;width:100%}
-#shelfGrid canvas{width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.2);padding:2px;image-rendering:pixelated;cursor:pointer}
-#shelfGrid canvas.on{background:#ffe27a;outline:3px solid #fff}
-#shelfGrid canvas.empty{background:transparent;border:3px dashed rgba(255,255,255,.7);box-sizing:border-box}
-#shelfX{position:absolute;right:6px;top:6px;width:42px;height:42px;border-radius:50%;border:3px solid #c08f3a;background:#fff6e0;color:#6a4a62;font-size:20px;font-weight:800;cursor:pointer;padding:0}
-#dressList{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-content:flex-start;padding:10px 8px;overflow:auto;width:100%}
-.dz{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.14);border-radius:18px;padding:4px 6px}
-.dz canvas{width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.2);padding:2px;image-rendering:pixelated;cursor:pointer}
-.dz canvas.on{background:#ffe27a;outline:3px solid #fff}
-.dz canvas.empty{background:transparent;border:3px dashed rgba(255,255,255,.55);box-sizing:border-box}
-.dz .dzb{width:46px;height:56px;border:3px solid #c08f3a;border-radius:14px;background:radial-gradient(circle at 35% 30%,#fff6a0,#ffd84a 65%,#e8b830);box-shadow:0 3px 0 #c79a3c;cursor:pointer;padding:0}
-.dz .dzb::before{content:'';display:block;width:20px;height:20px;margin:auto;background:#6a4a62;clip-path:polygon(72% 6%,72% 94%,8% 50%);border-radius:2px}
-.dz .dzb.nx::before{clip-path:polygon(28% 6%,28% 94%,92% 50%)}
-.dz .dzb:active{transform:translateY(2px)}
 #mineTray canvas.worn{outline:3px solid #ffe27a;background:rgba(255,226,122,.3)}
 .modal{position:absolute;inset:0;background:rgba(20,15,50,.62);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
 .modal.on{display:flex;animation:fade .25s}
@@ -409,14 +390,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="mine" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><span style="width:46px"></span><h2 style="color:#fff">じぶんの おへや</h2><span style="width:46px"></span></div>
-  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas><button id="bToDress" style="display:none"><canvas width="24" height="24"></canvas></button><button id="bMineBack" class="arrow right">▶</button></div>
+  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas><button id="bMineBack" class="arrow right">▶</button></div>
   <div class="info" id="mineHint">ゆびで ひっぱって うごかせるよ</div>
   <div id="mineTray"></div>
- </section>
- <section id="dress" class="screen" style="background:#2a2550">
-  <div class="bar" style="background:#2a2550"><button class="back" id="bDressBack">◀</button><h2 style="color:#fff"></h2><span style="width:46px"></span></div>
-  <div class="cvwrap"><canvas id="dc" width="240" height="150"></canvas></div>
-  <div id="dressBody"><div id="dressList"></div><div id="dressShelf"><div id="shelfGrid"></div><button id="shelfX">✕</button></div></div>
  </section>
  <section id="shelf" class="screen" style="background:linear-gradient(#bfe3f7,#fdeef2 70%,#e8d8c0)">
   <div class="bar"><button class="back exitb" id="bStreetBack"><canvas width="24" height="24"></canvas></button><h2 id="sCoin"></h2><span class="lamps" id="townLamps"></span></div>
@@ -1320,7 +1296,7 @@ function wantBgm(){
   if(!save.aud.bgm)return null;
   if(screen==='puzzle')return null;
   if(screen==='room'&&S.r&&BGM_DATA[S.r.cat])return S.r.cat;
-  if(screen==='mine'||screen==='dress')return 'mine';
+  if(screen==='mine')return 'mine';
   if(screen==='castle'&&BGM_DATA.castle)return 'castle';   /* まほうの おしろ: クリアの きょく */
   if(screen==='shop'&&SH.cat&&BGM_DATA[SH.cat])return SH.cat;
   const night=(save.day&&save.day.closed&&(screen!=='home'||H.nk>=.5))||$('#dayEnd').classList.contains('on');
@@ -2261,7 +2237,6 @@ function tapBox(p){
 }
 /* ========= じぶんの おへや(かざる・にんぎょうの きせかえ) ========= */
 const mcv=$('#mc'),mc=mcv.getContext('2d');mc.imageSmoothingEnabled=false;
-const WSLOT_ORDER=['head','face','neck','body','bottom','feet','back','hand','bag','held','wand'];
 const M={sel:null,drag:null,parts:[],hop:0,food:null,eat:null,fx:[]};
 const MSZ=36,DSZ=68;   /* にんぎょうは 34x34 の絵を ちょうど 2ばい(ドットが くっきり) */
 if(!Array.isArray(save.placed))save.placed=[];
@@ -3004,6 +2979,12 @@ function renderMine(){
     save.deliv.forEach((k,i)=>{const c=cvOf(spr('present',{c:boxCol(k)}).c);c.addEventListener('click',()=>{initAudio();openBoxUI(i);});r.appendChild(c);});tr.appendChild(r);}
   if(!save.owned.length&&!save.deliv.length){tr.innerHTML='<div class="info">'+(save.deliv.length?'はこを タップして あけてね':'おみせで かった ものが ここに とどくよ')+'</div>';}
   else{
+    const wear=save.owned.filter(w=>isWear(IT(w)));
+    if(wear.length)row(spr('doll').c,wear,w=>{
+      initAudio();const sl=slotOf(w);save.doll.wear=save.doll.wear||{};
+      if(save.doll.wear[sl]===w)delete save.doll.wear[sl];else save.doll.wear[sl]=w;
+      persist();chime(5);M.hop=.5;burst(M.parts,save.doll.x,save.doll.y-10,14);renderMine();
+    },w=>save.doll.wear&&save.doll.wear[slotOf(w)]===w);
     /* たべもの: タップで えらんで、にんぎょうを タップすると たべる(たべたら なくなる) */
     const food=save.owned.filter(w=>isFood(IT(w)));
     if(food.length)row(spr(...IT('りんご').slice(1,3)).c,food,w=>{
@@ -3018,7 +2999,6 @@ function renderMine(){
     },w=>save.placed.some(p=>p.w===w),'deco');
   }
   if(M.food&&!save.owned.includes(M.food))M.food=null;
-  $('#bToDress').style.display=save.owned.some(w=>isWear(IT(w)))?'':'none';
   $('#mineHint').textContent=M.food?'ふきだしか にんぎょうを タップして たべさせてね':save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
 }
 onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;renderMine();};
@@ -3116,52 +3096,6 @@ function drawToybox(t,dt){
     if(it){const sz=Math.round(MSZ*(1-k*.85));mc.globalAlpha=1-k*.6;mc.drawImage(spr(it[1],it[2]).c,Math.round(st.x+(TB.x-st.x)*k-sz/2),Math.round(st.y+(TB.y-16-st.y)*k-sz/2),sz,sz);mc.globalAlpha=1;}
     if(k>=1){burst(M.parts,TB.x,TB.y-20,14,1.2);chime(1);M.stow=null;M.newK=st.w;renderMine();}}
 }
-/* ========= きせかえの がめん(にんぎょうを おおきく みて、◀ ▶ で ふくを かえる) ========= */
-const dcv=$('#dc'),dc=dcv.getContext('2d');dc.imageSmoothingEnabled=false;
-{const c=$('#bToDress').querySelector('canvas').getContext('2d');c.drawImage(spr('doll').c,0,0);c.drawImage(spr('wi',{k:'hat',c:'#ff8fb0'}).c,9,-5,16,16);}
-/* きせかえの 1つの ならび(かさ と つえ は 「もつ もの」として 1つに まとめる。1つだけ もてる) */
-const DRESS_ROWS=[['head'],['face'],['neck'],['body'],['bottom'],['feet'],['back'],['hand'],['bag'],['held','wand']];
-const dressList=g=>save.owned.filter(w=>isWear(IT(w))&&g.includes(slotOf(w)));
-const dressCur=g=>{const W=save.doll.wear||{};for(const sl of g)if(W[sl]&&save.owned.includes(W[sl]))return W[sl];return null;};
-function dressSet(g,w){save.doll.wear=save.doll.wear||{};for(const sl of g)delete save.doll.wear[sl];if(w)save.doll.wear[slotOf(w)]=w;}
-function dressStep(g,dir){
-  initAudio();const L=[null,...dressList(g)];
-  let i=Math.max(0,L.indexOf(dressCur(g)));i=(i+dir+L.length)%L.length;
-  dressSet(g,L[i]);
-  persist();chime(L[i]?5:1);M.hop=.5;burst(M.parts,120,70,L[i]?14:6);renderDress();
-}
-function renderDress(){
-  const box=$('#dressList');box.innerHTML='';
-  DRESS_ROWS.forEach(g=>{
-    const L=dressList(g);if(!L.length)return;
-    const cur=dressCur(g),z=document.createElement('div');z.className='dz';
-    const pb=document.createElement('button'),nb=document.createElement('button');pb.className='dzb';nb.className='dzb nx';
-    pb.addEventListener('click',()=>dressStep(g,-1));nb.addEventListener('click',()=>dressStep(g,1));
-    let c;if(cur&&IT(cur)){c=cvOf(spr(IT(cur)[1],IT(cur)[2]).c);c.className='on';}else{c=cvOf(spr(IT(L[0])[1],IT(L[0])[2]).g);c.className='empty';}
-    c.addEventListener('click',()=>{initAudio();chime(3);openShelf(g);});   /* えを タップ: その ならびの ふくを ぜんぶ ひろげる */
-    z.append(pb,c,nb);box.appendChild(z);
-  });
-}
-/* たな: そのならびの ふくを 1かいの タップで えらべる。いちばん はじの てんせんの わくは「なにも きない」 */
-function openShelf(g){
-  const box=$('#shelfGrid');box.innerHTML='';const cur=dressCur(g),L=dressList(g);
-  const none=cvOf(spr(IT(L[0])[1],IT(L[0])[2]).g);none.className='empty'+(cur?'':' on');
-  none.addEventListener('click',()=>{initAudio();dressSet(g,null);persist();chime(1);M.hop=.4;closeShelf();renderDress();});box.appendChild(none);
-  L.forEach(w=>{const it=IT(w),c=cvOf(spr(it[1],it[2]).c);if(w===cur)c.className='on';
-    c.addEventListener('click',()=>{initAudio();dressSet(g,w);persist();chime(5);M.hop=.5;burst(M.parts,120,70,14);closeShelf();renderDress();});box.appendChild(c);});
-  $('#dressShelf').classList.add('on');
-}
-const closeShelf=()=>$('#dressShelf').classList.remove('on');
-$('#shelfX').addEventListener('click',()=>{initAudio();chime(1);closeShelf();});
-onShow.dress=()=>{M.parts.length=0;closeShelf();renderDress();};
-function drawDress(t,dt){
-  dc.drawImage(makeBg('mine'),0,0);
-  if(M.hop>0)M.hop-=dt;
-  drawDoll(dc,120,84,t,M.hop,null,1.8);
-  stepParts(dc,M.parts,dt);
-}
-$('#bToDress').addEventListener('click',()=>{initAudio();chime(4);transit('dress','l');});
-$('#bDressBack').addEventListener('click',()=>{initAudio();transit('mine','r');});
 $('#bMineBack').addEventListener('click',()=>{initAudio();transit('home','r');});
 $('#bToMine').addEventListener('click',()=>{initAudio();chime(4);transit('mine','l');});
 /* ========= おそうじ屋さん(依頼がたまる店) ========= */
@@ -3948,7 +3882,7 @@ updateVoiceNote();setTimeout(()=>{pickVoice();updateVoiceNote();},1500);
 let last=0;
 function frame(ts){
   const dt=Math.min(.05,Math.max(0,ts-last-AUD_PAUSE)/1000||0);last=ts;AUD_PAUSE=0;const t=ts/1000;
-  if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='mine')drawMine(t,dt);else if(screen==='dress')drawDress(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);else if(screen==='shop')drawShop(t,dt);else if(screen==='castle')drawCastle(t,dt);
+  if(screen==='title')drawTitle(t);else if(screen==='home')drawHome(t,dt);else if(screen==='mine')drawMine(t,dt);else if(screen==='room')drawRoom(t,dt);else if(screen==='puzzle')drawPuzzle(t,dt);else if(screen==='shop')drawShop(t,dt);else if(screen==='castle')drawCastle(t,dt);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
