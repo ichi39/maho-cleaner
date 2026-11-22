@@ -221,8 +221,6 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .rgauge{display:inline-block;width:34px;height:7px;border-radius:4px;background:rgba(255,255,255,.25);vertical-align:middle;margin-left:3px;overflow:hidden}
 .rgauge b{display:block;height:100%;background:#ffd84a;border-radius:4px}
 #shelf.night .bar h2{color:#ffe27a}
-#mbub{bottom:auto;animation:mpop .25s;max-width:70%}
-@keyframes mpop{from{opacity:0}}
 .lamps{display:flex;gap:3px;align-items:center;min-width:46px;justify-content:flex-end}
 .lamps i{width:9px;height:9px;border-radius:50%;background:rgba(80,70,110,.35);border:1px solid rgba(80,70,110,.5)}
 .lamps i.on{background:#ffd84a;border-color:#fff6a0;box-shadow:0 0 6px #ffd84a}
@@ -372,7 +370,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
  </section>
  <section id="mine" class="screen" style="background:#2a2550">
   <div class="bar" style="background:#2a2550"><span style="width:46px"></span><h2 style="color:#fff">じぶんの おへや</h2><span style="width:46px"></span></div>
-  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas><div id="mbub" class="sbub"></div><button id="bMineBack" class="arrow right">▶</button></div>
+  <div class="cvwrap"><canvas id="mc" width="240" height="150"></canvas><button id="bMineBack" class="arrow right">▶</button></div>
   <div class="info" id="mineHint">ゆびで ひっぱって うごかせるよ</div>
   <div id="mineTray"></div>
  </section>
@@ -1027,15 +1025,15 @@ const wearKind=it=>it[1]==='wi'?it[2].k:it[1];
 const isWear=it=>!!(it&&SLOT_OF_[wearKind(it)]);
 /* たべもの: [リアクションの しゅるい, セリフ, えもじ, つぶの いろ]。にんぎょうに たべさせると なくなる(コーヒー・ワインは たべものに しない) */
 const FOOD={
- 'みかん':['juicy','すっぱ あまーい!','😋','#ffa850'],'すいか':['juicy','じゅわー!','😆','#ff5a6a'],'もも':['sweet','あまーい!','😍'],'りんご':['crunch','しゃくしゃく!','😋','#fff0d0'],
- 'かき':['yummy','とろーり おいしい!','😊'],'なし':['juicy','しゃりしゃり!','😋','#f4f0b0'],'くり':['yummy','ほくほく!','😊'],'いちご':['sweet','あまずっぱーい!','😍'],
- 'ぶどう':['juicy','ぷちっ! おいしい!','😋','#a88ae0'],'メロン':['sweet','とろけるー!','😍'],'レモン':['sour','すっぱーい!','😖'],'きのこ':['yummy','もぐもぐ いいにおい','😊'],
- 'バナナ':['yummy','ねっとり あまーい!','😋'],'にんじん':['crunch','ぽりぽり!','😋','#ffa850'],'トマト':['fresh','じゅわっと おいしい!','😋'],'なす':['bitter','ふにゃふにゃ…','😕'],
- 'ねぎ':['cry','つーん!','😭'],'たまねぎ':['cry','めが しみるー!','😭'],'だいこん':['crunch','しゃきしゃき!','😋','#ffffff'],'ピーマン':['bitter','にがーい!','😣'],'かぼちゃ':['yummy','ほくほく あまーい!','😊'],
- 'あめ':['sweet','あまーい!','😍'],'だんご':['yummy','もちもち!','😊'],'ケーキ':['sweet','ふわふわ あまーい!','😍'],'ムース':['sweet','ふわっと とろける!','😍'],
- 'クッキー':['crunch','さくさく!','😋','#d9a060'],'ホットケーキ':['hot','ほかほか あちち!','😋'],'チーズ':['love','ごろごろ だいすき!','😻'],'ミルク':['love','ごくごく… ぷはー!','😻'],
- 'アイス':['cold','ひゃー! つめたーい!','🥶'],'サラダ':['fresh','しゃきしゃき!','😋'],'ラーメン':['hot','ふーふー! あちち!','🥵'],'おにぎり':['yummy','もぐもぐ おいしい!','😊'],
- 'ソーダ':['fizz','しゅわしゅわ!','🤩'],'チョコ':['sweet','とろーり あまーい!','😍']
+ 'みかん':['juicy','#ffa850'],'すいか':['juicy','#ff5a6a'],'もも':['sweet'],'りんご':['crunch','#fff0d0'],
+ 'かき':['yummy'],'なし':['juicy','#f4f0b0'],'くり':['yummy'],'いちご':['sweet'],
+ 'ぶどう':['juicy','#a88ae0'],'メロン':['sweet'],'レモン':['sour'],'きのこ':['yummy'],
+ 'バナナ':['yummy'],'にんじん':['crunch','#ffa850'],'トマト':['fresh'],'なす':['bitter'],
+ 'ねぎ':['cry'],'たまねぎ':['cry'],'だいこん':['crunch','#ffffff'],'ピーマン':['bitter'],'かぼちゃ':['yummy'],
+ 'あめ':['sweet'],'だんご':['yummy'],'ケーキ':['sweet'],'ムース':['sweet'],
+ 'クッキー':['crunch','#d9a060'],'ホットケーキ':['hot'],'チーズ':['love'],'ミルク':['love'],
+ 'アイス':['cold'],'サラダ':['fresh'],'ラーメン':['hot'],'おにぎり':['yummy'],
+ 'ソーダ':['fizz'],'チョコ':['sweet']
 };
 const isFood=it=>!!(it&&FOOD[it[0]]);
 const slotOf=w=>{const it=IT(w);return it?SLOT_OF_[wearKind(it)]:null;};
@@ -2670,37 +2668,90 @@ function drawDoll(ctx,x,y,t,hop,fx){
   ctx.fillStyle='rgba(80,50,80,.18)';ctx.fillRect(Math.round(x-15),Math.round(y+DSZ/2-6),30,3);
   if(!fx){ctx.drawImage(CATDOLL.get(save.doll.wear),ox,oy,DSZ,DSZ);return;}
   ctx.save();ctx.translate(Math.round(x+fx.dx),Math.round(y+DSZ/2+bob+fx.dy));ctx.rotate(fx.rot);ctx.scale(fx.sx,fx.sy);
-  ctx.drawImage(CATDOLL.get(save.doll.wear),-DSZ/2,-DSZ,DSZ,DSZ);ctx.restore();
+  ctx.drawImage(CATDOLL.get(save.doll.wear),-DSZ/2,-DSZ,DSZ,DSZ);
+  if(fx.face)drawFace(ctx,fx.face);
+  ctx.restore();
+}
+/* ---- にんぎょうの かお(たべている あいだだけ、め と くちを かきかえる) ----
+   32x32 の ますめ。1ますは 2ドット。ひだりの め は x10〜13、みぎの め は x18〜21、くち は x13〜18 */
+function drawFace(ctx,f){
+  const INK='#4a3a5a',FUR='#fff8f2',PK='#ff8fa0',WH='#ffffff';
+  const P=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(-DSZ/2+(x+1)*2,-DSZ+(y+1)*2,w*2,h*2);};
+  const PM=(x,y,w,h,c,m)=>P(m?32-x-w:x,y,w,h,c);
+  const eye=m=>{
+    switch(f.eye){
+      case 'happy':PM(11,10,2,1,INK,m);PM(10,11,1,1,INK,m);PM(13,11,1,1,INK,m);break;
+      case 'closed':PM(10,11,4,1,INK,m);break;
+      case 'squint':PM(10,10,1,1,INK,m);PM(11,11,2,1,INK,m);PM(10,12,1,1,INK,m);break;
+      case 'wide':PM(10,9,4,4,INK,m);PM(10,9,1,1,FUR,m);PM(13,9,1,1,FUR,m);PM(10,12,1,1,FUR,m);PM(13,12,1,1,FUR,m);PM(11,10,1,1,WH,m);PM(12,12,1,1,'#6a9ad8',m);break;
+      case 'sparkle':PM(10,9,4,4,INK,m);PM(10,9,1,1,FUR,m);PM(13,9,1,1,FUR,m);PM(10,12,1,1,FUR,m);PM(13,12,1,1,FUR,m);PM(11,10,1,1,'#fff6a0',m);PM(12,11,1,1,WH,m);PM(12,12,1,1,'#ffd84a',m);break;
+      case 'heart':PM(10,10,1,1,'#ff5a7a',m);PM(12,10,1,1,'#ff5a7a',m);PM(10,11,3,1,'#ff5a7a',m);PM(11,12,1,1,'#ff5a7a',m);break;
+      case 'sad':PM(11,11,2,2,INK,m);PM(11,11,1,1,WH,m);PM(10,9,2,1,INK,m);PM(12,10,1,1,INK,m);break;
+    }
+  };
+  if(f.eye&&f.eye!=='open'){for(const x0 of [10,18])P(x0,9,4,4,FUR);eye(0);eye(1);}
+  if(f.blush){P(8,13,3,2,f.blush);P(21,13,3,2,f.blush);}
+  if(f.mouth){
+    P(13,14,6,3,FUR);
+    switch(f.mouth){
+      case 'smile':P(13,14,1,1,INK);P(14,15,4,1,INK);P(18,14,1,1,INK);break;
+      case 'open':P(14,15,4,2,INK);P(15,14,2,1,INK);P(15,16,2,1,PK);break;
+      case 'tongue':P(13,14,1,1,INK);P(14,15,4,1,INK);P(18,14,1,1,INK);P(15,16,2,2,PK);break;
+      case 'cat3':P(13,14,1,1,INK);P(14,15,1,1,INK);P(15,14,1,1,INK);P(16,14,1,1,INK);P(17,15,1,1,INK);P(18,14,1,1,INK);break;
+      case 'wavy':P(13,15,1,1,INK);P(14,14,1,1,INK);P(15,15,1,1,INK);P(16,14,1,1,INK);P(17,15,1,1,INK);P(18,14,1,1,INK);break;
+      case 'wavy2':P(13,14,1,1,INK);P(14,15,1,1,INK);P(15,14,1,1,INK);P(16,15,1,1,INK);P(17,14,1,1,INK);P(18,15,1,1,INK);break;
+      case 'pucker':P(15,14,2,2,INK);break;
+      case 'frown':P(14,14,4,1,INK);P(13,15,1,1,INK);P(18,15,1,1,INK);break;
+      case 'flat':P(14,15,4,1,INK);break;
+    }
+  }
 }
 /* ---- たべさせる ---- */
 const EAT={CHEW:.35,REACT:.9,END:2.7};
+/* たべものの しゅるいごとの リアクション。v は「かお」の ばりえーション(まいかい ランダムに えらぶ) */
+const REACT={
+ sweet:{glow:'#ff9ab8',blush:'#ff8fa0',v:[{eye:'heart',mouth:'open'},{eye:'happy',mouth:'smile'},{eye:'sparkle',mouth:'tongue'}]},
+ yummy:{glow:'#ffe27a',blush:'#ffa8a8',v:[{eye:'happy',mouth:'smile'},{eye:'closed',mouth:'cat3'},{eye:'happy',mouth:'open'}]},
+ juicy:{glow:'#ffc070',v:[{eye:'wide',mouth:'open'},{eye:'happy',mouth:'open'},{eye:'sparkle',mouth:'smile'}]},
+ crunch:{v:[{eye:'wide',mouth:'chew'},{eye:'happy',mouth:'chew'},{eye:'sparkle',mouth:'chew'}]},
+ sour:{glow:'#b8e060',v:[{eye:'squint',mouth:'wavy'},{eye:'squint',mouth:'pucker'},{eye:'closed',mouth:'wavy'}]},
+ bitter:{glow:'#8a90b0',v:[{eye:'sad',mouth:'frown'},{eye:'squint',mouth:'wavy'},{eye:'sad',mouth:'wavy'}]},
+ cry:{glow:'#8fd0f0',v:[{eye:'squint',mouth:'frown'},{eye:'squint',mouth:'open'},{eye:'sad',mouth:'frown'}]},
+ hot:{glow:'#ff9060',blush:'#ff6a6a',v:[{eye:'wide',mouth:'pucker'},{eye:'squint',mouth:'open'},{eye:'wide',mouth:'open'}]},
+ cold:{glow:'#b8f0ff',blush:'#a8d8f0',v:[{eye:'squint',mouth:'wavy'},{eye:'wide',mouth:'wavy'},{eye:'closed',mouth:'wavy'}]},
+ love:{glow:'#ffb0c8',blush:'#ff8fa0',v:[{eye:'heart',mouth:'cat3'},{eye:'closed',mouth:'cat3'},{eye:'happy',mouth:'cat3'}]},
+ fizz:{glow:'#d8f4ff',v:[{eye:'wide',mouth:'open'},{eye:'sparkle',mouth:'open'},{eye:'happy',mouth:'tongue'}]},
+ fresh:{glow:'#b8f0a0',v:[{eye:'happy',mouth:'chew'},{eye:'wide',mouth:'smile'},{eye:'sparkle',mouth:'chew'}]}
+};
 const EAT_SND={sweet:[[0,5],[150,7]],yummy:[[0,3],[160,5]],juicy:[[0,4],[140,6]],crunch:[[0,2],[130,2],[260,4]],sour:[[0,7],[120,7]],bitter:[[0,'boo']],cry:[[0,'boo'],[400,1]],
   hot:[[0,6],[150,6],[300,6]],cold:[[0,'hov'],[100,'hov'],[200,'hov'],[300,'hov']],love:[[0,'fan']],fizz:[[0,'hov'],[90,'hov'],[180,'hov'],[270,'hov'],[360,'hov']],fresh:[[0,4],[130,2]]};
 function startEat(w){
   const it=IT(w),F=FOOD[w];if(!it||!F||M.eat)return;
   const i=save.owned.indexOf(w);if(i<0)return;
   save.owned.splice(i,1);save.placed=save.placed.filter(p=>p.w!==w);persist();   /* たべた ものは なくなる */
-  M.food=null;M.eat={w,it,F,t:0,pt:0};M.hop=0;
+  const R=REACT[F[0]],v=pick(R.v);
+  /* まいかい すこし ちがう: かおの ばりえーション・おおきさ・むき・はやさ・おとの たかさ */
+  M.food=null;M.eat={w,it,F,R,v,t:0,pt:0,pw:rnd(.8,1.25),dir:Math.random()<.5?-1:1,fr:rnd(.85,1.2),pitch:Math.random()*3|0,alt:Math.random()<.5};M.hop=0;
   [350,520,690].forEach(ms=>setTimeout(()=>{if(screen==='mine'&&M.eat)chime(1);},ms));
-  (EAT_SND[F[0]]||[]).forEach(([ms,k])=>setTimeout(()=>{if(screen==='mine'&&M.eat)typeof k==='number'?chime(k):sfx(k);},900+ms));
+  (EAT_SND[F[0]]||[]).forEach(([ms,k])=>setTimeout(()=>{if(screen==='mine'&&M.eat)typeof k==='number'?chime(k+M.eat.pitch):sfx(k);},900+ms));
   renderMine();
 }
-function emitEatFx(k,d,F){
-  const f=(o)=>M.fx.push(Object.assign({x:d.x,y:d.y,vx:0,vy:0,g:0,life:1,k:'star',c:'#fff6a0',s:1},o));
-  const r=rnd;
+function emitEatFx(k,d,F,E){
+  const f=o=>M.fx.push(Object.assign({x:d.x,y:d.y,vx:0,vy:0,g:0,life:1,k:'star',c:'#fff6a0',s:1},o));
+  const r=rnd,col=F[1];
   switch(k){
-    case 'sweet':f({k:'heart',x:d.x+r(-14,14),y:d.y-26,vy:-.5,vx:r(-.2,.2),c:pick(['#ff6a8a','#ff9ab8'])});break;
-    case 'love':f({k:'heart',x:d.x+r(-16,16),y:d.y-24,vy:-.45,vx:r(-.25,.25),c:pick(['#ff6a8a','#ff9ab8']),s:2});break;
-    case 'yummy':f({k:'star',x:d.x+r(-18,18),y:d.y-r(10,34),vy:-.2,c:pick(['#fff6a0','#ffe27a','#ffffff']),life:.8});break;
-    case 'fresh':f({k:'star',x:d.x+r(-18,18),y:d.y-r(10,34),vy:-.2,c:pick(['#b8f0a0','#fff6a0','#ffffff']),life:.8});break;
-    case 'juicy':f({k:'drop',x:d.x+r(-6,6),y:d.y-2,vx:r(-.7,.7),vy:-r(.6,1.4),g:.09,c:F[3]||'#ffd84a',life:.9});break;
-    case 'crunch':f({k:'crumb',x:d.x+r(-5,5),y:d.y-2,vx:r(-.9,.9),vy:-r(.3,1.1),g:.1,c:F[3]||'#d9a060',life:.8});break;
-    case 'sour':f({k:'drop',x:d.x+pick([-1,1])*r(14,20),y:d.y-22,vx:0,vy:-.2,g:.05,c:'#b8e060',life:.8});break;
-    case 'bitter':f({k:'drop',x:d.x+14,y:d.y-24,vy:.25,g:.02,c:'#8fd0f0',life:1});break;
+    case 'sweet':{const q=Math.random();f(q<.55?{k:'heart',x:d.x+r(-14,14),y:d.y-26,vy:-.5,vx:r(-.2,.2),c:pick(['#ff6a8a','#ff9ab8','#ffb0c8']),s:Math.random()<.3?2:1}:q<.8?{k:'flash',x:d.x+r(-20,20),y:d.y-r(14,36),life:.5,c:'#fff6a0'}:{k:'note',x:d.x+r(-18,18),y:d.y-26,vy:-.4,vx:r(-.2,.2),c:'#ff8fb0'});break;}
+    case 'love':f(Math.random()<.65?{k:'heart',x:d.x+r(-16,16),y:d.y-24,vy:-.45,vx:r(-.25,.25),c:pick(['#ff6a8a','#ff9ab8']),s:2}:{k:'note',x:d.x+r(-18,18),y:d.y-24,vy:-.4,vx:r(-.25,.25),c:pick(['#ff8fb0','#c89aff'])});break;
+    case 'yummy':f(Math.random()<.6?{k:'star',x:d.x+r(-18,18),y:d.y-r(10,34),vy:-.2,c:pick(['#fff6a0','#ffe27a','#ffffff']),life:.8}:{k:'flash',x:d.x+r(-20,20),y:d.y-r(12,34),life:.5,c:pick(['#fff6a0','#ffe27a'])});break;
+    case 'fresh':f(Math.random()<.6?{k:'star',x:d.x+r(-18,18),y:d.y-r(10,34),vy:-.2,c:pick(['#b8f0a0','#fff6a0','#ffffff']),life:.8}:{k:'leaf',x:d.x+r(-14,14),y:d.y-30,vx:r(-.3,.3),vy:.2,g:.01,c:pick(['#7fcf8f','#a8e0a0']),life:1});break;
+    case 'juicy':f({k:'drop',x:d.x+r(-6,6),y:d.y-2,vx:r(-.9,.9),vy:-r(.6,1.5),g:.09,c:col||'#ffd84a',life:.9});break;
+    case 'crunch':f({k:'crumb',x:d.x+r(-5,5),y:d.y-2,vx:r(-1,1),vy:-r(.3,1.2),g:.1,c:col||'#d9a060',life:.8});break;
+    case 'sour':f(Math.random()<.5?{k:'drop',x:d.x+pick([-1,1])*r(14,20),y:d.y-22,vy:-.2,g:.05,c:'#b8e060',life:.8}:{k:'flash',x:d.x+pick([-1,1])*r(14,24),y:d.y-r(14,30),life:.35,c:'#d8ff80'});break;
+    case 'bitter':f({k:'drop',x:d.x+r(-14,14),y:d.y-DSZ/2-2,vy:.5,g:.05,c:'#8fb0d8',life:.7});break;
     case 'cry':for(const sx of [-9,9])f({k:'drop',x:d.x+sx,y:d.y-8,vx:sx*.02,vy:.3,g:.06,c:'#8fd0f0',life:1});break;
-    case 'hot':f({k:'steam',x:d.x+r(-10,10),y:d.y-30,vy:-.6,vx:r(-.15,.15),c:'#ffffff',life:1});break;
+    case 'hot':f({k:'steam',x:d.x+r(-10,10)+(Math.random()<.4?pick([-16,16]):0),y:d.y-(Math.random()<.4?18:30),vy:-.6,vx:r(-.15,.15),c:'#ffffff',life:1});break;
     case 'cold':f({k:'snow',x:d.x+r(-24,24),y:d.y-r(10,36),vy:.15,vx:r(-.1,.1),c:pick(['#ffffff','#b8f0ff']),life:1});break;
-    case 'fizz':f({k:'bubble',x:d.x+r(-6,6),y:d.y-4,vy:-.7,vx:r(-.2,.2),c:'#d8f4ff',life:1});break;
+    case 'fizz':f({k:'bubble',x:d.x+r(-8,8),y:d.y-4,vy:-.7,vx:r(-.2,.2),c:'#d8f4ff',life:1,s:Math.random()<.3?2:1});break;
   }
 }
 function drawEatFx(ctx,dt){
@@ -2709,42 +2760,61 @@ function drawEatFx(ctx,dt){
     const x=Math.round(q.x),y=Math.round(q.y);ctx.globalAlpha=Math.min(1,q.life*2.2);ctx.fillStyle=q.c;
     if(q.k==='heart'){const s=q.s;for(const [rw,cx,w] of [[0,0,2],[0,3,2],[1,0,5],[2,0,5],[3,1,3],[4,2,1]])ctx.fillRect(x+(cx-2)*s,y+rw*s,w*s,s);}
     else if(q.k==='star'){ctx.fillRect(x-1,y,3,1);ctx.fillRect(x,y-1,1,3);}
+    else if(q.k==='flash'){ctx.fillRect(x-2,y,5,1);ctx.fillRect(x,y-2,1,5);ctx.fillStyle='#ffffff';ctx.fillRect(x-1,y-1,3,3);}
+    else if(q.k==='note'){ctx.fillRect(x,y+4,3,2);ctx.fillRect(x+2,y,1,5);ctx.fillRect(x+3,y,2,1);ctx.fillRect(x+4,y+1,1,1);}
+    else if(q.k==='leaf'){ctx.fillRect(x,y,3,2);ctx.fillRect(x+1,y+2,1,1);}
     else if(q.k==='drop'){ctx.fillRect(x,y,2,2);ctx.fillRect(x,y+2,2,1);}
     else if(q.k==='crumb')ctx.fillRect(x,y,2,2);
     else if(q.k==='steam'){ctx.globalAlpha*=.7;ctx.fillRect(x-1,y,3,3);ctx.fillRect(x,y-1,1,5);}
     else if(q.k==='snow'){ctx.fillRect(x-1,y,3,1);ctx.fillRect(x,y-1,1,3);}
-    else if(q.k==='bubble'){ctx.strokeStyle=q.c;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,2.5,0,6.3);ctx.stroke();}
+    else if(q.k==='bubble'){ctx.strokeStyle=q.c;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,2.5*(q.s||1),0,6.3);ctx.stroke();}
   }
   ctx.globalAlpha=1;
 }
-/* にんぎょうの うごき。もぐもぐ → たべものごとの リアクション */
+/* にんぎょうの うしろの ひかり と、あたまの うえの こうか(くも・ギザギザ)。かおより まえに かく */
+function drawEatAura(ctx,t){
+  const E=M.eat;if(!E)return;const d=save.doll,R=E.R;
+  if(R.glow&&E.t>=EAT.REACT){const a=Math.max(0,Math.min(1,(E.t-EAT.REACT)/.25))*Math.max(0,Math.min(1,(EAT.END-.2-E.t)/.5))*.55;
+    if(a>0){const g=ctx.createRadialGradient(d.x,d.y,4,d.x,d.y,DSZ*.75);g.addColorStop(0,R.glow);g.addColorStop(1,'rgba(255,255,255,0)');ctx.globalAlpha=a*(.8+.2*Math.sin(t*14));ctx.fillStyle=g;ctx.fillRect(d.x-DSZ,d.y-DSZ,DSZ*2,DSZ*2);ctx.globalAlpha=1;}}
+}
+function drawEatTop(ctx,t){
+  const E=M.eat;if(!E||E.t<EAT.REACT||E.t>EAT.END-.3)return;const d=save.doll,k=E.F[0],r=E.t-EAT.REACT,x=Math.round(d.x),y=Math.round(d.y-DSZ/2-8);
+  if(k==='bitter'||k==='cry'){   /* どんよりした くも */
+    ctx.fillStyle='#7a82a0';ctx.fillRect(x-10,y-4,20,5);ctx.fillRect(x-14,y-1,28,5);ctx.fillRect(x-8,y-7,14,4);ctx.fillStyle='#98a0bc';ctx.fillRect(x-8,y-6,6,2);}
+  if(k==='sour'&&Math.sin(r*30)>-.3){   /* ビリビリ */
+    ctx.fillStyle='#d8ff80';for(let a=0;a<6;a++){const an=a*1.047+.5,cx=d.x+Math.cos(an)*30,cy=d.y-12+Math.sin(an)*26;ctx.fillRect(Math.round(cx),Math.round(cy),3,1);ctx.fillRect(Math.round(cx)+1,Math.round(cy)-1,1,3);}}
+}
+/* にんぎょうの うごき。もぐもぐ → たべものごとの リアクション。もじは つかわず、かお と こうか で つたえる */
 function stepEat(dt){
-  const E=M.eat,b=$('#mbub');
-  if(!E){if(b.classList.contains('on'))b.classList.remove('on');return null;}
-  E.t+=dt;const t=E.t,d=save.doll,k=E.F[0],fx={dx:0,dy:0,sx:1,sy:1,rot:0};
-  if(t>=EAT.CHEW&&t<EAT.REACT){const w=Math.sin(t*28);fx.sx=1+.05*w;fx.sy=1-.05*w;}
-  else if(t>=EAT.REACT){
-    const r=t-EAT.REACT,env=Math.max(0,Math.min(1,(EAT.END-.3-t)/.4)),ab=v=>Math.abs(Math.sin(v));
+  const E=M.eat;if(!E)return null;
+  E.t+=dt;const t=E.t,d=save.doll,k=E.F[0],fx={dx:0,dy:0,sx:1,sy:1,rot:0,face:null};
+  if(t<EAT.CHEW)fx.face={eye:'wide',mouth:'open'};                               /* あーん */
+  else if(t<EAT.REACT){const w=Math.sin(t*28);fx.sx=1+.05*w;fx.sy=1-.05*w;        /* もぐもぐ */
+    fx.face={eye:E.alt?'happy':'closed',mouth:Math.sin(t*26)>0?'pucker':'flat'};}
+  else{
+    const r=(t-EAT.REACT)*E.fr,env=Math.max(0,Math.min(1,(EAT.END-.3-t)/.4)),ab=v=>Math.abs(Math.sin(v)),pw=E.pw,dr=E.dir;
     switch(k){
-      case 'sweet':fx.dy=-ab(r*7)*8*(r<1?1:0);fx.rot=Math.sin(r*7)*.05;break;
-      case 'yummy':case 'juicy':fx.dy=-ab(r*5)*5*(r<1.2?1:0);fx.rot=Math.sin(r*5)*.04;break;
-      case 'crunch':case 'fresh':{const w=Math.sin(r*30);fx.sx=1+.05*w;fx.sy=1-.05*w;fx.dy=-ab(r*10)*2;break;}
-      case 'sour':fx.dx=Math.sin(r*60)*2*(r<.9?1:0);fx.sx=.92;fx.sy=1.05;break;
-      case 'bitter':fx.rot=-.12*Math.min(1,r*3)+Math.sin(r*8)*.03;fx.dy=2;break;
-      case 'cry':fx.rot=Math.sin(r*5)*.1;fx.dy=2;fx.dx=Math.sin(r*40)*.8;break;
-      case 'hot':fx.dy=-ab(r*12)*6*(r<1?1:0);fx.rot=Math.sin(r*12)*.06;break;
-      case 'cold':fx.dx=Math.sin(r*70)*1.3*(r<1.3?1:0);fx.sy=.96;break;
-      case 'love':fx.rot=Math.sin(r*4)*.13;fx.sx=1+.03*Math.sin(r*8);fx.sy=1-.03*Math.sin(r*8);break;
-      case 'fizz':fx.dy=-ab(r*6)*4;fx.dy-=(r>1&&r<1.25?6:0);break;
+      case 'sweet':fx.dy=-ab(r*7)*8*pw*(r<1?1:0);fx.rot=Math.sin(r*7)*.05*dr;break;
+      case 'yummy':case 'juicy':fx.dy=-ab(r*5)*5*pw*(r<1.2?1:0);fx.rot=Math.sin(r*5)*.04*dr;break;
+      case 'crunch':case 'fresh':{const w=Math.sin(r*30);fx.sx=1+.05*w;fx.sy=1-.05*w;fx.dy=-ab(r*10)*2*pw;break;}
+      case 'sour':fx.dx=Math.sin(r*60)*2*pw*(r<.9?1:0);fx.sx=.92;fx.sy=1.05;break;
+      case 'bitter':fx.rot=(-.12*Math.min(1,r*3)+Math.sin(r*8)*.03)*dr;fx.dy=2;break;
+      case 'cry':fx.rot=Math.sin(r*5)*.1*dr;fx.dy=2;fx.dx=Math.sin(r*40)*.8;break;
+      case 'hot':fx.dy=-ab(r*12)*6*pw*(r<1?1:0);fx.rot=Math.sin(r*12)*.06*dr;break;
+      case 'cold':fx.dx=Math.sin(r*70)*1.3*pw*(r<1.3?1:0);fx.sy=.96;break;
+      case 'love':fx.rot=Math.sin(r*4)*.13*dr;fx.sx=1+.03*Math.sin(r*8);fx.sy=1-.03*Math.sin(r*8);break;
+      case 'fizz':fx.dy=-ab(r*6)*4*pw-(r>1&&r<1.25?6:0);break;
     }
     fx.dx*=env;fx.dy*=env;fx.rot*=env;fx.sx=1+(fx.sx-1)*env;fx.sy=1+(fx.sy-1)*env;
-    E.pt-=dt;if(t<EAT.END-.4&&E.pt<=0){E.pt=k==='cry'?.18:.09;emitEatFx(k,d,E.F);}
-    if(!b.classList.contains('on')){b.textContent=`${E.F[2]} ${E.F[1]}`;b.classList.add('on');}
-    const lx=Math.max(30,Math.min(70,d.x/RW*100));b.style.left=lx+'%';b.style.top=((d.y-DSZ/2-4+fx.dy)/RH*100)+'%';b.style.transform='translate(-50%,-100%)';
-    const wd=b.offsetWidth/b.parentElement.offsetWidth*100||40;b.style.setProperty('--tl',Math.max(14,Math.min(86,50+(d.x/RW*100-lx)/wd*100))+'%');
+    E.pt-=dt;if(t<EAT.END-.4&&E.pt<=0){E.pt=(k==='cry'?.18:.09)/pw;emitEatFx(k,d,E.F,E);}
+    if(env>.35){let m=E.v.mouth;
+      if(m==='open'||m==='tongue'){if(r>1.1)m='smile';}
+      else if(m==='chew')m=Math.sin(r*26)>0?'pucker':'flat';
+      else if(m==='wavy')m=Math.sin(r*24)>0?'wavy':'wavy2';
+      fx.face={eye:E.v.eye,mouth:m,blush:E.R.blush};}
   }
   if(t<EAT.CHEW){const q=t/EAT.CHEW,sz=Math.round(MSZ*(1-.5*q)),x=Math.round(d.x+26*(1-q)),y=Math.round(d.y-30+26*q);E.fly={x,y,sz};}else E.fly=null;
-  if(t>=EAT.END){M.eat=null;b.classList.remove('on');M.hop=.35;}
+  if(t>=EAT.END){M.eat=null;M.hop=.35;}
   return fx;
 }
 function renderMine(){
@@ -2780,12 +2850,12 @@ function renderMine(){
   if(M.food&&!save.owned.includes(M.food))M.food=null;
   $('#mineHint').textContent=M.food?'にんぎょうを タップして たべさせてね':save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
 }
-onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;$('#mbub').classList.remove('on');renderMine();};
+onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;renderMine();};
 function drawMine(t,dt){
   mc.drawImage(makeBg('mine'),0,0);drawSky(t,mc);
   drawToybox(t,dt);
   if(M.hop>0)M.hop-=dt;
-  const efx=stepEat(dt);
+  const efx=stepEat(dt);drawEatAura(mc,t);
   const list=[...save.placed.map(p=>({o:p})),{o:save.doll,doll:1}].sort((a,b)=>a.o.y-b.o.y);
   for(const e of list){const p=e.o;
     if(e.doll)drawDoll(mc,p.x,p.y,t,M.hop,efx);
@@ -2800,7 +2870,7 @@ function drawMine(t,dt){
   if(M.food&&!M.eat){const it=IT(M.food);if(it){const d=save.doll,bx=Math.round(d.x+18),by=Math.round(d.y-DSZ/2-24+Math.sin(t*4)*2);
     mc.fillStyle='#f3c850';mc.fillRect(bx-1,by-1,30,28);mc.fillStyle='#fff';mc.fillRect(bx,by,28,26);mc.fillStyle='#f3c850';mc.fillRect(bx+4,by+27,4,2);mc.fillStyle='#fff';mc.fillRect(bx+4,by+26,4,2);
     mc.drawImage(spr(it[1],it[2]).c,bx+2,by+1,24,24);}}
-  drawEatFx(mc,dt);
+  drawEatTop(mc,t);drawEatFx(mc,dt);
   drawBoxes(t,dt);
   stepParts(mc,M.parts,dt);
 }
