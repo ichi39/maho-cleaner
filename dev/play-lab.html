@@ -32,7 +32,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
   <h1>あそび かくにん ラボ <small style="font-weight:normal;color:var(--sub)">(ゲームを <code>?lab</code> つきで読み込む。セーブは読まず、書かない)</small></h1>
 </header>
 <div class="wrap">
-  <div class="game"><iframe id="g" src="../index.html?lab" title="ゲーム"></iframe>
+  <div class="game"><iframe id="g" title="ゲーム"></iframe>
     <div id="st">読み込み中…</div>
     <p class="note">音は、いちど ゲームの中を タップすると 鳴ります。ファイルを直接開く(file://)と動かないことがあります。<code>python3 -m http.server</code> か、公開ページから開いてください。</p></div>
   <div class="ctl">
@@ -58,6 +58,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 </div>
 <script>
 const F=document.getElementById('g'),st=document.getElementById('st');
+F.src='../index.html?lab&t='+Date.now();   /* ブラウザの キャッシュで ふるい ゲームが でないように */
 let ready=false,last=null;
 const KINDS=[['sweet','あまい'],['love','だいすき'],['yummy','ほくほく'],['juicy','じゅわー'],['crunch','さくさく'],['fresh','しゃきしゃき'],['sour','すっぱい'],['bitter','にがい'],['cry','つーん'],['hot','あつい'],['cold','つめたい'],['fizz','しゅわしゅわ']];
 const ev=c=>F.contentWindow.eval(c);
@@ -96,7 +97,7 @@ function setTime(m,closed){if(!need())return;
   ev(`(()=>{const D=DAY();D.closed=${closed?'true':'false'};D.min=${m};H.clk=${m};H.nk=${closed?1:0};lampOn=${closed?'true':'false'};const s=screen;show(s==='title'?'home':s);})()`);st.textContent='時間: '+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+(closed?'(夜)':'');}
 document.getElementById('again').onclick=()=>{if(last)eat(last);};
 document.getElementById('ten').onclick=()=>{if(!last)return;eat(last);setTimeout(()=>eat(last),5600);setTimeout(()=>eat(last),11200);};
-F.addEventListener('load',()=>{try{build();ready=true;st.textContent='準備できました';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
+F.addEventListener('load',()=>{try{build();ready=true;st.textContent='準備できました(食べるアクション全体 '+ev('EAT.END')+'秒)';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
 </script>
 </body>
 </html>
