@@ -3115,21 +3115,26 @@ function drawToybox(t,dt){
 /* ========= きせかえの がめん(にんぎょうを おおきく みて、◀ ▶ で ふくを かえる) ========= */
 const dcv=$('#dc'),dc=dcv.getContext('2d');dc.imageSmoothingEnabled=false;
 {const c=$('#bToDress').querySelector('canvas').getContext('2d');c.drawImage(spr('doll').c,0,0);c.drawImage(spr('wi',{k:'hat',c:'#ff8fb0'}).c,9,-5,16,16);}
-function dressStep(sl,dir){
-  initAudio();const L=[null,...save.owned.filter(w=>isWear(IT(w))&&slotOf(w)===sl)];save.doll.wear=save.doll.wear||{};
-  let i=Math.max(0,L.indexOf(save.doll.wear[sl]||null));i=(i+dir+L.length)%L.length;
-  if(L[i])save.doll.wear[sl]=L[i];else delete save.doll.wear[sl];
+/* きせかえの 1つの ならび(かさ と つえ は 「もつ もの」として 1つに まとめる。1つだけ もてる) */
+const DRESS_ROWS=[['head'],['face'],['neck'],['body'],['bottom'],['feet'],['back'],['hand'],['bag'],['held','wand']];
+const dressList=g=>save.owned.filter(w=>isWear(IT(w))&&g.includes(slotOf(w)));
+const dressCur=g=>{const W=save.doll.wear||{};for(const sl of g)if(W[sl]&&save.owned.includes(W[sl]))return W[sl];return null;};
+function dressSet(g,w){save.doll.wear=save.doll.wear||{};for(const sl of g)delete save.doll.wear[sl];if(w)save.doll.wear[slotOf(w)]=w;}
+function dressStep(g,dir){
+  initAudio();const L=[null,...dressList(g)];
+  let i=Math.max(0,L.indexOf(dressCur(g)));i=(i+dir+L.length)%L.length;
+  dressSet(g,L[i]);
   persist();chime(L[i]?5:1);M.hop=.5;burst(M.parts,120,70,L[i]?14:6);renderDress();
 }
 function renderDress(){
   const box=$('#dressList');box.innerHTML='';
-  WSLOT_ORDER.forEach(sl=>{
-    const L=save.owned.filter(w=>isWear(IT(w))&&slotOf(w)===sl);if(!L.length)return;
-    const cur=save.doll.wear&&save.doll.wear[sl],z=document.createElement('div');z.className='dz';
+  DRESS_ROWS.forEach(g=>{
+    const L=dressList(g);if(!L.length)return;
+    const cur=dressCur(g),z=document.createElement('div');z.className='dz';
     const pb=document.createElement('button'),nb=document.createElement('button');pb.className='dzb';nb.className='dzb nx';
-    pb.addEventListener('click',()=>dressStep(sl,-1));nb.addEventListener('click',()=>dressStep(sl,1));
+    pb.addEventListener('click',()=>dressStep(g,-1));nb.addEventListener('click',()=>dressStep(g,1));
     let c;if(cur&&IT(cur)){c=cvOf(spr(IT(cur)[1],IT(cur)[2]).c);c.className='on';}else{c=cvOf(spr(IT(L[0])[1],IT(L[0])[2]).g);c.className='empty';}
-    c.addEventListener('click',()=>{if(cur){initAudio();delete save.doll.wear[sl];persist();chime(1);M.hop=.4;renderDress();}else dressStep(sl,1);});   /* えを タップ: ぬぐ / きる */
+    c.addEventListener('click',()=>{if(cur){initAudio();dressSet(g,null);persist();chime(1);M.hop=.4;renderDress();}else dressStep(g,1);});   /* えを タップ: ぬぐ / きる */
     z.append(pb,c,nb);box.appendChild(z);
   });
 }
