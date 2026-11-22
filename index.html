@@ -3174,8 +3174,8 @@ function renderStamps(fresh){
   setTimeout(()=>{mb.disabled=false;},full?1900:1500);
 }
 /* ========= 1にちの ながれ(あさ → よる → へいてん → けっか → あさ) ========= */
-/* とけい: あさ9じから。なにも しなくても 30ぷんずつ すすみ、おきゃくさんを 1にん おわらせると 1じかん すすむ。さいだい8にん */
-const CLK={START:540,COST:60,AUTO:30,AUTO_SEC:45,CAP:8,END:n=>n===1?900:1140};
+/* とけい: あさ9じから。なにも しなくても 30ぷんずつ すすみ、おきゃくさんを 1にん おわらせると 1じかん すすむ。さいだい4にん */
+const CLK={START:540,COST:60,AUTO:30,AUTO_SEC:25,CAP:4,END:n=>n===1?900:1140};
 function newDay(n,next){return{n,min:CLK.START,end:CLK.END(n),cap:CLK.CAP,spawned:0,done:0,served:0,coins:0,items:[],met:[],next:next||[],closed:false};}
 function ensureClock(D){if(D.cap==null)D.cap=CLK.CAP;if(D.end==null)D.end=CLK.END(D.n||1);if(D.min==null)D.min=Math.min(D.end,CLK.START+(D.done||0)*CLK.COST);}
 if(!save.day||typeof save.day!=='object')save.day=newDay(1);
@@ -3207,8 +3207,8 @@ function stepNight(dt){
   if(!D.closed&&lampOn&&H.nk<.55){lampOn=false;sfx('c1');}
 }
 function drawSky(t){
-  const D=DAY(),p=D.closed?1:dayP(D),nk=H.nk;
-  const eve=D.closed?1:Math.max(0,(p-.45)/.55);
+  const D=DAY(),p=Math.max(0,Math.min(1,((H.clk!=null?H.clk:D.min)-CLK.START)/(D.end-CLK.START))),nk=H.nk;
+  const eve=Math.max(0,(p-.45)/.55);
   hc.save();hc.beginPath();hc.rect(GL,GT,GW,GH);hc.clip();
   if(nk<1){
     if(eve>0){hc.fillStyle=`rgba(255,140,90,${.42*eve})`;hc.fillRect(GL,GT,GW,GH);hc.fillStyle=`rgba(120,80,160,${.25*eve})`;hc.fillRect(GL,GT,GW,22);}
@@ -3233,7 +3233,7 @@ function drawNightRoom(){const nk=H.nk;if(nk>0){hc.fillStyle=`rgba(30,22,80,${.3
 /* さいごの おきゃくさんが かえると、ひが ゆっくり くれて、ランプが ともり、ボタンが でる */
 function checkClose(){
   const D=DAY();if(D.closed)return;
-  if((D.done>=D.cap||D.min>=D.end)&&!H.cs.some(c=>c.ph)&&!save.reqs.some(r=>r.leaving)){D.closed=true;$('#hreq').classList.remove('on');persist();renderReqList();
+  if((D.done>=D.cap||D.min>=D.end)&&!H.cs.some(c=>c.ph)&&!save.reqs.some(r=>r.leaving)){D.closed=true;D.min=D.end;$('#hreq').classList.remove('on');persist();renderReqList();
     sfx('c1');talk(WITCH,'ひが くれて きたね…',2.6);
     setTimeout(()=>{if(screen==='home'&&DAY().closed){lampOn=true;sfx('c6');burst(hparts,120,52,16,1);}},1800);
     setTimeout(()=>{if(screen==='home'&&DAY().closed){talk(WITCH,'きょうは もう おしまい。おみせを しめよう!',5);}},2700);
