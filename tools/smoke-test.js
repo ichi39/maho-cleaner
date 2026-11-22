@@ -66,6 +66,9 @@ if(api){
   run('ねこ(ぜんぶのせ)','save.doll.wear={head:"かんむり",face:"めがね",neck:"マフラー",body:"エプロン",bottom:"スカート",feet:"ブーツ",hand:"てぶくろ",bag:"かばん",back:"ようせいのはね",wand:"まほうのつえ"};drawDoll(mc,120,90,1,.5)');
   run('部屋の背景','for(let i=0;i<THEMES.length;i++)makeBg(i);makeBg("home");makeBg("mine")');
   run('お店と部屋の色','Object.keys(CATS).forEach(c=>{if(THEMES[CAT_THEME[c]]===undefined)throw new Error("CAT_THEME が ない: "+c);})');
+  run('いちにち と とけい','onShow.home();for(let i=0;i<60;i++)drawHome(i/10,.1);dayHandled({gain:1},true);save.day.min=save.day.end;for(let i=0;i<60;i++)drawHome(10+i/10,.1);showDayEnd();goMorning();for(let i=0;i<60;i++)drawHome(20+i/10,.1)');
+  run('とけいの すう字','if(fmtT(540)!=="09:00"||fmtT(1140)!=="19:00")throw new Error("fmtT");const D=newDay(1);if(D.end!==900||D.cap!==8)throw new Error("newDay");ensureClock({n:2,done:2});');
+  run('まほうの みち と ほしぞら','POOL.hira.forEach(c=>save.seen[norm(c)]=2);if(Math.floor(stageP())!==4)throw new Error("stageP "+stageP());checkConste();renderPath(0,4.5);renderSky();gaugeHTML();');
 }
 console.log(path.basename(file),'→ エラー',errs.length);
 for(const e of errs.slice(0,15))console.log('  ',e.join(' | '));
