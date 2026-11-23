@@ -1418,7 +1418,7 @@ function allowed(it){
   if(hasSmall(w)&&k<26)return false;
   return novelOf(w).length<=3;
 }
-function pickItems(cat,n){
+function pickItems(cat,n,want){
   const recentW=new Set(save.recentW||[]);
   const ok=ITEMS.filter(allowed),out=[],nov=new Set();
   const early=(save.made||0)<6;
@@ -1432,6 +1432,8 @@ function pickItems(cat,n){
   const pool=ok.filter(it=>it[3]===cat).sort((a,b)=>score.get(a)-score.get(b)).sort((a,b)=>early?(isWear(b)-isWear(a)):0);
   /* まだ なれて いない もじを ふくむ ものを ひとつ さきに(すべての もじに であえる ように) */
   {const k=pool.findIndex(it=>novelOf(it[0]).length>0);if(k>0&&Math.random()<.8)pool.unshift(pool.splice(k,1)[0]);}
+  /* にんぎょうが ぼんやり おもっている たべもの: そのお店の いらいなら、ときどき ひとつだけ まぜる(むずかしさの せいげんは add が まもる) */
+  if(want&&want[3]===cat&&Math.random()<.8){const k=pool.indexOf(want);if(k>=0){pool.splice(k,1);pool.unshift(want);}}
   for(const it of pool){if(out.length>=n)break;add(it);}
   const need=Math.min(n,3);
   if(out.length<need)for(const it of shuffle(ok.filter(i=>i[3]!==cat)).sort((a,b)=>novelOf(a[0]).length-novelOf(b[0]).length)){if(out.length>=need)break;add(it);}
@@ -1457,13 +1459,16 @@ function makeRequest(){
   let avail=cats.filter(c=>(okCnt[c]||0)>=3);if(!avail.length)avail=cats;
   const known=knownN('hira')+knownN('kata'),n=known<8?3:pick([2,3,3,3,4]);
   let cat,items,key,tries=0;
+  const dw=save.made>=6?dreamWant():null;   /* ぼんやり おもっている たべもの(まだ なおして いない もの) */
   do{
     const r=Math.random();
     const others=avail.filter(c=>c!==cl.fav&&c!==cl.dis);
     cat=(save.made<2&&avail.includes('clothes'))?'clothes':(save.made<6&&r<.4&&avail.includes('clothes'))?'clothes':(r<.55&&avail.includes(cl.fav))?cl.fav:(r<.65&&avail.includes(cl.dis))?cl.dis:pick(others.length?others:avail);
-    items=pickItems(cat,n);key=cat+':'+items.map(i=>i[0]).sort().join(',');tries++;
+    if(dw&&tries===0&&cl.dis!==dw[3]&&avail.includes(dw[3])&&Math.random()<.5)cat=dw[3];
+    items=pickItems(cat,n,dw&&cat===dw[3]?dw:null);key=cat+':'+items.map(i=>i[0]).sort().join(',');tries++;
   }while(tries<12&&(save.recent.includes(key)||(tries<6&&save.reqs.some(r=>r.cat===cat))||(tries<5&&(save.recentCat||[]).slice(-2).includes(cat))));
   save.made=(save.made||0)+1;
+  if(dw&&items.includes(dw)&&save.dream)save.dream.lb=save.made;   /* まぜた いらいの かいすう(つづけて まぜない) */
   save.recent=[...save.recent,key].slice(-12);
   save.lastCl=[...save.lastCl,ci].slice(-4);
   save.recentW=[...save.recentW,...items.map(i=>i[0])].slice(-30);
@@ -2234,9 +2239,14 @@ function genStock(cat){
     cand.push(k);}
   cand=shuffle(cand).sort((a,b)=>(fx.has(b)-fx.has(a))||(markOf[a]-markOf[b]));   /* きょうの → ながく ならんで いない じゅん */
   const N=Math.min(6,4+(rr()<.5?1:0)+(cand.length>8?1:0));
+  const dwv=dreamValid(),dwW=dwv&&!hasK(dwv.w)?dwv.w:null;   /* ぼんやり おもっている たべものは、たなに ならびやすく(まだなら はてなで) */
+  if(dwW){const i=cand.findIndex(k=>baseW(k)===dwW);if(i>0)cand.unshift(cand.splice(i,1)[0]);}
   const list=cand.slice(0,N).map(k=>({k}));
-  list.forEach(e=>markOffered(e.k));
   const tz=shuffle(items.filter(it=>!save.got[it[0]]));
+  let dz=null;
+  if(dwW){const i=tz.findIndex(it=>it[0]===dwW);if(i>=0){dz=tz.splice(i,1)[0];if(list.length>=N)list.pop();}}
+  list.forEach(e=>markOffered(e.k));
+  if(dz)list.push({k:dz[0],tz:1});
   while(list.length<Math.min(N,3)&&tz.length)list.push({k:tz.pop()[0],tz:1});
   if(list.length<N&&tz.length&&rr()<.6)list.push({k:tz.pop()[0],tz:1});
   const buy=list.filter(e=>!e.tz&&!hasK(e.k));if(buy.length)pick(buy).sale=1;
@@ -3214,13 +3224,18 @@ const NEG=['sour','bitter','cry'];   /* にがい・すっぱい など いや�
 const EAT_SND={sweet:[[0,5],[150,7]],yummy:[[0,3],[160,5]],juicy:[[0,4],[140,6]],crunch:[[0,2],[130,2],[260,4]],sour:[[0,7],[120,7]],bitter:[[0,'boo']],cry:[[0,'boo'],[400,1]],
   hot:[[0,6],[150,6],[300,6]],cold:[[0,'hov'],[100,'hov'],[200,'hov'],[300,'hov']],love:[[0,'fan']],fizz:[[0,'hov'],[90,'hov'],[180,'hov'],[270,'hov'],[360,'hov']],fresh:[[0,4],[130,2]]};
 function startEat(w){
-  const it=IT(w),F=FOOD[w];if(!it||!F||M.eat)return;
+  const it=IT(w),F0=FOOD[w];if(!it||!F0||M.eat)return;
   const i=save.owned.indexOf(w);if(i<0)return;
+  const wish=!!dreamValid()&&save.dream.w===w;   /* ぼんやり おもっていた ものを もらった! */
+  if(wish)save.dream=null;M.dr=null;
   save.owned.splice(i,1);save.placed=save.placed.filter(p=>p.w!==w);persist();   /* たべた ものは なくなる */
-  const R=REACT[F[0]],v=pick(R.v);
+  const F=wish&&NEG.includes(F0[0])?['love']:F0;   /* おもっていた ものは、にがくても だいすき */
+  const R=wish?Object.assign({},REACT[F[0]],{glow:'#ffe27a',blush:'#ff8fa0'}):REACT[F[0]],v=wish?pick([{eye:'heart',mouth:'smile'},{eye:'sparkle',mouth:'open'},{eye:'heart',mouth:'cat3'}]):pick(R.v);
   /* まいかい すこし ちがう: かおの ばりえーション・おおきさ・むき・はやさ・おとの たかさ */
-  M.food=null;M.eat={w,it,F,R,v,thx:pick(['bow','hop','wiggle']),coldBrr:Math.random()<.5,v2:pick([{eye:'heart',mouth:'open'},{eye:'happy',mouth:'tongue'},{eye:'sparkle',mouth:'smile'},{eye:'closed',mouth:'cat3'}]),t:0,pt:0,pw:rnd(.8,1.25),dir:Math.random()<.5?-1:1,fr:rnd(.85,1.2),pitch:Math.random()*3|0,alt:Math.random()<.5};M.hop=0;
+  M.food=null;M.eat={w,it,F,R,v,wish,thx:pick(['bow','hop','wiggle']),coldBrr:!wish&&Math.random()<.5,v2:pick([{eye:'heart',mouth:'open'},{eye:'happy',mouth:'tongue'},{eye:'sparkle',mouth:'smile'},{eye:'closed',mouth:'cat3'}]),t:0,pt:0,pw:rnd(.8,1.25),dir:Math.random()<.5?-1:1,fr:rnd(.85,1.2),pitch:Math.random()*3|0,alt:Math.random()<.5};M.hop=0;
   [450,700,950,1200].forEach(ms=>setTimeout(()=>{if(screen==='mine'&&M.eat)chime(1);},ms));
+  if(wish){[0,110,220,330,440].forEach((ms,k)=>setTimeout(()=>{if(screen==='mine'&&M.eat)chime(2+k);},EAT.REACT*1000+ms));   /* とくべつ: きらきら あがる おと と ひかり */
+    setTimeout(()=>{if(screen==='mine'&&M.eat)burst(M.parts,save.doll.x,save.doll.y-10,22);},EAT.REACT*1000);}
   const E0=M.eat,snd=F[0]==='cold'?(E0.coldBrr?[[0,'hov'],[90,'hov'],[180,'hov'],[800,5],[950,7]]:[[0,'hov'],[150,5],[300,7]]):(EAT_SND[F[0]]||[]),again=!NEG.includes(F[0])&&F[0]!=='cold';
   [0,...(again?[1500]:[])].forEach((off,r)=>snd.forEach(([ms,k])=>setTimeout(()=>{if(screen==='mine'&&M.eat)typeof k==='number'?chime(k+M.eat.pitch+r):sfx(k);},EAT.REACT*1000+off+ms)));
   setTimeout(()=>{if(screen==='mine'&&M.eat){if(NEG.includes(F[0]))chime(1);else{chime(5);setTimeout(()=>{if(M.eat)chime(7);},150);}}},EAT.THX*1000+100);   /* ありがとう(いやな ものの あとは ほっと ひといき) */
@@ -3244,6 +3259,7 @@ function emitEatFx(k,d,F,E){
       else f(Math.random()<.6?{k:'heart',x:d.x+r(-14,14),y:d.y-26,vy:-.5,vx:r(-.2,.2),c:pick(['#ff6a8a','#ff9ab8'])}:{k:'flash',x:d.x+r(-20,20),y:d.y-r(14,36),life:.5,c:'#d8f4ff'});break;}
     case 'fizz':f({k:'bubble',x:d.x+r(-8,8),y:d.y-4,vy:-.7,vx:r(-.2,.2),c:'#d8f4ff',life:1,s:Math.random()<.3?2:1});break;
   }
+  if(E&&E.wish&&Math.random()<.7)f(Math.random()<.55?{k:'star',x:d.x+r(-28,28),y:d.y-r(4,40),vy:-.3,c:pick(['#ffe27a','#fff6a0','#ffffff']),life:.9}:{k:'heart',x:d.x+r(-20,20),y:d.y-26,vy:-.5,vx:r(-.2,.2),c:pick(['#ff6a8a','#ff9ab8']),s:Math.random()<.4?2:1});   /* おもっていた ものは とくべつ */
 }
 function drawEatFx(ctx,dt){
   for(let i=M.fx.length-1;i>=0;i--){const q=M.fx[i];q.life-=dt;if(q.life<=0){M.fx.splice(i,1);continue;}
@@ -3326,6 +3342,7 @@ function stepEat(dt){
   return fx;
 }
 function renderMine(){
+  M.idle=0;
   const tr=$('#mineTray');tr.innerHTML='';
   const row=(icon,list,click,mark,dragKind)=>{
     const r=document.createElement('div');r.className='trow';const ic=cvOf(icon);ic.className='ricon';r.appendChild(ic);
@@ -3359,12 +3376,73 @@ function renderMine(){
   if(M.food&&!save.owned.includes(M.food))M.food=null;
   $('#mineHint').textContent=M.food?'ふきだしか にんぎょうを タップして たべさせてね':save.deliv.length?'とどいた はこを タップして あけてね':'にんぎょうや ものを ゆびで うごかせるよ';
 }
-onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;renderMine();};
+onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=null;M.dr=null;M.idle=0;
+  M.dreamAt=(save.dreamDay!==dreamNow()&&Math.random()<DREAM.P)?rnd(DREAM.T0,DREAM.T1):null;   /* ときどき(ひに 1かいまで)、ぼんやり するだけ */
+  renderMine();};
+/* ---- にんぎょうの ぼんやり(たべものだけ) ----
+   へやで ぼんやり していると、ときどき あたまの うえに くもが うかび、たべものを おもう。「ちょうだい」とは いわない。
+   おもっている ものは save.dream={w,n(おもった ひ),lb(いらいに まぜた かいすう)}。
+   ・まだ なおして いない たべものなら、いらいに ときどき まざり、おみせの たなに はてなで ならぶ
+   ・あとで あげると、とくべつな リアクション(startEat の wish) */
+const DREAM={P:.22,T0:8,T1:15,DUR:4.4,DAYS:4};
+const dreamNow=()=>save.day?save.day.n:1;
+function dreamValid(){const d=save.dream;if(!d||!IT(d.w)||!isFood(IT(d.w))||dreamNow()-d.n>DREAM.DAYS)return null;return d;}
+function dreamWant(){
+  const d=dreamValid();if(!d||hasK(d.w)||save.got[d.w])return null;const it=IT(d.w);
+  if(!allowed(it)||(save.made||0)-(d.lb==null?-99:d.lb)<4)return null;   /* 4かいに 1かいまで */
+  if((save.reqs||[]).some(r=>r.items.some(i=>i[0]===d.w)))return null;
+  return it;
+}
+function dreamPick(){
+  const cur=dreamValid(),recent=save.dreamH||[];
+  const foods=ITEMS.filter(it=>isFood(it)&&notSp(it)&&shopOpen(it[3])&&!hasK(it[0]));
+  const old=foods.filter(it=>save.got[it[0]]),unk=foods.filter(it=>!save.got[it[0]]&&allowed(it));
+  if(cur&&!hasK(cur.w)&&foods.some(it=>it[0]===cur.w)&&Math.random()<.5)return cur.w;   /* まだ おなじ ものを おもっている */
+  let pool=Math.random()<.5&&unk.length?unk:old;if(!pool.length)pool=unk.length?unk:old;if(!pool.length)return null;
+  if(pool===unk){const m=Math.min(...pool.map(it=>novelOf(it[0]).length));pool=pool.filter(it=>novelOf(it[0]).length<=m+1);}   /* かんたんな ものを えらぶ */
+  const fr=pool.filter(it=>!recent.includes(it[0]));return pick(fr.length?fr:pool)[0];
+}
+function dreamStart(){
+  const w=dreamPick();if(!w)return false;const n=dreamNow(),cur=save.dream;
+  if(cur&&cur.w===w&&dreamValid())cur.n=n;else save.dream={w,n,lb:-99};
+  save.dreamH=[...(save.dreamH||[]),w].slice(-5);save.dreamDay=n;
+  if(save.stock&&save.stock.shops)delete save.stock.shops[IT(w)[3]];   /* きょうの たなに ならびなおす */
+  persist();M.dr={w,t:0,rect:null};chime(4);setTimeout(()=>{if(M.dr)chime(7);},170);return true;
+}
+function stepDream(dt){
+  if(M.dr){M.dr.t+=dt;if(M.dr.t>=DREAM.DUR)M.dr=null;return;}
+  if(M.dreamAt==null)return;
+  if(M.eat||M.drag||M.food||UB||M.stow||TD.on||TR){M.idle=0;return;}
+  M.idle+=dt;if(M.idle>=M.dreamAt){M.dreamAt=null;dreamStart();}
+}
+const dreamFx=t=>{const D=M.dr;if(!D||M.eat||D.t<.25||D.t>DREAM.DUR-.3)return null;return{dx:0,dy:0,sx:1,sy:1,rot:Math.sin(t*2)*.03,face:{eye:'closed',mouth:'smile',blush:'#ffb0c0'}};};
+function drawDream(ctx,t){
+  const D=M.dr;if(!D||M.eat)return;const it=IT(D.w);if(!it)return;
+  const a=Math.min(1,D.t/.5,(DREAM.DUR-D.t)/.6);if(a<=0)return;
+  const d=save.doll,bw=34,bh=30,rise=(1-Math.min(1,D.t/.5))*5;
+  const bx=Math.max(3,Math.min(RW-bw-3,Math.round(d.x+8))),by=Math.max(3,Math.round(d.y-DSZ/2-bh-8-rise+Math.sin(t*2.2)*1.5));
+  D.rect={x:bx,y:by,w:bw,h:bh};
+  ctx.save();ctx.globalAlpha=a;
+  const dot=(x,y,z)=>{ctx.fillStyle='#c9b8ff';ctx.fillRect(x-1,y-1,z+2,z+2);ctx.fillStyle='#fff';ctx.fillRect(x,y,z,z);};
+  dot(Math.round(d.x+5),by+bh+6,2);dot(Math.round(d.x+8),by+bh+2,3);
+  const R=[[6,0,22,30],[2,3,30,24],[0,7,34,16]];
+  ctx.fillStyle='#c9b8ff';for(const [x,y,w,h] of R)ctx.fillRect(bx+x-1,by+y-1,w+2,h+2);
+  ctx.fillStyle='#fff';for(const [x,y,w,h] of R)ctx.fillRect(bx+x,by+y,w,h);
+  ctx.drawImage(spr(it[1],it[2]).c,bx+5,by+3,24,24);
+  ctx.fillStyle='#ffe27a';
+  [[-4,6],[bw+2,-1],[bw-4,bh+1]].forEach(([x,y],i)=>{if(Math.sin(t*5+i*2.1)>-.2){const X=bx+x,Y=by+y;ctx.fillRect(X-1,Y,3,1);ctx.fillRect(X,Y-1,1,3);}});
+  ctx.restore();
+}
+function tapDream(p){   /* くもを タップ: きらっと して きえる(なにも おこらない) */
+  const D=M.dr,r=D&&D.rect;if(!r||M.eat||p.x<r.x-4||p.x>r.x+r.w+4||p.y<r.y-4||p.y>r.y+r.h+8)return false;
+  for(let i=0;i<9;i++)M.fx.push({x:r.x+r.w/2,y:r.y+r.h/2,vx:rnd(-1,1),vy:rnd(-1,.3),g:.03,life:.7,k:i%2?'star':'flash',c:'#ffe27a',s:1});
+  chime(7);M.hop=.3;D.t=Math.max(D.t,DREAM.DUR-.6);return true;
+}
 function drawMine(t,dt){
   mc.drawImage(makeBg('mine'),0,0);drawSky(t,mc);
   drawToybox(t,dt);
   if(M.hop>0)M.hop-=dt;
-  const efx=stepEat(dt);drawEatAura(mc,t);
+  stepDream(dt);const efx=stepEat(dt)||dreamFx(t);drawEatAura(mc,t);
   const list=[...save.placed.map(p=>({o:p})),{o:save.doll,doll:1}].sort((a,b)=>a.o.y-b.o.y);
   for(const e of list){const p=e.o;
     if(e.doll)drawDoll(mc,p.x,p.y,t,M.hop,efx);
@@ -3379,13 +3457,14 @@ function drawMine(t,dt){
   if(M.food&&!M.eat){const it=IT(M.food);if(it){const b=foodBubble(t),bx=b.x,by=b.y;
     mc.fillStyle='#f3c850';mc.fillRect(bx-1,by-1,30,28);mc.fillStyle='#fff';mc.fillRect(bx,by,28,26);mc.fillStyle='#f3c850';mc.fillRect(bx+4,by+27,4,2);mc.fillStyle='#fff';mc.fillRect(bx+4,by+26,4,2);
     mc.drawImage(spr(it[1],it[2]).c,bx+2,by+1,24,24);}}
-  drawEatTop(mc,t);drawEatFx(mc,dt);
+  drawEatTop(mc,t);drawDream(mc,t);drawEatFx(mc,dt);
   drawBoxes(t,dt);
   stepParts(mc,M.parts,dt);
 }
 mcv.addEventListener('pointerdown',e=>{
   initAudio();const p=roomPoint(mcv,e,RW,RH);
   if(tapBox(p)){renderMine();return;}
+  if(tapDream(p))return;
   const list=[...save.placed.map(o=>({o})),{o:save.doll,doll:1}].sort((a,b)=>a.o.y-b.o.y);let hit=null;
   for(let i=list.length-1;i>=0;i--){const q=list[i],h=(q.doll?DSZ:MSZ)/2;if(Math.abs(p.x-q.o.x)<h&&Math.abs(p.y-q.o.y)<h){hit=q;break;}}
   if(M.food&&!M.eat){const b=foodBubble();if(p.x>=b.x-4&&p.x<=b.x+b.w+4&&p.y>=b.y-4&&p.y<=b.y+b.h+4){startEat(M.food);return;}}

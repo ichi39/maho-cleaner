@@ -107,6 +107,7 @@
 | `conste` / `newShops` | 完成した星座 / 開いたばかりのお店(お店に戻ったとき知らせる) |
 | `stock` | その日の品ぞろえ `{n:日, shops:{お店:[{k,slot,sale,tz}]}}` |
 | `keeper` | お店ごとの店番(お客さんの番号) |
+| `dream` / `dreamDay` / `dreamH` | 人形がぼんやり思っている食べ物(`{w,n(思った日),lb(依頼に混ぜた回数)}`、4日で期限切れ) / 最後に雲を出した日(1日1回まで) / 直近に思った物(最大5) |
 | `stamps` / `servedTotal` | スタンプの数 / 支払いを受けた合計人数 |
 | `diary` / `events` / `dayLog` | 日記の3つのタブの中身 |
 | `aud` | 音の設定 `{bgm,sfx,voice}` |
