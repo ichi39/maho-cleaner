@@ -282,6 +282,12 @@ const ITEMS=[
  ['back','wings','ようせいのはね','wings',null,'#d8f0ff'],
  ['wand','wand','まほうのつえ','wand',null,'#c89a6a'],
  ['held','umbrella','かさ','umbrella',null,'#8fb8e8'],
+ ['body','smock','スモック','shirt','smock','#ffd84a'],
+ ['body','onepiece','ワンピース','shirt','onepiece','#8fd0f0'],
+ ['bottom','bloomers','かぼちゃパンツ','bloomers',null,'#ffa850'],
+ ['feet','rainboots','ながぐつ','rainboots',null,'#ffd84a'],
+ ['neck','scarf','スカーフ','scarf',null,'#e8606a'],
+ ['neck','collarbell','すず','collarbell',null,'#e8606a'],
 ];
 const FIXED_COLOR=new Set(['crown','startiara','flowercrown','rainbowdress','starcape','wings','wand','glassshoe']);
 // 耳を服の上に出す(耳が帽子の穴から出ているように見せる)
@@ -387,6 +393,20 @@ tie(d,R,o){
   d.p(15,T+2,hi);d.p(14,T+4,hi);d.p(17,T+5,lo);d.p(16,T+7,lo);
   for(const y of [T+4,T+6])d.p(15,y,hi);
 },
+
+scarf(d,R,o){
+  const c=o.c,y=R.ch,hi=shade(c,.45),lo=shade(c,-.25);
+  sr(d,y,6,c);sr(d,y+1,5,c);sr(d,y+2,4,c);sr(d,y+3,3,c);sr(d,y+4,2,c);sr(d,y+5,1,c);
+  sr(d,y,6,lo);sr(d,y+1,5,shade(c,-.08));
+  d.r(14,y,4,1,hi);d.r(17,y+1,2,2,lo);d.r(13,y+1,2,2,lo);d.r(15,y+1,2,2,c);d.p(15,y+1,hi);
+  for(const [x,yy] of [[11,y+2],[20,y+2],[13,y+3],[18,y+3],[15,y+4]])d.p(x,yy,hi);
+},
+
+collarbell(d,R,o){
+  const c=o.c,y=R.ch,hi=shade(c,.45),lo=shade(c,-.25),G='#f3c850';
+  sr(d,y,5,c);sr(d,y+1,5,lo);for(let x=11;x<=20;x+=3)d.p(x,y,hi);
+  d.r(15,y+2,2,3,G);d.r(15,y+2,2,1,'#fff6c0');d.p(15,y+3,'#fff6c0');d.p(15,y+4,shade(G,-.35));d.p(16,y+4,shade(G,-.35));d.p(16,y+3,'#a07818');
+},
 muffler(d,R,o){
   const c=o.c,y=R.ch,hi=shade(c,.45),lo=shade(c,-.25);
   sr(d,y,6,c);sr(d,y+1,6,c);sr(d,y+2,5,lo);
@@ -434,6 +454,27 @@ shirt(d,R,o){
     for(let y=B;y<=hem;y++)hr(d,10,21,y,c);                                // スカート(広い四角)
     hr(d,10,21,hem,CR);                                                    // 白いすそ
     d.r(13,B+1,6,3,pk);d.p(15,B+2,'#e8465a');d.p(16,B+2,'#e8465a');        // ポケットと赤い点
+    return;}
+
+  if(t==='smock'){   /* スモック: ゆったり ひろがる すそ、ながい そで、まるい えり、おおきな ポケット */
+    const hem=R.ty1+3,hi2=shade(c,.3);
+    for(let y=T;y<=hem;y++)sr(d,y,hwAt(R,Math.min(y,B))+(y>B?Math.min(3,y-B+1):0),c);
+    const len=R.ay1-R.ay0+1;mr(d,armL(R)-1,R.ay0,aw+1,len,c);mr(d,armL(R)-1,R.ay0+len-1,aw+1,1,lo);mr(d,armL(R)+aw-1,R.ay0+1,1,len-2,shade(c,-.16));
+    sr(d,T,4,CR);d.p(15,T,null);d.p(16,T,null);sr(d,T+1,3,CR);d.p(15,T+1,null);d.p(16,T+1,null);
+    sr(d,hem,hwAt(R,B)+3,lo);sr(d,hem-1,hwAt(R,B)+3,shade(c,.12));
+    mr(d,11,B-1,4,3,hi2);mr(d,11,B-1,4,1,lo);mp(d,12,B,shade(c,-.1));
+    d.p(15,T+2,GOLD);d.p(16,T+2,GOLD);d.p(15,T+4,GOLD);d.p(16,T+4,GOLD);
+    return;}
+  if(t==='onepiece'){   /* ワンピース: みじかい そで、えり、ぼたん、ベルト、すこし ひろがる スカート */
+    const hem=R.fy0-1,hi2=shade(c,.4);
+    for(let y=T;y<=T+4;y++)sr(d,y,hwAt(R,y),c);
+    mr(d,armL(R)-1,R.ay0,aw+1,3,c);mr(d,armL(R)-1,R.ay0+2,aw+1,1,lo);
+    sr(d,T+4,hwAt(R,T+4),lo);sr(d,T+4,2,GOLD);
+    for(let y=T+5;y<=hem;y++)sr(d,y,5+Math.round((y-T-5)*.5),c);
+    sr(d,hem,5+Math.round((hem-T-5)*.5),hi2);sr(d,hem-1,5+Math.round((hem-1-T-5)*.5),shade(c,.14));
+    sr(d,T,3,CR);d.p(15,T,null);d.p(16,T,null);sr(d,T+1,2,CR);d.p(15,T+1,null);d.p(16,T+1,null);
+    for(const y of [T+2,T+3])d.p(15,y,GOLD);for(const y of [T+6,T+8,T+10])d.p(15,y,lo);
+    for(const [x,y] of [[12,T+7],[19,T+8],[11,T+10],[20,T+11],[16,T+12]])if(d.g[y]&&d.g[y][x])d.p(x,y,hi2);
     return;}
   const sw=t==='sweater';
   for(let y=T;y<=B;y++)sr(d,y,hwAt(R,y)+(sw&&y>=B-1?1:0),c);
@@ -545,6 +586,22 @@ shoe(d,R,o){
   mp(d,x+1,R.fy0,hi);mp(d,x+2,R.fy0,hi);                                      // つま先のつや
   if(!tall){mp(d,x+3,R.fy0,CR);mp(d,x+3,R.fy0+1,shade(c,-.12));mp(d,x+2,R.fy0+1,CR);}   // ひも
   mp(d,x+4,R.fy1,shade(c,-.45));
+},
+
+bloomers(d,R,o){
+  const c=o.c,hi=shade(c,.4),lo=shade(c,-.25),y0=R.ty1;
+  sr(d,y0,hwAt(R,y0),lo);d.r(14,y0,4,1,GOLD);
+  sr(d,y0+1,hwAt(R,y0)+1,c);sr(d,y0+2,hwAt(R,y0)+1,c);sr(d,y0+3,hwAt(R,y0),c);
+  mr(d,10,y0+3,5,1,lo);d.p(15,y0+3,null);d.p(16,y0+3,null);d.p(15,y0+2,lo);d.p(16,y0+2,lo);
+  for(const [x,y] of [[11,y0+1],[13,y0+2],[18,y0+1],[20,y0+2],[16,y0+1]])d.p(x,y,hi);
+  mp(d,11,y0+2,shade(c,-.1));
+},
+
+rainboots(d,R,o){
+  const c=o.c,x=legL(R)-1,w=R.lw+1,hi=shade(c,.5),lo=shade(c,-.3);
+  mr(d,legL(R),R.ly0,R.lw,R.fy0-R.ly0,c);mr(d,legL(R),R.ly0,R.lw,1,hi);mr(d,legL(R),R.ly0+1,R.lw,1,shade(c,-.1));
+  mp(d,legL(R)+1,R.ly0+2,hi);mp(d,legL(R)+1,R.ly0+3,hi);mp(d,legL(R)+R.lw-1,R.ly0+2,lo);mp(d,legL(R)+R.lw-1,R.ly0+3,lo);
+  mr(d,x,R.fy0,w,3,c);mp(d,x,R.fy0,null);mr(d,x,R.fy1,w,1,lo);mr(d,x,R.fy1-1,w,1,shade(c,-.1));mp(d,x+1,R.fy0,hi);mp(d,x+2,R.fy0,hi);
 },
 socks(d,R,o){
   const c=o.c,c2=o.c2||'#ff8fb0',x=legL(R)-1;
