@@ -315,9 +315,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .jarimg.big{width:40px;height:48px;margin:0}
 .jarimg.shake{animation:shake .35s}
 .flyc{position:fixed;left:0;top:0;z-index:60;pointer-events:none;margin:0}
-.rbtn{position:absolute;left:4px;bottom:6px;z-index:3;min-width:50px;min-height:46px;padding:3px 6px;background:#fff;border:3px solid var(--gold);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;opacity:.7}
+.rbtn{position:absolute;left:50%;top:-46px;transform:translateX(-50%);z-index:3;min-width:50px;min-height:40px;padding:2px 6px;background:#fff;border:3px solid var(--gold);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;opacity:.7}
 .rbtn b{font-size:20px;font-weight:normal;line-height:1}
-.rbtn.can{opacity:1;animation:pulse 1.4s infinite}
+.rbtn.can{opacity:1;animation:pulse2 1.4s infinite}
 .rbtn .pips{display:flex;gap:3px}
 .rbtn .pips i{width:7px;height:7px;border-radius:50%;background:#e4dccc;border:1px solid #c8bca4}
 .rbtn .pips i.on{background:#f3c850;border-color:#d9a845}
@@ -327,8 +327,8 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .dayjar canvas{width:44px;height:44px;image-rendering:pixelated}
 .dayjar .arw{color:#ffe27a;font-size:20px}
 .jw{position:relative;display:inline-block;height:48px}
-.jw .fc{position:absolute;left:12px;top:-4px;opacity:0;animation:jarfall 1.2s ease-in infinite}
-.jw .fc:nth-of-type(2){left:4px;animation-delay:.4s}.jw .fc:nth-of-type(3){left:20px;animation-delay:.8s}
+.jw .fc{position:absolute;left:12px;top:-4px;opacity:0;animation:jarfall .7s ease-in both}
+.jw .fc:nth-of-type(2){left:4px;animation-delay:.18s}.jw .fc:nth-of-type(3){left:20px;animation-delay:.36s}.jw .fc:nth-of-type(4){left:8px;animation-delay:.54s}.jw .fc:nth-of-type(5){left:16px;animation-delay:.72s}
 @keyframes jarfall{0%{transform:translateY(-6px);opacity:0}25%{opacity:1}80%{opacity:1}100%{transform:translateY(24px);opacity:0}}
 #shopPanel{width:100%;flex:1;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;background:var(--cream);border-top:3px solid var(--gold)}
 #shopPanel>canvas{width:80px;height:80px}
@@ -4145,9 +4145,9 @@ function renderDayJar(fresh){
   const b=D.jarB||0;if(!b){row.style.display='none';return;}
   row.style.display='';el.innerHTML='';
   const from=D.jarFrom!=null?D.jarFrom:Math.max(0,save.jar-b),to=save.jar;
-  el.appendChild(cvOf(spr('present',{c:'#ff8fb0'}).c));el.insertAdjacentHTML('beforeend','<span class="arw">▶</span><span class="jw">'+jarHTML('big')+'<span class="coin fc"></span><span class="coin fc"></span><span class="coin fc"></span></span>');
+  el.appendChild(cvOf(spr('present',{c:'#ff8fb0'}).c));el.insertAdjacentHTML('beforeend','<span class="arw">▶</span><span class="jw">'+jarHTML('big')+(fresh?'<span class="coin fc"></span>'.repeat(5):'')+'</span>');
   const img=el.querySelector('.jarimg');img.src=jarURL(from/REST.SHOW);
-  if(fresh)for(let i=1;i<=4;i++)setTimeout(()=>{if(img.isConnected)img.src=jarURL((from+(to-from)*i/4)/REST.SHOW);},500+i*260);else img.src=jarURL(to/REST.SHOW);
+  if(fresh)for(let i=1;i<=4;i++)setTimeout(()=>{if(img.isConnected)img.src=jarURL((from+(to-from)*i/4)/REST.SHOW);},700+i*190);else img.src=jarURL(to/REST.SHOW);
 }
 function showDayEnd(){
   const D=DAY();$('#dayN').textContent=`${D.n}にちめ おしまい`;
