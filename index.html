@@ -3384,7 +3384,7 @@ onShow.mine=()=>{M.sel=null;M.parts.length=0;M.eat=null;M.fx.length=0;M.food=nul
    おもっている ものは save.dream={w,n(おもった ひ),lb(いらいに まぜた かいすう)}。
    ・まだ なおして いない たべものなら、いらいに ときどき まざり、おみせの たなに はてなで ならぶ
    ・あとで あげると、とくべつな リアクション(startEat の wish) */
-const DREAM={P:.22,T0:8,T1:15,DUR:4.4,DAYS:4};
+const DREAM={P:.22,T0:3,T1:6,DUR:4.4,DAYS:4};
 const dreamNow=()=>save.day?save.day.n:1;
 function dreamValid(){const d=save.dream;if(!d||!IT(d.w)||!isFood(IT(d.w))||dreamNow()-d.n>DREAM.DAYS)return null;return d;}
 function dreamWant(){
