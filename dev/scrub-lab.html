@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>こすって ぴかぴか ラボ(開発用)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#fffe;border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:16px;margin:0 0 4px}
+.devnav{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px}.devnav a{color:var(--acc)}
+.wrap{display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px 60px;max-width:1100px;margin:0 auto;align-items:flex-start}
+.stage{flex:none;width:min(100%,420px)}
+canvas#cv{display:block;width:100%;height:auto;border:3px solid var(--acc);border-radius:12px;background:#2a2550;touch-action:none;-webkit-user-select:none;user-select:none;cursor:none}
+.ctl{flex:1;min-width:280px}
+h2{font-size:15px;margin:16px 0 4px;border-left:5px solid var(--acc);padding-left:8px}
+h2:first-child{margin-top:0}
+p.note{margin:0 0 6px;color:var(--sub);font-size:12px}
+.btns{display:flex;flex-wrap:wrap;gap:5px}
+button{font:inherit;color:inherit;border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;cursor:pointer}
+button:hover{background:#f0eaff}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+label{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+label input[type=range]{flex:1}
+input[type=text]{font:inherit;border:1px solid var(--line);border-radius:7px;padding:3px 8px;width:9em}
+#info{font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+ul{margin:4px 0;padding-left:20px;color:var(--sub);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>こすって ぴかぴか ラボ(パズルの「特別な回」の試作)</h1>
+  <div class="devnav"><a href="index.html">← 開発メニュー</a><a href="../index.html">ゲーム本体</a></div>
+</header>
+<div class="wrap">
+  <div class="stage"><canvas id="cv" width="360" height="321"></canvas></div>
+  <div class="ctl">
+    <h2>ことば</h2>
+    <p class="note">汚れの下に隠れた文字を、指(マウス)でこすって出します。全部出すと、物が直ります。</p>
+    <div class="btns" id="words"></div>
+    <p class="note" style="margin-top:6px">自分で入れる(ひらがな・カタカナ、5文字まで):
+      <input type="text" id="custom" maxlength="5" placeholder="ことば"> <button id="bCustom">この ことば</button></p>
+    <h2>よごれ</h2>
+    <div class="btns" id="dirts"></div>
+    <h2>むずかしさ(ゲームでは、慣れた文字ほど薄く・厚くして自動調整)</h2>
+    <label>文字のうっすら度 <input type="range" id="hint" min="0" max="100" value="70"><span id="hintV">70</span></label>
+    <label>スポンジの大きさ <input type="range" id="brush" min="5" max="14" value="9"><span id="brushV">9</span></label>
+    <label><input type="checkbox" id="snd" checked> 音(こする音・ぴかっ)</label>
+    <div class="btns" style="margin-top:6px"><button id="bAgain">もういちど</button><button id="bNext">つぎの ことば</button></div>
+    <h2>いまの ようす</h2>
+    <div id="info"></div>
+    <h2>ゲームに入れるとき(メモ)</h2>
+    <ul>
+      <li>汚れは別の層(低い解像度の canvas)。こすった所を消すので、ドット絵に合う。</li>
+      <li>文字ごとの「きれいになった割合」は、マス目(いまは 1マス = 低解像度の 1ドット)で数える。画像の読み取りは、最初の1回だけ。</li>
+      <li>本体では、文字が出た所で <code>arrive</code>(欠片が飛び込む・はまる音・進み具合)を呼ぶ。</li>
+      <li>声は出さない。単語の読み上げもしない(このモードだけ)。</li>
+      <li>慣れた文字ほど、うっすら度を下げる(<code>fam</code> を使う)。汚れの厚さは慣れで少し増やす。</li>
+    </ul>
+  </div>
+</div>
+<script>
+'use strict';
+/* ====== もとになる すうち ====== */
+const W=360,H=321,K=3,LW=W/K,LH=H/K;           /* 画面(360x321)と、汚れの層(120x107ドット。3倍で出す) */
+const BOARD={x:12,y:111,w:336,h:198};           /* よごれた いた(画面の座標) */
+const LCOL=['#ff8fb0','#ffb347','#6fd08a','#5ab8f0','#b08ae0','#ffd84a','#ff7f7f','#4fd0c8'];
+const FONT='"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Meiryo","Noto Sans CJK JP","Noto Sans JP",sans-serif';
+const DIRTS={
+  dust:{name:'ほこり',base:[176,160,140],dark:[140,124,106],light:[206,194,176],alpha:.4,need:3},
+  mud:{name:'どろ',base:[122,92,62],dark:[88,64,42],light:[150,120,86],alpha:.3,need:4}
+};
+const WORDS=[['りんご','🍎'],['ほん','📖'],['かがみ','🪞'],['ケーキ','🍰'],['さかな','🐟'],['ひこうき','✈️'],['ゆきだるま','⛄'],['ぬの','🧵']];
+const DONE_RATIO=.72;                            /* この わりあい きれいに なったら、その もじは でる */
+
+/* ====== 画面まわり ====== */
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+const G=document.createElement('canvas');G.width=LW;G.height=LH;const gx=G.getContext('2d');   /* よごれの そう */
+const S={word:'りんご',emoji:'🍎',dirt:'dust',hint:.7,r:9,snd:true,letters:[],owner:null,cnt:null,popT:[],doneAt:[],allT:0,parts:[],pt:null,last:null,sx:-99,sy:0,moveD:0,t0:performance.now()};
+
+const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0];
+const rgb=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a==null?1:a})`;
+
+/* ====== おと(Web Audio。こえは つかわない) ====== */
+let AC=null,NB=null;
+function audio(){if(AC)return AC;try{AC=new (window.AudioContext||window.webkitAudioContext)();const n=AC.sampleRate*.12,b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);NB=b;}catch(e){}return AC;}
+function scrubSnd(){
+  if(!S.snd||!audio())return;try{
+    const a=AC,t=a.currentTime,s=a.createBufferSource();s.buffer=NB;s.playbackRate.value=rnd(.9,1.3);
+    const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=rnd(2200,3400);f.Q.value=1.4;
+    const g=a.createGain();g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);
+    s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);
+  }catch(e){}
+}
+function tone(freq,at,dur,type,vol){
+  if(!S.snd||!audio())return;try{const a=AC,t=a.currentTime+at,o=a.createOscillator(),g=a.createGain();
+    o.type=type||'triangle';o.frequency.value=freq;g.gain.setValueAtTime(vol||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}
+}
+const chimeAt=i=>{const f=[523,659,784,880,988,1175][i%6];tone(f,0,.35);tone(f*2,.06,.25,'sine',.05);};
+function fanfare(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.11,.4));tone(1319,.5,.6,'sine',.1);}
+
+/* ====== ことばを セットする ====== */
+function setWord(w,emoji){
+  S.word=w;S.emoji=emoji||'✨';S.allT=0;S.parts.length=0;
+  const ch=[...w],n=ch.length,slotW=Math.min(96,(BOARD.w-24)/n),total=n*slotW,x0=BOARD.x+(BOARD.w-total)/2,cy=BOARD.y+BOARD.h/2+4,fs=Math.round(slotW*.82);
+  S.letters=ch.map((c,i)=>({ch:c,i,x:x0+i*slotW,w:slotW,cx:x0+i*slotW+slotW/2,cy,fs,col:LCOL[i%LCOL.length],total:0,clean:0,done:false}));
+  S.popT=ch.map(()=>0);S.doneAt=ch.map(()=>0);
+  buildMasks();buildGrime();updInfo();
+  document.querySelectorAll('#words button').forEach(b=>b.classList.toggle('on',b.dataset.w===w));
+}
+/* もじの かたちを 低解像度の マス目に うつして、どの マスが どの もじか おぼえる(ここだけ 画像を よみとる) */
+function buildMasks(){
+  S.owner=new Int8Array(LW*LH).fill(-1);S.cnt=new Uint8Array(LW*LH);
+  const m=document.createElement('canvas');m.width=LW;m.height=LH;const mx=m.getContext('2d',{willReadFrequently:true});
+  S.letters.forEach(L=>{
+    mx.clearRect(0,0,LW,LH);mx.fillStyle='#000';mx.font=`bold ${L.fs/K}px ${FONT}`;mx.textAlign='center';mx.textBaseline='middle';
+    mx.fillText(L.ch,L.cx/K,L.cy/K);
+    const d=mx.getImageData(0,0,LW,LH).data;
+    for(let p=0;p<LW*LH;p++)if(d[p*4+3]>90&&S.owner[p]<0){S.owner[p]=L.i;L.total++;}
+  });
+}
+/* よごれを つくる(どろ・ほこりの ブチと つぶ)。もじの ところは「うっすら」にして、すけて みえるように する */
+function buildGrime(){
+  const D=DIRTS[S.dirt],bx=BOARD.x/K,by=BOARD.y/K,bw=BOARD.w/K,bh=BOARD.h/K;
+  gx.globalCompositeOperation='source-over';gx.globalAlpha=1;gx.clearRect(0,0,LW,LH);
+  gx.save();gx.beginPath();gx.rect(bx,by,bw,bh);gx.clip();
+  gx.fillStyle=rgb(D.base,.97);gx.fillRect(bx,by,bw,bh);
+  for(let i=0;i<70;i++){gx.fillStyle=rgb(pick([D.dark,D.light,D.base]),rnd(.35,.8));const r=rnd(3,11);gx.beginPath();gx.arc(rnd(bx,bx+bw),rnd(by,by+bh),r,0,6.3);gx.fill();}
+  for(let i=0;i<420;i++){gx.fillStyle=rgb(pick([D.dark,D.light]),rnd(.4,.9));gx.fillRect(Math.floor(rnd(bx,bx+bw)),Math.floor(rnd(by,by+bh)),pick([1,1,2]),pick([1,1,2]));}
+  if(S.dirt==='dust'){gx.strokeStyle=rgb(D.light,.5);gx.lineWidth=1;for(let i=0;i<14;i++){const x=rnd(bx,bx+bw),y=rnd(by,by+bh);gx.beginPath();gx.moveTo(x,y);gx.lineTo(x+rnd(-14,14),y+rnd(-14,14));gx.stroke();}}
+  gx.restore();
+  /* うっすら: もじの かたちの ぶぶんだけ、よごれを けずる(0 なら かたちは まったく みえない) */
+  if(S.hint>0){gx.globalCompositeOperation='destination-out';gx.globalAlpha=S.hint*.62;gx.fillStyle='#000';gx.textAlign='center';gx.textBaseline='middle';
+    S.letters.forEach(L=>{gx.font=`bold ${L.fs/K}px ${FONT}`;gx.fillText(L.ch,L.cx/K,L.cy/K);});
+    gx.globalCompositeOperation='source-over';gx.globalAlpha=1;}
+}
+
+/* ====== こする ====== */
+function stamp(x,y){   /* x,y は 低解像度の ざひょう */
+  const r=S.r,D=DIRTS[S.dirt];
+  gx.save();gx.globalCompositeOperation='destination-out';gx.globalAlpha=D.alpha;gx.fillStyle='#000';gx.beginPath();gx.arc(x,y,r,0,6.3);gx.fill();gx.restore();
+  const x0=Math.max(0,Math.floor(x-r)),x1=Math.min(LW-1,Math.ceil(x+r)),y0=Math.max(0,Math.floor(y-r)),y1=Math.min(LH-1,Math.ceil(y+r));
+  const touched=new Set();
+  for(let yy=y0;yy<=y1;yy++)for(let xx=x0;xx<=x1;xx++){
+    if((xx-x)*(xx-x)+(yy-y)*(yy-y)>r*r)continue;
+    const p=yy*LW+xx,o=S.owner[p];if(o<0)continue;
+    const L=S.letters[o];if(L.done)continue;
+    if(S.cnt[p]<255){S.cnt[p]++;if(S.cnt[p]===D.need){L.clean++;touched.add(o);}}
+  }
+  touched.forEach(o=>{const L=S.letters[o];if(!L.done&&L.clean/L.total>=DONE_RATIO)letterDone(L);});
+  if(Math.random()<.5)S.parts.push({k:'bub',x:x*K+rnd(-12,12),y:y*K+rnd(-10,10),vx:rnd(-.3,.3),vy:rnd(-.9,-.3),life:rnd(.5,1),r:rnd(2,5)});
+}
+function letterDone(L){
+  L.done=true;S.popT[L.i]=performance.now();S.doneAt[L.i]=performance.now();
+  /* もじの まわりを いっきに きれいに(とちゅうは じゅんばんに ひろがる) */
+  const w=L.w/K,h=BOARD.h/K;
+  gx.save();gx.globalCompositeOperation='destination-out';gx.globalAlpha=1;gx.fillStyle='#000';
+  gx.beginPath();gx.ellipse(L.cx/K,L.cy/K,w*.62,h*.46,0,0,6.3);gx.fill();gx.restore();
+  for(let i=0;i<18;i++)S.parts.push({k:'spk',x:L.cx+rnd(-30,30),y:L.cy+rnd(-30,30),vx:rnd(-1.2,1.2),vy:rnd(-1.8,-.2),life:rnd(.6,1.1),r:rnd(2,4),c:pick(['#fff6a0','#ffe27a','#ffffff'])});
+  chimeAt(S.letters.filter(l=>l.done).length-1);
+  if(S.letters.every(l=>l.done)){S.allT=performance.now();setTimeout(fanfare,350);gx.clearRect(0,0,LW,LH);for(let i=0;i<50;i++)S.parts.push({k:'spk',x:rnd(20,340),y:rnd(110,300),vx:rnd(-1,1),vy:rnd(-1.6,-.3),life:rnd(.8,1.6),r:rnd(2,5),c:pick(['#fff6a0','#ffe27a','#ffffff','#ffb0c8'])});}
+  updInfo();
+}
+
+/* ====== ポインター ====== */
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};}
+cv.addEventListener('pointerdown',e=>{audio();if(AC&&AC.state==='suspended')AC.resume();cv.setPointerCapture(e.pointerId);const p=pos(e);S.pt=p;S.last=p;S.moveD=0;if(!S.allT)stamp(p.x/K,p.y/K);});
+cv.addEventListener('pointermove',e=>{const p=pos(e);S.sx=p.x;S.sy=p.y;if(!S.pt)return;
+  if(S.allT){S.pt=p;S.last=p;return;}
+  const dx=p.x-S.last.x,dy=p.y-S.last.y,d=Math.hypot(dx,dy),step=Math.max(2,S.r*K*.5);
+  if(d>=step){const n=Math.floor(d/step);for(let i=1;i<=n;i++)stamp((S.last.x+dx*i/n)/K,(S.last.y+dy*i/n)/K);S.last={x:p.x,y:p.y};S.moveD+=d;if(S.moveD>46){S.moveD=0;scrubSnd();}}
+  S.pt=p;});
+const up=()=>{S.pt=null;S.last=null;};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',e=>{S.sx=-99;});
+
+/* ====== えがく ====== */
+let lastT=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-lastT)/1000);lastT=now;draw(now,dt);requestAnimationFrame(frame);
+}
+function draw(now,dt){
+  /* はいけい */
+  const bg=cx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#fdeef2');bg.addColorStop(1,'#d8e8fb');cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+  /* うえの ものの え: もじが でるたびに、そのぶぶんが なおる */
+  drawItem(now);
+  /* いた(よごれた まどのような ばん) */
+  cx.fillStyle='#6a4a62';cx.fillRect(BOARD.x-3,BOARD.y-3,BOARD.w+6,BOARD.h+6);
+  const bgr=cx.createLinearGradient(0,BOARD.y,0,BOARD.y+BOARD.h);bgr.addColorStop(0,'#fffaf0');bgr.addColorStop(1,'#f3ead8');cx.fillStyle=bgr;cx.fillRect(BOARD.x,BOARD.y,BOARD.w,BOARD.h);
+  /* もじ */
+  cx.textAlign='center';cx.textBaseline='middle';
+  S.letters.forEach(L=>{
+    const pt=now-S.popT[L.i],pop=L.done&&pt<420?1+.22*Math.sin(pt/420*Math.PI):1;
+    cx.save();cx.translate(L.cx,L.cy);cx.scale(pop,pop);
+    cx.font=`bold ${L.fs}px ${FONT}`;
+    cx.fillStyle='rgba(106,74,98,.18)';cx.fillText(L.ch,2,3);
+    cx.fillStyle=L.col;cx.fillText(L.ch,0,0);
+    if(L.done){cx.globalAlpha=Math.max(0,1-pt/700)*.7;cx.fillStyle='#ffffff';cx.fillText(L.ch,0,0);}
+    cx.restore();
+  });
+  /* よごれの そう(ドットを そのまま 3ばい) */
+  cx.imageSmoothingEnabled=false;cx.drawImage(G,0,0,W,H);
+  /* ぜんぶ でた: ぴかっと ひかる はば */
+  if(S.allT){const k=(now-S.allT)/1000;if(k<1.2){const x=-80+k/1.2*(W+160);cx.save();cx.beginPath();cx.rect(BOARD.x,BOARD.y,BOARD.w,BOARD.h);cx.clip();cx.fillStyle='rgba(255,255,255,.55)';cx.beginPath();cx.moveTo(x,BOARD.y);cx.lineTo(x+40,BOARD.y);cx.lineTo(x-10,BOARD.y+BOARD.h);cx.lineTo(x-50,BOARD.y+BOARD.h);cx.fill();cx.restore();}}
+  /* つぶ */
+  for(let i=S.parts.length-1;i>=0;i--){const q=S.parts[i];q.life-=dt;if(q.life<=0){S.parts.splice(i,1);continue;}
+    q.x+=q.vx*dt*60;q.y+=q.vy*dt*60;
+    if(q.k==='bub'){cx.globalAlpha=Math.min(1,q.life*1.6)*.9;cx.strokeStyle='#ffffff';cx.lineWidth=1.5;cx.beginPath();cx.arc(q.x,q.y,q.r,0,6.3);cx.stroke();cx.fillStyle='rgba(200,235,255,.35)';cx.fill();}
+    else{q.vy+=.02*dt*60;cx.globalAlpha=Math.min(1,q.life*2);cx.fillStyle=q.c;const s=Math.round(q.r);cx.fillRect(Math.round(q.x)-s,Math.round(q.y),s*2+1,1);cx.fillRect(Math.round(q.x),Math.round(q.y)-s,1,s*2+1);cx.fillStyle='#fff';cx.fillRect(Math.round(q.x)-1,Math.round(q.y)-1,3,3);}
+    cx.globalAlpha=1;}
+  drawSponge(now);
+}
+function drawItem(now){
+  const n=S.letters.length,cxm=W/2,cym=62,fs=64;
+  cx.font=`${fs}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;cx.textAlign='center';cx.textBaseline='middle';
+  const half=fs*.7,x0=cxm-half,tw=half*2;
+  S.letters.forEach((L,i)=>{
+    const a=x0+tw*i/n,b=x0+tw*(i+1)/n,pt=now-S.doneAt[i],jump=L.done&&pt<400?-8*Math.sin(pt/400*Math.PI):0;
+    cx.save();cx.beginPath();cx.rect(a-.5,0,b-a+1,H);cx.clip();
+    cx.globalAlpha=L.done?1:.28;cx.translate(0,L.done?jump:(i%2?5:-3));cx.rotate(L.done?0:(i%2?.06:-.05));
+    cx.fillText(S.emoji,cxm,cym);cx.restore();
+  });
+  if(S.allT){const k=(now-S.allT)/1000;if(k<1){cx.save();cx.globalAlpha=1-k;cx.fillStyle='#ffe27a';cx.font='bold 28px sans-serif';cx.fillText('✨',cxm-48+Math.sin(k*9)*4,cym-34-k*14);cx.fillText('✨',cxm+48,cym-24-k*10);cx.restore();}}
+  /* すすみぐあいの ほし */
+  const sp=22,sx0=cxm-(n-1)*sp/2;S.letters.forEach((L,i)=>{cx.font='18px sans-serif';cx.globalAlpha=L.done?1:.3;cx.fillText('⭐',sx0+i*sp,108-16);cx.globalAlpha=1;});
+}
+function drawSponge(now){
+  if(S.sx<0&&!S.pt)return;const p=S.pt||{x:S.sx,y:S.sy};if(p.x<0)return;
+  const x=Math.round(p.x),y=Math.round(p.y),down=!!S.pt,w=26,h=18,wob=down?Math.sin(now/45)*2:0;
+  cx.save();cx.translate(x+10,y-8+wob);cx.rotate(-.3);
+  cx.fillStyle='#6a4a62';cx.fillRect(-w/2-2,-h/2-2,w+4,h+4);cx.fillStyle='#ffd84a';cx.fillRect(-w/2,-h/2,w,h);cx.fillStyle='#ffe98a';cx.fillRect(-w/2,-h/2,w,4);
+  cx.fillStyle='#e8b830';for(const [a,b] of [[-8,2],[0,-2],[7,3],[-2,5],[9,-3]])cx.fillRect(a,b,3,3);
+  cx.fillStyle='#6fd0f0';cx.fillRect(-w/2,h/2-4,w,4);cx.restore();
+  /* スポンジの あたる ばしょの めやす */
+  cx.strokeStyle='rgba(106,74,98,.35)';cx.lineWidth=1;cx.beginPath();cx.arc(x,y,S.r*K,0,6.3);cx.stroke();
+}
+
+/* ====== パネル ====== */
+function updInfo(){
+  const el=document.getElementById('info');
+  el.textContent=S.letters.map(L=>`${L.ch}  ${String(Math.round(L.clean/Math.max(1,L.total)*100)).padStart(3)}%  ${L.done?'✓ でた':''}`).join('\n')+(S.letters.every(l=>l.done)?'\n\nぜんぶ でた → 物が なおる':'');
+}
+setInterval(updInfo,200);
+function mkBtns(){
+  const wb=document.getElementById('words');WORDS.forEach(([w,e])=>{const b=document.createElement('button');b.textContent=e+' '+w;b.dataset.w=w;b.addEventListener('click',()=>setWord(w,e));wb.appendChild(b);});
+  const db=document.getElementById('dirts');Object.keys(DIRTS).forEach(k=>{const b=document.createElement('button');b.textContent=DIRTS[k].name;b.dataset.d=k;b.classList.toggle('on',k===S.dirt);b.addEventListener('click',()=>{S.dirt=k;db.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.d===k));setWord(S.word,S.emoji);});db.appendChild(b);});
+}
+mkBtns();
+const bind=(id,fn)=>{const e=document.getElementById(id),v=document.getElementById(id+'V');const f=()=>{fn(+e.value);if(v)v.textContent=e.value;};e.addEventListener('input',f);f();};
+bind('hint',v=>{S.hint=v/100;});document.getElementById('hint').addEventListener('change',()=>setWord(S.word,S.emoji));
+bind('brush',v=>{S.r=v;});
+document.getElementById('snd').addEventListener('change',e=>{S.snd=e.target.checked;});
+document.getElementById('bAgain').addEventListener('click',()=>setWord(S.word,S.emoji));
+document.getElementById('bNext').addEventListener('click',()=>{const o=WORDS.filter(x=>x[0]!==S.word);const [w,e]=pick(o);setWord(w,e);});
+document.getElementById('bCustom').addEventListener('click',()=>{const v=document.getElementById('custom').value.trim();if(v&&/^[ぁ-んァ-ヶー]{1,5}$/.test(v))setWord(v,'✨');});
+setWord('りんご','🍎');
+requestAnimationFrame(frame);
+/* テスト用に ろ出し(ブラウザの うごきには かんけいない) */
+window.__lab={S,stamp,setWord,letterDone};
+</script>
+</body>
+</html>
