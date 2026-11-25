@@ -4424,10 +4424,15 @@ function drawCastle(t,dt){
     if(i===CA.sayI)sayBob=bob;
     cc.fillStyle='rgba(30,20,60,.25)';cc.fillRect(p[0]-12,p[1]-2,24,3);
     cc.drawImage(spr('person',look(cl)).c,Math.round(p[0]-24),Math.round(p[1]-46+bob),48,48);}
-  /* とびらの かがやき と ▼ */
-  {const bob=Math.round(Math.sin(t*4)*1.5);cc.fillStyle='#fff6a0';
+  /* とびらの かがやき と、うえの アイコン(どこへ いく とびらか えで わかる)と ▼ */
+  {cc.fillStyle='#fff6a0';
    if(Math.sin(t*4)>.1){cc.fillRect(72,36,3,1);cc.fillRect(73,35,1,3);}if(Math.sin(t*3.3+1)>.1){cc.fillRect(160,34,3,1);cc.fillRect(161,33,1,3);}
-   if(CA.calm){cc.fillStyle='#ffe27a';for(const x of [77,165]){cc.fillRect(x-2,28+bob,5,1);cc.fillRect(x-1,29+bob,3,1);cc.fillRect(x,30+bob,1,1);}}}
+   [[77,spr('book',{c:'#6a8ad8',open:1}).c],[165,spr('star').c]].forEach(([x,ic],k)=>{
+     const bob=Math.round(Math.sin(t*3+k*1.7)*2),y=4+bob;
+     cc.fillStyle='rgba(255,246,160,'+(.25+.15*Math.sin(t*4+k))+')';cc.fillRect(x-16,y-3,32,32);
+     cc.fillStyle='#d9a845';cc.fillRect(x-13,y-1,26,27);cc.fillStyle='#fff8e0';cc.fillRect(x-12,y,24,25);
+     cc.drawImage(ic,x-12,y+1,24,24);
+     cc.fillStyle='#ffe27a';cc.fillRect(x-3,y+27,7,1);cc.fillRect(x-2,y+28,5,1);cc.fillRect(x-1,y+29,3,1);cc.fillRect(x,y+30,1,1);});}
   /* まじょ と にんぎょう(ちいさめ。ふくは いつもの まま) */
   cc.drawImage(spr('person',{witch:1,hair:'#d8c0f0',dress:'#8a7ad8',hat:'#6a5ac8'}).c,84,92+Math.round(Math.sin(t*4)*1.5),48,48);
   drawDoll(cc,DOLL_X,DOLL_Y,t,CA.hop,null,DOLL_SC);
@@ -4442,7 +4447,7 @@ function drawCastle(t,dt){
 ccv.addEventListener('pointerdown',e=>{
   initAudio();const p=roomPoint(ccv,e,RW,RH);
   if(Math.abs(p.x-DOLL_X)<20&&Math.abs(p.y-DOLL_Y)<22){CA.hop=.5;chime(6);burst(CA.parts,DOLL_X,DOLL_Y-18,14,1.1);return;}
-  if(p.y>=34&&p.y<=96){if(p.x>=62&&p.x<=92){castleEnter('library',77,64);return;}if(p.x>=150&&p.x<=180){castleEnter('collection',165,64);return;}}
+  if(p.y>=0&&p.y<=96){if(p.x>=62&&p.x<=92){castleEnter('library',77,64);return;}if(p.x>=150&&p.x<=180){castleEnter('collection',165,64);return;}}
   for(let wi=0;wi<WINS.length;wi++){const [wx,wy]=WINS[wi];if(p.x>=wx&&p.x<=wx+WW&&p.y>=wy&&p.y<=wy+WH){castleFirework(wi,p.x,p.y);return;}}
   if(p.x<20&&p.y>70&&p.y<130){$('#bCastleBack').click();return;}
   let hit=-1,best=1e9;CASTLE_SPOTS.forEach((s,i)=>{const d=Math.hypot(p.x-s[0],p.y-(s[1]-20));if(d<22&&d<best){best=d;hit=i;}});
@@ -4528,6 +4533,7 @@ function lbStart(w,fromHall){
   lbBuildDust();
   try{warmClips([w,...LB.chars]);}catch(e){}
   if(!fromHall)LB.dust.alpha=1;
+  lbBackIcon('book');
 }
 
 /* ---- ほこり(ほんの うえを こすって はらう) ---- */
@@ -4725,13 +4731,13 @@ function lbUpdateMagic(dt){
   if(m.rare==='smoke'&&m.t<2.4&&Math.random()<.5)m.smoke.push({x:rnd(120,240),y:rnd(380,520),r:rnd(14,26),vx:rnd(-.5,.5),vy:rnd(-.9,-.3),life:rnd(1,1.7),h:Math.random()*360});
   if(m.rare==='gold'&&Math.random()<.7){const o=pick(m.items);if(!o.hidden&&o.y>0)LB.parts.push({k:'spk',x:o.x+rnd(-20,20),y:o.y+rnd(-20,20),vx:0,vy:rnd(-.5,.2),life:.5,r:rnd(2,3),c:'#fff6a0'});}
   for(let i=m.smoke.length-1;i>=0;i--){const q=m.smoke[i];q.life-=dt;if(q.life<=0){m.smoke.splice(i,1);continue;}q.x+=q.vx;q.y+=q.vy;q.r+=.4;}
-  if(m.t>=m.dur){LB.phase='rest';LB.t=0;LB.m=null;}
+  if(m.t>=m.dur){LB.phase='rest';LB.t=0;LB.m=null;sfx('lspark');setTimeout(()=>{if(LB.phase==='rest')chime(6);},180);}
 }
 /* かんせいした ほんを ほんだなに しまって ロビーに もどる */
 function lbShelve(){
   if(LB.phase!=='rest')return;
   stopHold(true);LB.phase='shelve';LB.shT=0;LB.tok++;LB.books=[];
-  const n=(save.libOrder||[]).length,pos=lbShelfSlot(Math.max(0,n-1));LB.shTo=pos;LB.shFrom={x:LBBOOK.x+LBBOOK.w/2,y:LBBOOK.y+62};
+  const n=(save.libOrder||[]).length,pos=lbShelfSlot(Math.max(0,n-1));LB.shTo=pos;LB.shFrom={x:LBW/2,y:458};
   lbBuildHallBG();sfx('lwhoosh');
 }
 
@@ -4809,6 +4815,7 @@ function lbEnterHall(){
   const ws=lbPickChoices();
   LB.books=ws.map((w,i)=>{const it=ITEMS.find(q=>q[0]===w);return{w,it,sp:spr(it[1],it[2]),col:LB_BOOKCOL[(i*3+(Math.random()*8|0))%LB_BOOKCOL.length],isNew:!(save.libDone||{})[w],x:100+i*80,y:396,sx:180,sy:-60,t:-i*.28,landed:false,seed:Math.random()*9,sel:false};});
   setTimeout(()=>{if(LB.phase==='hall')sfx('lwhoosh');},120);
+  lbBackIcon('castle');
 }
 function lbHallTap(p){
   if(LB.books.some(b=>!b.landed))return;
@@ -4927,7 +4934,7 @@ function lbDrawPlay(t,alpha){
     const b=LBSPK;cx.fillStyle='rgba(255,255,255,.9)';cx.beginPath();cx.arc(b.x+20,b.y+20,19,0,6.3);cx.fill();cx.strokeStyle='#f3c850';cx.lineWidth=3;cx.stroke();cx.font=`22px ${LBEM}`;cx.textAlign='center';cx.textBaseline='middle';cx.fillStyle='#000';cx.fillText('🔊',b.x+20,b.y+21);
   }
   if(LB.phase==='play'){const h=LBHINT;cx.fillStyle='rgba(255,255,255,.9)';cx.beginPath();cx.arc(h.x+h.w/2,h.y+h.h/2,h.h/2+2,0,6.3);cx.fill();cx.strokeStyle='#8fd8ff';cx.lineWidth=3;cx.stroke();cx.font=`20px ${LBEM}`;cx.fillStyle='#000';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('🫧',h.x+h.w/2,h.y+h.h/2+1);}
-  if(LB.phase==='rest'){cx.font=`28px ${LBEM}`;cx.textAlign='center';cx.textBaseline='middle';cx.fillStyle='#000';cx.globalAlpha=.6+.4*Math.sin(t*5);cx.fillText('📚',LBW/2,LBBOOK.y+LBBOOK.h+22);cx.globalAlpha=1;}   /* ほんだなに しまう */
+  if(LB.phase==='rest')lbDrawShelveCta(cx,t);
   if(LB.dust&&!(LB.dust.done&&LB.dust.fade>=1)){cx.globalAlpha=(LB.dust.done?1-LB.dust.fade:1)*(LB.phase==='open'?Math.min(1,LB.openT/.9):1)*(alpha==null?1:alpha);cx.imageSmoothingEnabled=false;cx.drawImage(LB.dust.c,LBBOOK.x,LBBOOK.y,LBBOOK.w,LBBOOK.h);cx.globalAlpha=1;}
   {const px=Math.round(LB.sz*LBDPR),order=[...LB.L].sort((a,b)=>(a.st==='drag')-(b.st==='drag'));
    order.forEach(L=>{
@@ -4971,6 +4978,17 @@ function lbDraw(t){
   }
   else lbDrawPlay(t);
 }
+/* かんせいの あと: おおきな ひかる ほん(タップで ほんだなへ)。ぴょんぴょん はねて、ひかりが まわり、ほしが まわる */
+function lbBookCol(w){return LB_BOOKCOL[[...(w||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%LB_BOOKCOL.length];}
+function lbDrawShelveCta(cx,t){
+  const bx=LBW/2,by=458,hop=Math.abs(Math.sin(t*4))*12,pulse=1+.06*Math.sin(t*5);
+  const gr=cx.createRadialGradient(bx,by,8,bx,by,100);gr.addColorStop(0,'rgba(255,240,150,.9)');gr.addColorStop(1,'rgba(255,240,150,0)');cx.fillStyle=gr;cx.fillRect(bx-104,by-104,208,208);
+  cx.save();cx.translate(bx,by);cx.rotate(t*.8);cx.fillStyle='rgba(255,246,160,.3)';for(let i=0;i<8;i++){cx.rotate(Math.PI/4);cx.fillRect(-4,-96,8,56);}cx.restore();
+  cx.fillStyle='rgba(0,0,0,.22)';cx.beginPath();cx.ellipse(bx,by+52,38+hop*.6,7,0,0,6.3);cx.fill();
+  cx.save();cx.translate(bx,by-hop);cx.scale(pulse,pulse);cx.imageSmoothingEnabled=false;cx.drawImage(spr('book',{c:lbBookCol(LB.w),open:1}).c,-60,-60,120,120);cx.restore();
+  for(let i=0;i<6;i++){const a=t*2.2+i*1.047,x=bx+Math.cos(a)*78,y=by-hop+Math.sin(a)*46;cx.fillStyle=i%2?'#fff6a0':'#ffffff';cx.fillRect(Math.round(x)-4,Math.round(y),9,2);cx.fillRect(Math.round(x),Math.round(y)-4,2,9);cx.fillRect(Math.round(x)-1,Math.round(y)-1,4,4);}
+  const hb=Math.sin(t*6)*5;cx.drawImage(spr('hand').c,bx+34,by+30+hb,56,56);   /* ここを タップ */
+}
 function lbDrawMagic(t){
   const m=LB.m,sp=m.gold?m.gold:m.sprite,cx=lbx;cx.imageSmoothingEnabled=false;
   for(const q of m.smoke){cx.globalAlpha=Math.min(1,q.life);cx.fillStyle=`hsl(${(q.h+t*120)%360},80%,70%)`;cx.beginPath();cx.arc(q.x,q.y,q.r,0,6.3);cx.fill();}
@@ -4998,7 +5016,15 @@ onShow.library=()=>{
   LB.BG=LB.BG||null;lbEnterHall();
 };
 function drawLibrary(t,dt){lbStep(dt);lbDraw(t);}
-{const c=$('#bLibBack').querySelector('canvas').getContext('2d');c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(spr('homeicon').c,10,8,14,14);}
+function castleIcon(){
+  if(castleIcon.c)return castleIcon.c;const c=document.createElement('canvas');c.width=c.height=24;const x=c.getContext('2d'),R=(col,a,b,w,h)=>{x.fillStyle=col;x.fillRect(a,b,w,h);};
+  R('#6a4a62',3,10,18,12);R('#b8a8d8',4,11,16,10);R('#6a4a62',2,6,6,16);R('#c8b8e8',3,7,4,14);R('#6a4a62',16,6,6,16);R('#c8b8e8',17,7,4,14);
+  [2,5,16,19].forEach(a=>R('#6a4a62',a,4,2,3));R('#6a4a62',9,14,6,8);R('#8a5a3a',10,15,4,7);R('#ff8fb0',11,0,1,5);R('#ff8fb0',12,0,3,2);
+  return castleIcon.c=c;
+}
+/* もどる ボタンの え: ロビーでは「おしろ」、ほんの とちゅうでは「ほん(ロビーへ)」 */
+function lbBackIcon(kind){const c=$('#bLibBack').querySelector('canvas').getContext('2d');c.clearRect(0,0,24,24);c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(kind==='castle'?castleIcon():spr('book',{c:'#b08ae0',open:1}).c,10,8,14,14);}
+lbBackIcon('castle');
 $('#bLibBack').addEventListener('click',()=>{
   if(TR)return;initAudio();stopHold(true);
   if(LB.phase!=='hall'&&LB.phase!=='idle'&&LB.phase!=='shelve'){chime(2);lbEnterHall();return;}   /* ほんの とちゅうでは ロビーへ もどる */
@@ -5099,7 +5125,7 @@ function colRender(){
   if(r>=1&&!save.colDone[colTab]){save.colDone[colTab]=1;persist();fanfare();setTimeout(()=>launchFireworks(2600),150);const b=$('#colTabs .coltab.on');if(b){b.classList.add('pop');}}
 }
 onShow.collection=()=>{colRender();};
-{const c=$('#bColBack').querySelector('canvas').getContext('2d');c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(spr('homeicon').c,10,8,14,14);}
+{const c=$('#bColBack').querySelector('canvas').getContext('2d');c.drawImage(spr('exitdoor').c,-4,0);c.drawImage(castleIcon(),10,8,14,14);}
 $('#bColBack').addEventListener('click',()=>{if(TR)return;initAudio();bellSfx();castleLeave('collection');});
 
 /* ========= ボタン・メインループ ========= */
