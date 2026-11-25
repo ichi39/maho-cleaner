@@ -51,6 +51,14 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
     <div class="kind">進み(旗の数)</div><div class="btns" id="stg"></div>
     <div class="kind">お店のにぎわい(全店いっぺんに)</div><div class="btns" id="tiers"></div>
     <div class="kind">クリア</div><div class="btns" id="clr"></div>
+    <h2>おしろの図書室</h2>
+    <p class="note">ことばの かけた もじを えらんで はめる「かくれもじ」と、かんせいの えんしゅつ(ことばのメロディ → もじが ものに へんしん → ふる・まう → ことばを よむ)を ためします。</p>
+    <div class="btns"><button id="libIn">図書室に入る</button><button id="libCastle">おしろから入る(クリア済み)</button></div>
+    <div class="btns" style="margin-top:6px"><select id="libWord"></select><button id="libGo">この ことば</button><button id="libNext">ランダム</button><button id="libAgain">もういちど</button></div>
+    <div class="btns" style="margin-top:6px"><button id="libDust">ほこりを とばす</button><button id="libSolve">こたえを はめる(かんせいまで)</button></div>
+    <div class="kind">ことばの まほう(うごき)</div><div class="btns" id="libPat"></div>
+    <div class="kind">たまの レア</div><div class="btns" id="libRare"></div>
+    <div class="kind">てんき(まどの そと。1にち つづく。べつの てんきで うわがき)</div><div class="btns" id="libWeather"></div>
     <h2>1日の流れ</h2>
     <div class="btns" id="flow"></div>
     <p class="note">「閉店の演出」は、時計を閉店時刻にして お店の画面を見せます。「1日のまとめ」を出したあと、ゲームの「あさに する」を押すと朝の演出を見られます。</p>
@@ -97,7 +105,23 @@ function setTime(m,closed){if(!need())return;
   ev(`(()=>{const D=DAY();D.closed=${closed?'true':'false'};D.min=${m};H.clk=${m};H.nk=${closed?1:0};lampOn=${closed?'true':'false'};const s=screen;show(s==='title'?'home':s);})()`);st.textContent='時間: '+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+(closed?'(夜)':'');}
 document.getElementById('again').onclick=()=>{if(last)eat(last);};
 document.getElementById('ten').onclick=()=>{if(!last)return;eat(last);setTimeout(()=>eat(last),5600);setTimeout(()=>eat(last),11200);};
-F.addEventListener('load',()=>{try{build();ready=true;st.textContent='準備できました(食べるアクション全体 '+ev('EAT.END')+'秒)';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
+function buildLib(){
+  const enter=()=>ev("(()=>{initAudio();save.mineUnlocked=true;POOL.hira.forEach(c=>save.seen[norm(c)]=2);POOL.kata.forEach(c=>save.seen[norm(c)]=2);show('library');})()");
+  document.getElementById('libIn').onclick=()=>{if(need()){enter();st.textContent='図書室';}};
+  document.getElementById('libCastle').onclick=()=>{if(need()){ev("(()=>{initAudio();save.mineUnlocked=true;POOL.hira.forEach(c=>save.seen[norm(c)]=2);POOL.kata.forEach(c=>save.seen[norm(c)]=2);save.cleared=true;save.festSeen=true;show('castle');})()");st.textContent='おしろ(右上の本のボタンで図書室へ)';}};
+  const sel=document.getElementById('libWord');
+  ev("ITEMS.filter(it=>notSp(it)&&[...it[0]].length>=2&&[...it[0]].length<=5).map(it=>it[0])").forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w+(ev(`!!LB_WEATHER[${JSON.stringify(w)}]`)?'(てんき)':'');sel.appendChild(o);});
+  const inLib=()=>{if(!need())return false;if(ev('screen')!=='library')enter();return true;};
+  document.getElementById('libGo').onclick=()=>{if(inLib())ev(`lbStart(${JSON.stringify(sel.value)})`);};
+  document.getElementById('libNext').onclick=()=>{if(inLib())ev('lbNext()');};
+  document.getElementById('libAgain').onclick=()=>{if(inLib())ev('lbStart(LB.w)');};
+  document.getElementById('libDust').onclick=()=>{if(inLib())ev("lbFinishClean()");};
+  document.getElementById('libSolve').onclick=()=>{if(!inLib())return;ev("(()=>{if(LB.phase==='clean')lbFinishClean();for(const s of LB.slots.filter(s=>s.hide&&!s.filled&&!s.reserved)){const L=LB.L.find(l=>l.ok&&l.ch===s.ch&&(l.st==='free'||l.st==='hidden'));if(L){L.st='snap';L.slot=s.i;L.sx=L.x;L.sy=L.y;L.age=0;L.fresh=true;s.reserved=true;}}})()");};
+  const pb=document.getElementById('libPat');[['rand','ランダム'],['rain','降る'],['fountain','噴き上がる'],['tornado','ぐるぐる'],['parade','行進'],['pops','ぽんぽん'],['flutter','ひらひら']].forEach(([k,n],i)=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{if(need())ev(`LB.pat=${JSON.stringify(k)}`);st.textContent='うごき: '+n;};pb.appendChild(b);});
+  const rb=document.getElementById('libRare');[['確率どおり(15%)',null,.15],['なし',null,0],['金色','gold',0],['虹色の煙','smoke',0],['2つ','double',0]].forEach(([n,k,r])=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{if(need())ev(`(()=>{LB.forceRare=${JSON.stringify(k)};LB.rareRate=${r};})()`);st.textContent='レア: '+n;};rb.appendChild(b);});
+  const wb=document.getElementById('libWeather');[['ゆき','snow'],['にじ','rainbow'],['ほし','stars'],['つき','moon'],['かみなり','thunder'],['くも','clouds'],['さくら','petals'],['もみじ','leaves'],['ほたる','fireflies'],['ふつう(リセット)',null]].forEach(([n,k])=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{if(need()){ev(`lbSetWeather(${JSON.stringify(k)})`);st.textContent='てんき: '+n;}};wb.appendChild(b);});
+}
+F.addEventListener('load',()=>{try{build();buildLib();ready=true;st.textContent='準備できました(食べるアクション全体 '+ev('EAT.END')+'秒)';}catch(e){st.textContent='ゲームを読み込めませんでした: '+e;}});
 </script>
 </body>
 </html>

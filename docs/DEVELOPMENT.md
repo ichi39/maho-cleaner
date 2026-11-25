@@ -37,6 +37,7 @@
 | ちいさな ゴール | スタンプ、お店の星(`onServed`, `rankOf`, `drawRankDecor`)、ごほうび(`openGift`, `giftChoices`) |
 | 1にちの ながれ | `newDay`, `drawSky`, `checkClose`, `showDayEnd`, `goMorning` |
 | おでかけ | `transit`, 自分のお店のドア(`drawDoor`, `goShopping`, `comeHome`)、商店街の魔女(`walkStreet`, `enterShop`, `leaveStreet`) |
+| おしろの としょしつ | `LB`(状態)、`lbStart`(言葉を決める)、`lbWipe`(ほこり)、`lbArrive`(はめる)、`lbStartMelody` → `lbStartMorph` → `lbStartMagic`(完成の演出)、`lbSetWeather`(天気)、`drawLibrary`。名前は `lb` / `LB` で始まる。仕様は SPEC.md 14.5 |
 | ボタン・メインループ | ボタンの登録、チュートリアル、`frame()`(毎コマ、今の画面の draw 関数を呼ぶ) |
 
 ### お店(`CATS`)の内部名と表示名
@@ -107,6 +108,7 @@
 | `conste` / `newShops` | 完成した星座 / 開いたばかりのお店(お店に戻ったとき知らせる) |
 | `stock` | その日の品ぞろえ `{n:日, shops:{お店:[{k,slot,sale,tz}]}}` |
 | `keeper` | お店ごとの店番(お客さんの番号) |
+| `libWins` / `libDone` / `libRecent` / `weather` | 図書室で完成した回数 / 言葉ごとの完成回数 / 直近6語 / 図書室の窓の天気 `{type,day}`(1日で消える) |
 | `jar` / `rest` | 貯金びんのコイン(商店街の復興だけに使う。おさいふとは別) / お店ごとの復興 `{お店:{l:段階0〜2,c:今の段階に入れたコイン}}`(`REST`・`restApply`・`tierOf`) |
 | `dream` / `dreamDay` / `dreamH` | 人形がぼんやり思っている食べ物(`{w,n(思った日),lb(依頼に混ぜた回数)}`、4日で期限切れ) / 最後に雲を出した日(1日1回まで) / 直近に思った物(最大5) |
 | `stamps` / `servedTotal` | スタンプの数 / 支払いを受けた合計人数 |
