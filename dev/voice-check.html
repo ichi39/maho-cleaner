@@ -21,7 +21,9 @@ p.note{color:var(--sub);font-size:12px;margin:4px 0 10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:6px}
 .row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
 .row.ng{border-color:var(--ng);background:#fff0f5}
-.row.accent{border-left:5px solid #4fb98a}
+.row.accent{border-left:6px solid #4fb98a;background:#eefaf3}
+.row .t .fx{display:block;font-size:11px;color:#2b8a62;font-family:ui-monospace,Menlo,monospace}
+.row .pend{color:#8a7ad8;font-weight:bold}
 .row.manual{border-left:5px solid #e0a030}
 .row.playing{outline:3px solid var(--acc)}
 .row .no{font-size:11px;color:var(--sub);min-width:30px}
@@ -53,7 +55,7 @@ h3{font-size:14px}
   <div class="ctl">
     <label>表示 <select id="fil">
       <option value="all">ぜんぶ</option><option value="char">もじ(1文字)</option><option value="word">ことば</option>
-      <option value="fixed">よみ指定・手動wav だけ</option><option value="warn">⚠ 要確認だけ</option><option value="ng">✕ 作り直しだけ</option></select></label>
+      <option value="fixed">✎ 直したものだけ</option><option value="pend">直した行(未反映)だけ</option><option value="warn">⚠ 要確認だけ</option><option value="ng">✕ 作り直しだけ</option></select></label>
     <button id="bAll">▶ 表示中をつづけて再生</button>
     <button id="bStop">■ とめる</button>
     <label>音量 <input type="range" id="vol" min="0.2" max="1" step="0.1" value="1"></label>
@@ -64,7 +66,7 @@ h3{font-size:14px}
   <p id="err"></p>
   <p class="note">ゲーム本体(<code>../index.html</code>)に埋め込まれた <code>VOICE_DATA</code> を、ゲームと同じ方法で復号して鳴らします。
   各行の小さい字は、VOICEVOX が読んだアクセント(<code>'</code> の前の音が最後の高い音、<code>/</code> は区切り)です。
-  左の線が緑なら <code>tools/voice-accent.txt</code> で読みを指定した言葉、橙なら <code>tools/voice-manual/</code> の手動 wav です。<br>
+  緑の行が <code>tools/voice-accent.txt</code> で直した言葉で、「直し:」に指定した読みと設定が出ます(橙の線は <code>tools/voice-manual/</code> の手動 wav)。ページで直したのに、まだ埋め込まれていないものには「未反映の直しあり」が出ます。<br>
   ⚠ は目安です(もじ 0.15秒未満 / 1.2秒超、ことば 0.3秒未満 / 2.5秒超、音割れの疑い)。</p>
 
   <div id="ed" hidden>
@@ -132,7 +134,7 @@ async function load(){
     const short=kind==='char'?dur<.15:dur<.3,long=kind==='char'?dur>1.2:dur>2.5;
     const w=[];if(short)w.push('短い');if(long)w.push('長い');if(clip>.02)w.push('割れ?');
     const mi=meta.items[t]||{};
-    clips.push({no:s.no||0,t,d,sr:s.sr,dur,kind,warn:w,src:mi.src||'',kana:mi.kana||'',read:mi.read||''});
+    clips.push({no:s.no||0,t,d,sr:s.sr,dur,kind,warn:w,src:mi.src||'',kana:mi.kana||'',read:mi.read||'',opt:mi.opt||''});
   });
   if(!clips.length)throw new Error('VOICE_DATA が空です。node tools/make-voice-voicevox.js を実行してください');
 }
@@ -149,12 +151,16 @@ function playBuf(b,el,onEnd){
 }
 function play(c,onEnd){ensureCtx();const b=ctx.createBuffer(1,c.d.length,c.sr);b.getChannelData(0).set(c.d);playBuf(b,document.getElementById('r'+c.t),onEnd);}
 function shown(){const f=$('#fil').value;
-  return clips.filter(c=>f==='all'||f===c.kind||(f==='fixed'&&c.src&&c.src!=='auto')||(f==='warn'&&c.warn.length)||(f==='ng'&&ng.has(c.t)));}
+  return clips.filter(c=>f==='all'||f===c.kind||(f==='fixed'&&c.src&&c.src!=='auto')||(f==='pend'&&pending(c))||(f==='warn'&&c.warn.length)||(f==='ng'&&ng.has(c.t)));}
 function line(c){return c.t+'\t'+(c.kana||'')+'\t';}
 function save(){localStorage.setItem(KEY,JSON.stringify([...ng]));localStorage.setItem(FKEY,JSON.stringify(fix));
   $('#out').value=clips.filter(c=>ng.has(c.t)).map(c=>String(c.no).padStart(4,'0')+'\t'+c.t+'\t'+c.kana).join('\n');
   $('#fix').value=Object.values(fix).join('\n');}
-const SRC={auto:'',accent:'よみ指定',manual:'手動wav'};
+const SRC={auto:'',accent:'✎ 直し済み',manual:'✎ 手動wav'};
+const norm=l=>l.split('\t').map(x=>x.trim().split(/\s+/).join(' ')).join('\t').replace(/\t+$/,'');
+const fileLine=c=>c.src==='accent'?norm(c.t+'\t'+c.read+'\t'+(c.opt||'')):'';
+/* ページで なおした 行が、まだ voice-accent.txt に はいって いない */
+const pending=c=>!!fix[c.t]&&norm(fix[c.t])!==fileLine(c);
 function render(){
   const g=$('#grid');g.textContent='';
   for(const c of shown()){
@@ -162,10 +168,11 @@ function render(){
     const b=document.createElement('button');b.className='p';b.textContent='▶';b.onclick=()=>{seq++;play(c);};
     const no=document.createElement('span');no.className='no';no.textContent=c.no?String(c.no).padStart(4,'0'):'—';
     const t=document.createElement('span');t.className='t';const tb=document.createElement('b');tb.textContent=c.kind==='char'&&/[\u3041-\u3096]/.test(c.t)?c.t+' / '+String.fromCharCode(c.t.charCodeAt(0)+0x60):c.t;/* カタカナ1もじも この こえ */t.append(tb);
-    if(c.kana||c.src==='manual'){const k=document.createElement('span');k.className='k';k.textContent=c.src==='manual'?'(手動 wav)':c.kana+(c.read&&!c.read.includes("'")?'  ← '+c.read:'');t.append(k);}
+    if(c.kana||c.src==='manual'){const k=document.createElement('span');k.className='k';k.textContent=c.src==='manual'?'(手動 wav)':'読んだ音: '+c.kana;t.append(k);}
+    if(c.src==='accent'){const x=document.createElement('span');x.className='fx';x.textContent='直し: '+c.read+(c.opt?'  '+c.opt:'');t.append(x);}
     const m=document.createElement('span');m.className='m';m.textContent=c.dur.toFixed(2)+'秒';
     if(SRC[c.src]){const w=document.createElement('div');w.className='src';w.textContent=SRC[c.src];m.append(w);}
-    if(fix[c.t]){const w=document.createElement('div');w.className='src';w.style.color='#8a7ad8';w.textContent='✎ 直した行あり';m.append(w);}
+    if(pending(c)){const w=document.createElement('div');w.className='pend';w.textContent='未反映の直しあり';m.append(w);}
     if(c.warn.length){const w=document.createElement('div');w.className='warn';w.textContent='⚠ '+c.warn.join('・');m.append(w);}
     const e=document.createElement('button');e.className='e';e.textContent='✎';e.title='イントネーションを直す';e.onclick=()=>openEd(c);
     const l=document.createElement('label'),k=document.createElement('input');k.type='checkbox';k.checked=ng.has(c.t);
@@ -175,7 +182,7 @@ function render(){
   }
   count();save();
 }
-function count(){$('#cnt').textContent=`${shown().length} / ${clips.length}こ・よみ指定 ${clips.filter(c=>c.src==='accent').length}・手動 ${clips.filter(c=>c.src==='manual').length}・✕ ${ng.size}・⚠ ${clips.filter(c=>c.warn.length).length}`;}
+function count(){$('#cnt').textContent=`${shown().length} / ${clips.length}こ・✎ 直し済み ${clips.filter(c=>c.src==='accent'||c.src==='manual').length}・未反映 ${clips.filter(pending).length}・✕ ${ng.size}・⚠ ${clips.filter(c=>c.warn.length).length}`;}
 
 /* ---- イントネーションの へんしゅう(ローカルの VOICEVOX を よぶ) ---- */
 function openEd(c){edC=c;$('#ed').hidden=false;$('#edW').textContent=c.t;

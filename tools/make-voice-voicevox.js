@@ -39,7 +39,7 @@ function readAccent(){
     if(!ln.trim()||ln.startsWith('#'))continue;
     const [w,read='',opt='']=ln.split('\t');const o={};
     for(const kv of opt.trim().split(/\s+/).filter(Boolean)){const [k,v]=kv.split('=');o[k]=+v;}
-    m.set(w.trim(),{read:read.trim(),opt:o});
+    m.set(w.trim(),{read:read.trim(),opt:o,optRaw:opt.trim().split(/\s+/).filter(Boolean).join(' ')});
   }
   return m;
 }
@@ -78,7 +78,7 @@ async function main(){
     const aq=await query(t,id,acc);
     fs.writeFileSync(file,Buffer.from(await (await api('/synthesis?'+q({speaker:id}),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(aq)})).arrayBuffer()));
     items[t]={no,src:acc?'accent':'auto',kana:phr(aq.accent_phrases)};
-    if(acc)items[t].read=acc.read;
+    if(acc){items[t].read=acc.read;if(acc.optRaw)items[t].opt=acc.optRaw;}
     process.stdout.write(`\r${no}/${list.length} ${t}        `);
   }
   console.log();
