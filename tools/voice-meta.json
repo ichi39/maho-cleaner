@@ -5,228 +5,273 @@
  "items": {
   "く": {
    "no": 1,
-   "src": "auto",
-   "kana": "ク'"
+   "src": "accent",
+   "kana": "ク'",
+   "read": "ク"
   },
   "つ": {
    "no": 2,
-   "src": "auto",
-   "kana": "ツ'"
+   "src": "accent",
+   "kana": "ツ'",
+   "read": "ツ'"
   },
   "ふ": {
    "no": 3,
-   "src": "auto",
-   "kana": "フ'"
+   "src": "accent",
+   "kana": "フ'",
+   "read": "フ'"
   },
   "ぼ": {
    "no": 4,
-   "src": "auto",
-   "kana": "ボ'"
+   "src": "accent",
+   "kana": "ボ'",
+   "read": "ぼォ"
   },
   "う": {
    "no": 5,
-   "src": "auto",
-   "kana": "ウ'"
+   "src": "accent",
+   "kana": "ウ'",
+   "read": "ウ'"
   },
   "し": {
    "no": 6,
-   "src": "auto",
-   "kana": "シ'"
+   "src": "accent",
+   "kana": "シ'",
+   "read": "シ'"
   },
   "て": {
    "no": 7,
-   "src": "auto",
-   "kana": "テ'"
+   "src": "accent",
+   "kana": "テ'",
+   "read": "テ'"
   },
   "ぶ": {
    "no": 8,
-   "src": "auto",
-   "kana": "ブ'"
+   "src": "accent",
+   "kana": "ブゥ'",
+   "read": "ブゥ'"
   },
   "ろ": {
    "no": 9,
-   "src": "auto",
-   "kana": "ロ'"
+   "src": "accent",
+   "kana": "ロ'",
+   "read": "ロ'"
   },
   "ゆ": {
    "no": 10,
-   "src": "auto",
-   "kana": "ユ'"
+   "src": "accent",
+   "kana": "ユ'",
+   "read": "ユ'"
   },
   "か": {
    "no": 11,
-   "src": "auto",
-   "kana": "カ'"
+   "src": "accent",
+   "kana": "カ'",
+   "read": "カ'"
   },
   "た": {
    "no": 12,
-   "src": "auto",
-   "kana": "タ'"
+   "src": "accent",
+   "kana": "タ'",
+   "read": "タ'"
   },
   "げ": {
    "no": 13,
-   "src": "auto",
-   "kana": "ゲ'"
+   "src": "accent",
+   "kana": "ゲ'",
+   "read": "ゲ'"
   },
   "ん": {
    "no": 14,
-   "src": "auto",
-   "kana": "ン'"
+   "src": "accent",
+   "kana": "ン'",
+   "read": "ン'"
   },
   "む": {
    "no": 15,
-   "src": "auto",
-   "kana": "ム'"
+   "src": "accent",
+   "kana": "ムゥ'",
+   "read": "ムゥ'"
   },
   "り": {
    "no": 16,
-   "src": "auto",
-   "kana": "リ'"
+   "src": "accent",
+   "kana": "リ'",
+   "read": "リ'"
   },
   "ど": {
    "no": 17,
-   "src": "auto",
-   "kana": "ド'"
+   "src": "accent",
+   "kana": "ドォ'",
+   "read": "ドォ'"
   },
   "れ": {
    "no": 18,
-   "src": "auto",
-   "kana": "レ'"
+   "src": "accent",
+   "kana": "レ'",
+   "read": "レ'"
   },
   "す": {
    "no": 19,
-   "src": "auto",
-   "kana": "ス'"
+   "src": "accent",
+   "kana": "ス'",
+   "read": "ス'"
   },
   "ま": {
    "no": 20,
-   "src": "auto",
-   "kana": "マ'"
+   "src": "accent",
+   "kana": "マ'",
+   "read": "マ'"
   },
   "と": {
    "no": 21,
-   "src": "auto",
-   "kana": "ト'"
+   "src": "accent",
+   "kana": "ト'",
+   "read": "ト'"
   },
   "ね": {
    "no": 22,
-   "src": "auto",
-   "kana": "ネ'"
+   "src": "accent",
+   "kana": "ネ'",
+   "read": "ネ'"
   },
   "い": {
    "no": 23,
-   "src": "auto",
-   "kana": "イ'"
+   "src": "accent",
+   "kana": "イ'",
+   "read": "イ'"
   },
   "せ": {
    "no": 24,
-   "src": "auto",
-   "kana": "セ'"
+   "src": "accent",
+   "kana": "セ'",
+   "read": "セ'"
   },
   "え": {
    "no": 25,
-   "src": "auto",
-   "kana": "エ'"
+   "src": "accent",
+   "kana": "エ'",
+   "read": "エ'"
   },
   "ぷ": {
    "no": 26,
-   "src": "auto",
-   "kana": "プ'"
+   "src": "accent",
+   "kana": "プ'",
+   "read": "プ'"
   },
   "へ": {
    "no": 27,
-   "src": "auto",
-   "kana": "ヘ'"
+   "src": "accent",
+   "kana": "ヘ'",
+   "read": "ヘ'"
   },
   "る": {
    "no": 28,
-   "src": "auto",
-   "kana": "ル'"
+   "src": "accent",
+   "kana": "ル'",
+   "read": "ル'"
   },
   "め": {
    "no": 29,
-   "src": "auto",
-   "kana": "メ'"
+   "src": "accent",
+   "kana": "メ'",
+   "read": "メ'"
   },
   "ず": {
    "no": 30,
-   "src": "auto",
-   "kana": "ズ'"
+   "src": "accent",
+   "kana": "ズ'",
+   "read": "ズ'"
   },
   "ぱ": {
    "no": 31,
-   "src": "auto",
-   "kana": "パ'"
+   "src": "accent",
+   "kana": "ッパ'",
+   "read": "ッパ'"
   },
   "じ": {
    "no": 32,
-   "src": "auto",
-   "kana": "ジ'"
+   "src": "accent",
+   "kana": "ジ'",
+   "read": "ジ'"
   },
   "こ": {
    "no": 33,
-   "src": "auto",
-   "kana": "コ'"
+   "src": "accent",
+   "kana": "コ'",
+   "read": "コ'"
   },
   "ら": {
    "no": 34,
-   "src": "auto",
-   "kana": "ラ'"
+   "src": "accent",
+   "kana": "ラ'",
+   "read": "ラ'"
   },
   "さ": {
    "no": 35,
-   "src": "auto",
-   "kana": "サ'"
+   "src": "accent",
+   "kana": "サ'",
+   "read": "サ'"
   },
   "だ": {
    "no": 36,
-   "src": "auto",
-   "kana": "ダ'"
+   "src": "accent",
+   "kana": "ダ'",
+   "read": "ダ'"
   },
   "あ": {
    "no": 37,
-   "src": "auto",
-   "kana": "ア'"
+   "src": "accent",
+   "kana": "ア'",
+   "read": "ア'"
   },
   "も": {
    "no": 38,
-   "src": "auto",
-   "kana": "モ'"
+   "src": "accent",
+   "kana": "モ'",
+   "read": "モ'"
   },
   "わ": {
    "no": 39,
-   "src": "auto",
-   "kana": "ワ'"
+   "src": "accent",
+   "kana": "ッワ'",
+   "read": "ッワ'"
   },
   "ぴ": {
    "no": 40,
-   "src": "auto",
-   "kana": "ピ'"
+   "src": "accent",
+   "kana": "ピ'",
+   "read": "ピ'"
   },
   "ち": {
    "no": 41,
-   "src": "auto",
-   "kana": "チ'"
+   "src": "accent",
+   "kana": "チ'",
+   "read": "チ'"
   },
   "な": {
    "no": 42,
-   "src": "auto",
-   "kana": "ナ'"
+   "src": "accent",
+   "kana": "ナ'",
+   "read": "ナ'"
   },
   "が": {
    "no": 43,
-   "src": "auto",
-   "kana": "ガ'"
+   "src": "accent",
+   "kana": "ッガ'",
+   "read": "ッガ'"
   },
   "ぐ": {
    "no": 44,
-   "src": "auto",
-   "kana": "グ'"
+   "src": "accent",
+   "kana": "ッグ'",
+   "read": "ッグ'"
   },
   "は": {
    "no": 45,
-   "src": "auto",
-   "kana": "ハ'"
+   "src": "accent",
+   "kana": "ハ'",
+   "read": "ハ'"
   },
   "よ": {
    "no": 46,
@@ -235,113 +280,135 @@
   },
   "お": {
    "no": 47,
-   "src": "auto",
-   "kana": "オ'"
+   "src": "accent",
+   "kana": "オ'",
+   "read": "オ'"
   },
   "に": {
    "no": 48,
-   "src": "auto",
-   "kana": "ニ'"
+   "src": "accent",
+   "kana": "ニ'",
+   "read": "ニ'"
   },
   "ぬ": {
    "no": 49,
-   "src": "auto",
-   "kana": "ヌ'"
+   "src": "accent",
+   "kana": "ヌ'",
+   "read": "ヌ'"
   },
   "み": {
    "no": 50,
-   "src": "auto",
-   "kana": "ミ'"
+   "src": "accent",
+   "kana": "ミ'",
+   "read": "ミ'"
   },
   "き": {
    "no": 247,
-   "src": "auto",
-   "kana": "キ'"
+   "src": "accent",
+   "kana": "キ'",
+   "read": "キ'"
   },
   "ひ": {
    "no": 52,
-   "src": "auto",
-   "kana": "ヒ'"
+   "src": "accent",
+   "kana": "ヒィ'",
+   "read": "ヒィ'"
   },
   "で": {
    "no": 53,
-   "src": "auto",
-   "kana": "デ'"
+   "src": "accent",
+   "kana": "デェ'",
+   "read": "デェ'"
   },
   "や": {
    "no": 54,
-   "src": "auto",
-   "kana": "ヤ'"
+   "src": "accent",
+   "kana": "ヤ'",
+   "read": "ヤ'"
   },
   "ぎ": {
    "no": 55,
-   "src": "auto",
-   "kana": "ギ'"
+   "src": "accent",
+   "kana": "ギィ'",
+   "read": "ギィ'"
   },
   "び": {
    "no": 56,
-   "src": "auto",
-   "kana": "ビ'"
+   "src": "accent",
+   "kana": "ビ'",
+   "read": "ビ'"
   },
   "ご": {
    "no": 57,
-   "src": "auto",
-   "kana": "ゴ'"
+   "src": "accent",
+   "kana": "ゴ'",
+   "read": "ゴ'"
   },
   "の": {
    "no": 58,
-   "src": "auto",
-   "kana": "ノ'"
+   "src": "accent",
+   "kana": "ノ'",
+   "read": "ノ'"
   },
   "ば": {
    "no": 59,
-   "src": "auto",
-   "kana": "バ'"
+   "src": "accent",
+   "kana": "ッバ'",
+   "read": "ッバ'"
   },
   "け": {
    "no": 60,
-   "src": "auto",
-   "kana": "ケ'"
+   "src": "accent",
+   "kana": "ケ'",
+   "read": "ケ'"
   },
   "ほ": {
    "no": 61,
-   "src": "auto",
-   "kana": "ホ'"
+   "src": "accent",
+   "kana": "ホ'",
+   "read": "ホ'"
   },
   "そ": {
    "no": 62,
-   "src": "auto",
-   "kana": "ソ'"
+   "src": "accent",
+   "kana": "ソ'",
+   "read": "ソ'"
   },
   "べ": {
    "no": 63,
-   "src": "auto",
-   "kana": "ベ'"
+   "src": "accent",
+   "kana": "ッベ'",
+   "read": "ッベ'"
   },
   "ぜ": {
    "no": 64,
-   "src": "auto",
-   "kana": "ゼ'"
+   "src": "accent",
+   "kana": "ッゼ'",
+   "read": "ッゼ'"
   },
   "を": {
    "no": 65,
-   "src": "auto",
-   "kana": "ヲ'"
+   "src": "accent",
+   "kana": "ヲォ'",
+   "read": "ヲォ'"
   },
   "くつ": {
    "no": 66,
-   "src": "auto",
-   "kana": "クツ'"
+   "src": "accent",
+   "kana": "クツ'",
+   "read": "クツ"
   },
   "ふく": {
    "no": 67,
-   "src": "auto",
-   "kana": "フク'"
+   "src": "accent",
+   "kana": "フク'",
+   "read": "服"
   },
   "ぼうし": {
    "no": 68,
-   "src": "auto",
-   "kana": "ボウシ'"
+   "src": "accent",
+   "kana": "ボオ'シ",
+   "read": "ボオ'シ"
   },
   "てぶくろ": {
    "no": 69,
@@ -372,13 +439,15 @@
   },
   "ドレス": {
    "no": 74,
-   "src": "auto",
-   "kana": "ド'レス"
+   "src": "accent",
+   "kana": "ド'レス",
+   "read": "ド'レス"
   },
   "ブーツ": {
    "no": 75,
-   "src": "auto",
-   "kana": "ブ'ウツ"
+   "src": "accent",
+   "kana": "ブ'ウツ",
+   "read": "ブ'ウツ"
   },
   "マント": {
    "no": 76,
@@ -392,8 +461,9 @@
   },
   "シャツ": {
    "no": 78,
-   "src": "auto",
-   "kana": "シャ'ツ"
+   "src": "accent",
+   "kana": "シャ'ツ",
+   "read": "シャ'ツ"
   },
   "セーター": {
    "no": 79,
@@ -483,8 +553,9 @@
   },
   "ふね": {
    "no": 96,
-   "src": "auto",
-   "kana": "フ'ネ"
+   "src": "accent",
+   "kana": "フ'ネ",
+   "read": "船"
   },
   "くるま": {
    "no": 97,
@@ -498,8 +569,9 @@
   },
   "ヨット": {
    "no": 99,
-   "src": "auto",
-   "kana": "ヨ'ット"
+   "src": "accent",
+   "kana": "ヨ'ット",
+   "read": "ヨ'ット"
   },
   "ロボット": {
    "no": 100,
@@ -508,14 +580,15 @@
   },
   "おに": {
    "no": 101,
-   "src": "auto",
-   "kana": "オ'ニ"
+   "src": "accent",
+   "kana": "オニ'",
+   "read": "オニ"
   },
   "わなげ": {
    "no": 102,
    "src": "accent",
-   "kana": "ワナゲ'",
-   "read": "輪投げ"
+   "kana": "ワ'/ナゲ'",
+   "read": "ワ投げ"
   },
   "カヌー": {
    "no": 103,
@@ -524,8 +597,9 @@
   },
   "こま": {
    "no": 104,
-   "src": "auto",
-   "kana": "コ'マ"
+   "src": "accent",
+   "kana": "コ'マ",
+   "read": "コ'マ"
   },
   "つみき": {
    "no": 105,
@@ -552,8 +626,9 @@
   },
   "くま": {
    "no": 109,
-   "src": "auto",
-   "kana": "ク'マ"
+   "src": "accent",
+   "kana": "ク'マ",
+   "read": "ク'マ"
   },
   "ひよこ": {
    "no": 110,
@@ -568,8 +643,9 @@
   },
   "ヤギ": {
    "no": 112,
-   "src": "auto",
-   "kana": "ヤ'ギ"
+   "src": "accent",
+   "kana": "ヤ'ギ",
+   "read": "ヤ'ギ"
   },
   "ユニコーン": {
    "no": 113,
@@ -578,18 +654,21 @@
   },
   "ねこ": {
    "no": 114,
-   "src": "auto",
-   "kana": "ネ'コ"
+   "src": "accent",
+   "kana": "ネ'コ",
+   "read": "ネ'コ"
   },
   "わに": {
    "no": 115,
-   "src": "auto",
-   "kana": "ワ'ニ"
+   "src": "accent",
+   "kana": "ッ'ワニ",
+   "read": "ッワニ"
   },
   "へび": {
    "no": 116,
-   "src": "auto",
-   "kana": "ヘ'ビ"
+   "src": "accent",
+   "kana": "ヘ'ェビ",
+   "read": "ヘ'ェビ"
   },
   "てんとうむし": {
    "no": 117,
@@ -636,8 +715,9 @@
   },
   "かえる": {
    "no": 125,
-   "src": "auto",
-   "kana": "カ'エル"
+   "src": "accent",
+   "kana": "カエ'ル",
+   "read": "カエ'ル"
   },
   "ひつじ": {
    "no": 126,
@@ -795,8 +875,9 @@
   },
   "ゆず": {
    "no": 155,
-   "src": "auto",
-   "kana": "ユ'ズ"
+   "src": "accent",
+   "kana": "ユ'ズ",
+   "read": "ユ'ズ"
   },
   "しいたけ": {
    "no": 156,
@@ -881,8 +962,9 @@
   },
   "ワイン": {
    "no": 172,
-   "src": "auto",
-   "kana": "ワ'イン"
+   "src": "accent",
+   "kana": "ッワ'ィン",
+   "read": "ッワ'ィン"
   },
   "おにぎり": {
    "no": 173,
@@ -912,8 +994,9 @@
   },
   "そば": {
    "no": 178,
-   "src": "auto",
-   "kana": "ソ'バ"
+   "src": "accent",
+   "kana": "ソ'バ",
+   "read": "ソ'バ"
   },
   "うどん": {
    "no": 179,
@@ -937,8 +1020,9 @@
   },
   "ゼリー": {
    "no": 183,
-   "src": "auto",
-   "kana": "ゼ'リイ"
+   "src": "accent",
+   "kana": "ゼ'リイ",
+   "read": "ゼ'リイ"
   },
   "カレー": {
    "no": 184,
@@ -964,8 +1048,8 @@
   "ほんをよむ": {
    "no": 188,
    "src": "accent",
-   "kana": "ホ'ンオ/ヨ'ム",
-   "read": "本を読む"
+   "kana": "ホ'ンオ、ヨ'ム",
+   "read": "ホ'ンオ、ヨ'ム"
   },
   "はさみ": {
    "no": 189,
@@ -1003,7 +1087,7 @@
    "no": 195,
    "src": "accent",
    "kana": "ノリ'",
-   "read": "糊"
+   "read": "ノリ'"
   },
   "しおり": {
    "no": 196,
@@ -1044,8 +1128,9 @@
   },
   "ギター": {
    "no": 203,
-   "src": "auto",
-   "kana": "ギ'タア"
+   "src": "accent",
+   "kana": "ギ'タアア",
+   "read": "ギ'タアア"
   },
   "ラッパ": {
    "no": 204,
@@ -1054,8 +1139,9 @@
   },
   "ベル": {
    "no": 205,
-   "src": "auto",
-   "kana": "ベ'ル"
+   "src": "accent",
+   "kana": "ベェ'ル",
+   "read": "ベェ'ル"
   },
   "たいこ": {
    "no": 206,
@@ -1077,8 +1163,8 @@
   "おんぷ": {
    "no": 209,
    "src": "accent",
-   "kana": "オンプ'",
-   "read": "音符"
+   "kana": "オン'プゥ",
+   "read": "オン'プゥ"
   },
   "こと": {
    "no": 210,
@@ -1110,13 +1196,14 @@
   "いす": {
    "no": 215,
    "src": "accent",
-   "kana": "イス'",
-   "read": "椅子"
+   "kana": "イスゥ'",
+   "read": "イスゥ'"
   },
   "ほうき": {
    "no": 216,
-   "src": "auto",
-   "kana": "ホ'オキ"
+   "src": "accent",
+   "kana": "ホオキ'",
+   "read": "ホオキ'"
   },
   "ろうそく": {
    "no": 217,
@@ -1125,8 +1212,9 @@
   },
   "ソファ": {
    "no": 218,
-   "src": "auto",
-   "kana": "ソ'ファ"
+   "src": "accent",
+   "kana": "ソ'ファアア",
+   "read": "ソ'ファアア"
   },
   "コップ": {
    "no": 219,
@@ -1140,8 +1228,9 @@
   },
   "かさ": {
    "no": 221,
-   "src": "auto",
-   "kana": "カ'サ"
+   "src": "accent",
+   "kana": "カ'サ",
+   "read": "カ'サ"
   },
   "かばん": {
    "no": 222,
@@ -1156,8 +1245,9 @@
   },
   "リボン": {
    "no": 224,
-   "src": "auto",
-   "kana": "リ'ボン"
+   "src": "accent",
+   "kana": "リ'ボォン",
+   "read": "リ'ボォン"
   },
   "けいと": {
    "no": 225,
@@ -1202,8 +1292,9 @@
   },
   "へら": {
    "no": 233,
-   "src": "auto",
-   "kana": "ヘラ'"
+   "src": "accent",
+   "kana": "ヘ'ェラ",
+   "read": "ヘ'ェラ"
   },
   "とけい": {
    "no": 234,
@@ -1233,17 +1324,19 @@
    "no": 238,
    "src": "accent",
    "kana": "ホシ'",
-   "read": "星"
+   "read": "ホシ'"
   },
   "つき": {
    "no": 239,
-   "src": "auto",
-   "kana": "ツキ'"
+   "src": "accent",
+   "kana": "ツキ'",
+   "read": "ツキ'"
   },
   "くも": {
    "no": 240,
-   "src": "auto",
-   "kana": "ク'モ"
+   "src": "accent",
+   "kana": "ク'モ",
+   "read": "ク'モ"
   },
   "ゆきだるま": {
    "no": 241,
@@ -1289,8 +1382,9 @@
   },
   "うみ": {
    "no": 250,
-   "src": "auto",
-   "kana": "ウ'ミ"
+   "src": "accent",
+   "kana": "ウ'ゥミ",
+   "read": "ウ'ゥミ"
   },
   "ゆき": {
    "no": 251,
@@ -1316,8 +1410,9 @@
   },
   "ふたば": {
    "no": 255,
-   "src": "auto",
-   "kana": "フタバ'"
+   "src": "accent",
+   "kana": "フ'タバ",
+   "read": "フ'タバ"
   },
   "かみなり": {
    "no": 256,
@@ -1326,13 +1421,15 @@
   },
   "おとが でるよ": {
    "no": 257,
-   "src": "auto",
-   "kana": "オ'トガ、デ'ルヨ"
+   "src": "accent",
+   "kana": "オ'トガ、デ'ルヨ",
+   "read": "オ'トガ、デ'ルヨ"
   },
   "こえが でるよ": {
    "no": 258,
-   "src": "auto",
-   "kana": "コ'エガ、デ'ルヨ"
+   "src": "accent",
+   "kana": "コ'エガ、デ'ルヨ",
+   "read": "コ'エガ、デ'ルヨ"
   }
  }
 }

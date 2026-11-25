@@ -54,7 +54,7 @@ async function query(text,id,acc){
     catch(e){if(acc)throw new Error(`${text} の よみ「${kana}」が よめません: ${e.message}`);}
   }
   const o=(acc&&acc.opt)||{};
-  if(o.speed)base.speedScale=o.speed;if(o.intonation)base.intonationScale=o.intonation;if(o.pitch)base.pitchScale=o.pitch;
+  if(o.speed!=null)base.speedScale=o.speed;if(o.intonation!=null)base.intonationScale=o.intonation;if(o.pitch!=null)base.pitchScale=o.pitch;/* 0 も きく(抑揚0 = たいら) */
   base.prePhonemeLength=.05;base.postPhonemeLength=.12;base.outputStereo=false;
   return base;
 }
