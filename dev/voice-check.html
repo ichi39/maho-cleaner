@@ -161,7 +161,7 @@ function render(){
     const r=document.createElement('div');r.className='row'+(ng.has(c.t)?' ng':'')+(c.src&&c.src!=='auto'?' '+c.src:'');r.id='r'+c.t;
     const b=document.createElement('button');b.className='p';b.textContent='▶';b.onclick=()=>{seq++;play(c);};
     const no=document.createElement('span');no.className='no';no.textContent=c.no?String(c.no).padStart(4,'0'):'—';
-    const t=document.createElement('span');t.className='t';const tb=document.createElement('b');tb.textContent=c.t;t.append(tb);
+    const t=document.createElement('span');t.className='t';const tb=document.createElement('b');tb.textContent=c.kind==='char'&&/[\u3041-\u3096]/.test(c.t)?c.t+' / '+String.fromCharCode(c.t.charCodeAt(0)+0x60):c.t;/* カタカナ1もじも この こえ */t.append(tb);
     if(c.kana||c.src==='manual'){const k=document.createElement('span');k.className='k';k.textContent=c.src==='manual'?'(手動 wav)':c.kana+(c.read&&!c.read.includes("'")?'  ← '+c.read:'');t.append(k);}
     const m=document.createElement('span');m.className='m';m.textContent=c.dur.toFixed(2)+'秒';
     if(SRC[c.src]){const w=document.createElement('div');w.className='src';w.textContent=SRC[c.src];m.append(w);}

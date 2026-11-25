@@ -21,7 +21,9 @@ function voiceList(){
   const seg=html.slice(a,b),words=[];
   for(const m of seg.matchAll(/\[\s*'([^'#]+)'\s*,/g))if(/^[\u3040-\u30ff]+$/.test(m[1])&&!words.includes(m[1]))words.push(m[1]);
   const chars=[];
-  for(const w of words)for(const c of w)if(!NOLEARN.includes(c)&&!chars.includes(c))chars.push(c);
+  /* カタカナ1もじは ひらがなと おなじ おとなので、ひらがなだけ つくる(ゲームの vKey が ク → く に よみかえる) */
+  const hira=c=>c.replace(/[\u30a1-\u30f6]/,x=>String.fromCharCode(x.charCodeAt(0)-0x60));
+  for(const w of words)for(const c0 of w){if(NOLEARN.includes(c0))continue;const c=hira(c0);if(!chars.includes(c))chars.push(c);}
   const extra=['おとが でるよ','こえが でるよ'];
   return [...chars,...words,...extra];
 }
