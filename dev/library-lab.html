@@ -44,13 +44,15 @@ ul{margin:4px 0;padding-left:20px;color:var(--sub);font-size:12px}
       <li>本のほこりを、指(マウス)でこすってはらいます。すると、言葉が出てきます。</li>
       <li>言葉の一部が、ほこりで欠けています。下の文字から合うものを選んで、ドラッグしてはめます(つかんでいる間は読み上げます)。</li>
       <li>違う文字を入れると、文字がぷるっと震えて元に戻ります(絵は少し首をかしげます)。何度でもやり直せます。</li>
-      <li>本の右上の🔊を押すと、言葉をもう一度読みます。読んでいる間、文字が順番に光ります。</li>
+      <li>本の右上の🔊を押すと、言葉をもう一度読みます。読んでいる間、文字が順番に光り、絵が色付きでうっすら見えます。</li>
       <li>正しく直すと、言葉のメロディが鳴り、文字が物に変身して、部屋中に現れます。</li>
       <li>「ゆき」「にじ」「ほし」などは、窓の外の天気が変わります(1日続く。別の天気で上書きできる)。</li>
     </ul>
     <h2>ことば</h2>
     <div class="btns"><select id="wordSel"></select><button id="bGo">この ことば</button><button id="bNext">ランダム</button><button id="bAgain">もういちど</button></div>
     <p class="note" style="margin-top:6px">「ゆき」「にじ」「ほし」「つき」「かみなり」「くも」「さくら」「もみじ」「ほたる」は天気が変わります。</p>
+    <h2>こえ</h2>
+    <p class="note" id="credit"></p>
     <h2>むずかしさ</h2>
     <label>欠けている文字の数 <input type="range" id="hide" min="1" max="2" value="1"><span id="hideV">1</span></label>
     <label>下に並ぶ文字の数 <input type="range" id="cand" min="3" max="7" value="3"><span id="candV">3</span></label>
@@ -79,7 +81,16 @@ async function loadGame(){
   const g0=txt.indexOf('const FONT='),g1=txt.indexOf('function lburst');
   if(a<0||b<0||c0<0||g0<0||g1<0)throw new Error('index.html の構造が変わったので、取り出す範囲が見つかりません');
   const src=txt.slice(a,b)+'\n'+txt.slice(c0,c1)+'\n'+txt.slice(g0,g1)+';return {ITEMS,POOL,norm,CLIENTS,look,spr,glyph,drawWavy,FONT};';
-  return new Function(src)();
+  const G0=new Function(src)();
+  /* 読み上げの声(本体に うめこんだ VOICEVOX の こえ)。ゲームと おなじ ADPCM の ひらきかたで ならす */
+  G0.voice={data:{},STEP:[],IDX:[],credit:''};
+  try{
+    const A='/*VOICE_DATA_START*/',B='/*VOICE_DATA_END*/',i=txt.indexOf(A),j=txt.indexOf(B);
+    if(i>=0&&j>i){const body=txt.slice(i+A.length,j).replace(/^\s*const VOICE_DATA=/,'');G0.voice.data=JSON.parse(body.slice(0,body.indexOf(';')));const m=body.match(/const VOICE_CREDIT="([^"]*)"/);if(m)G0.voice.credit=m[1];}
+    const arr=n=>{const m=txt.match(new RegExp('const '+n+'=(\\[[^\\]]*\\])'));return m?JSON.parse(m[1]):[];};
+    G0.voice.STEP=arr('ADPCM_STEP');G0.voice.IDX=arr('ADPCM_IDX');
+  }catch(e){}
+  return G0;
 }
 const W=360,H=582,K=3,DPR=Math.min(2,window.devicePixelRatio||1);
 const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0],shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -114,8 +125,29 @@ function soft(){tone(260,0,.18,'sine',.07);tone(200,.08,.2,'sine',.05);}
 function whoosh(up){const a=audio();if(!S.opt.snd||!a)return;try{const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.setValueAtTime(up?200:900,t);o.frequency.exponentialRampToValueAtTime(up?1500:200,t+.8);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.95);}catch(e){}}
 function sparkleSnd(){[1047,1319,1568,2093].forEach((f,i)=>tone(f,i*.07,.35,'sine',.06));}
 function fanfare(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.11,.4));tone(1319,.5,.6,'sine',.1);}
-function readWord(){if(S.phase!=='play'||!G)return;speak(S.w);S.read={t:0,i:0};}   /* ことばを ゆっくり よむ。よむ あいだ、もじが じゅんばんに ひかる(こえが きこえなくても ひかりの リズムで わかる) */
-function speak(t){if(!S.opt.voice||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=.8;speechSynthesis.speak(u);}catch(e){}}
+function readWord(){if(S.phase!=='play'||!G)return;const d=speak(S.w);S.read={t:0,i:0,dur:d||S.chars.length*.42};}   /* ことばを ゆっくり よむ。よむ あいだ、もじが じゅんばんに ひかる(こえが きこえなくても ひかりの リズムで わかる) */
+const vKey=t=>{const k=String(t);return k.length===1?k.replace(/[\u30a1-\u30f6]/,c=>String.fromCharCode(c.charCodeAt(0)-0x60)):k;};   /* カタカナ1もじは ひらがなの こえ */
+const vbuf={};
+function clipBuf(k){
+  if(vbuf[k])return vbuf[k];const V=G&&G.voice,src=V&&V.data[k];if(!src||!audio())return null;
+  const n=src.n,bin=atob(src.a),d=new Float32Array(n),STEP=V.STEP,IDX=V.IDX;let pred=0,idx=0,i=0;
+  for(let b=0;b<bin.length&&i<n;b++){const byte=bin.charCodeAt(b);
+    for(let h=0;h<2&&i<n;h++){const code=h?byte>>4:byte&15,st=STEP[idx];let df=st>>3;
+      if(code&4)df+=st;if(code&2)df+=st>>1;if(code&1)df+=st>>2;
+      pred+=(code&8)?-df:df;if(pred>32767)pred=32767;else if(pred<-32768)pred=-32768;
+      idx+=IDX[code];if(idx<0)idx=0;else if(idx>88)idx=88;d[i++]=pred/32768;}}
+  const buf=AC.createBuffer(1,n,src.sr);buf.getChannelData(0).set(d);return vbuf[k]=buf;
+}
+let vSrc=null;
+function stopVoice(){if(vSrc){try{vSrc.stop();}catch(e){}vSrc=null;}try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+/* こえを ならす。かえりは ながさ(びょう)。こえファイルが なければ ブラウザの こえで よんで 0 を かえす */
+function speak(t){
+  if(!S.opt.voice)return 0;
+  stopVoice();
+  try{const b=clipBuf(vKey(t));if(b&&AC){const s=AC.createBufferSource();s.buffer=b;s.connect(AC.destination);s.start();vSrc=s;s.onended=()=>{if(vSrc===s)vSrc=null;};return b.duration;}}catch(e){}
+  try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=.8;speechSynthesis.speak(u);}}catch(e){}
+  return 0;
+}
 
 /* ことばの メロディ: 50音の ならびが たかさに なる(あ行は ひくく、わ行は たかい) */
 function midiOf(ch){
@@ -186,7 +218,7 @@ cv.addEventListener('pointerdown',e=>{
   if(p.x>=SPK.x&&p.x<=SPK.x+SPK.w&&p.y>=SPK.y&&p.y<=SPK.y+SPK.h){readWord();return;}
   for(let i=S.L.length-1;i>=0;i--){const L=S.L[i];if(L.st!=='free'||L.appear<.5)continue;
     if(Math.abs(p.x-L.x)<S.sz*.6&&Math.abs(p.y-L.y)<S.sz*.6){cv.setPointerCapture(e.pointerId);L.st='drag';L.tx=L.x;L.ty=L.y;S.drag={L,dx:L.x-p.x,dy:L.y-p.y};
-      speak(L.ch);clearInterval(S.speakT);S.speakT=setInterval(()=>{if(S.drag)speak(S.drag.L.ch);},1000);return;}}
+      speak(L.ch);clearInterval(S.speakT);S.speakT=setInterval(()=>{if(S.drag)speak(S.drag.L.ch);},900);return;}}
 });
 cv.addEventListener('pointermove',e=>{
   const p=pos(e);
@@ -196,7 +228,7 @@ cv.addEventListener('pointermove',e=>{
 });
 function release(){
   if(S.dust)S.dust.last=null;
-  if(!S.drag)return;const L=S.drag.L;S.drag=null;clearInterval(S.speakT);try{speechSynthesis.cancel();}catch(e){}
+  if(!S.drag)return;const L=S.drag.L;S.drag=null;clearInterval(S.speakT);stopVoice();
   let best=null,bd=1e9;for(const s of S.slots){if(s.filled||s.reserved)continue;const d=Math.hypot(s.x-L.x,s.y-L.y);if(d<bd){bd=d;best=s;}}
   if(best&&bd<S.sz*1.3){L.st='snap';L.slot=best.i;L.sx=L.x;L.sy=L.y;L.age=0;L.fresh=true;best.reserved=true;}
   else{L.st='free';L.bx=L.x;L.by=L.y;}
@@ -353,7 +385,7 @@ function buildBG(){
 
 /* ====== ステップ ====== */
 function step(dt){
-  dt=Math.min(dt,.05);S.t+=dt;if(S.read){S.read.t+=dt;S.read.i=Math.floor(S.read.t/.42);if(S.read.i>=S.chars.length+1)S.read=null;}if(S.hintCool>0)S.hintCool-=dt;if(S.shake>0)S.shake-=dt;if(S.spPop>0)S.spPop-=dt;
+  dt=Math.min(dt,.05);S.t+=dt;if(S.read){S.read.t+=dt;S.read.i=Math.min(S.chars.length-1,Math.floor(S.read.t/S.read.dur*S.chars.length));if(S.read.t>S.read.dur+.35)S.read=null;}if(S.hintCool>0)S.hintCool-=dt;if(S.shake>0)S.shake-=dt;if(S.spPop>0)S.spPop-=dt;
   if(S.dust&&S.dust.done&&S.dust.fade<1)S.dust.fade=Math.min(1,S.dust.fade+dt*2.2);
   S.slots.forEach(s=>{if(s.pop>0)s.pop-=dt;});
   S.aud.forEach(a=>{if(a.hop<1.2)a.hop+=dt*2.6;});
@@ -389,6 +421,7 @@ function draw(now){
     if(S.phase==='clean'||S.phase==='play'||S.phase==='melody'||S.phase==='morph'){
       cx.globalAlpha=S.phase==='morph'?Math.max(0,.2*(1-S.t)):.22;
       {const tilt=S.weird?Math.sin(S.weirdT*9)*.09*Math.max(0,1-S.weirdT/.9):0;cx.save();cx.translate(spx+48,spy+48);cx.rotate(tilt);cx.drawImage(sp.g,-48,-48,96,96);cx.restore();}
+      if(S.read&&S.phase==='play'){const k=Math.min(1,S.read.t*4,Math.max(0,(S.read.dur+.35-S.read.t)*4));cx.globalAlpha=.6*k;cx.drawImage(sp.c,spx,spy,96,96);}   /* よんでいる あいだだけ いろが みえる */
       cx.globalAlpha=1;
       if(S.weird&&S.phase==='play'){const a=Math.max(0,1-S.weirdT/.9);cx.globalAlpha=.85*Math.min(1,a*2);cx.fillStyle='#8a7ad8';const qx=Math.round(spx+84),qy=Math.round(spy-6);   /* ? */
         [[1,0,3],[0,1,1],[4,1,1],[4,2,1],[3,3,1],[2,4,1],[2,6,1]].forEach(([x,y,w])=>cx.fillRect(qx+x*4,qy+y*4,w*4,4));cx.globalAlpha=1;}
@@ -516,6 +549,7 @@ function frame(now){const dt=(now-last)/1000;last=now;if(G){step(dt);draw(now);}
 (async()=>{
   try{G=await loadGame();}
   catch(e){const el=document.getElementById('err');el.style.display='block';el.innerHTML='ゲーム本体(../index.html)を読み込めませんでした。公開ページ(https://ichi39.github.io/maho-cleaner/dev/library-lab.html)か、ローカルサーバー経由で開いてください(file:// では読めません)。<br><small>'+String(e)+'</small>';return;}
+  document.getElementById('credit').textContent=Object.keys(G.voice.data).length?('本体にうめこんだ声を使っています(こえ: '+G.voice.credit+' / '+Object.keys(G.voice.data).length+'こ)。ない言葉は、ブラウザの声で読みます。'):'声データが空です。ブラウザの声で読みます。';
   S.aud=G.CLIENTS.map(c=>({img:G.spr('person',G.look(c)).c,hop:2,heart:false}));
   mkUI();nextRandom();requestAnimationFrame(frame);
   window.__lab={S,G,step,startWord,wipe,release,arrive,hint,finishClean,startMagic,startMelody,melodyOf,midiOf};
