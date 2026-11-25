@@ -1,6 +1,6 @@
 #!/bin/bash
 # Mac で こえを つくって index.html に うめこむ。
-# つかいかた: bash tools/make-voice-mac.sh
+# つかいかた: bash tools/make-voice-mac.sh(いまの ほんばんは VOICEVOX: node tools/make-voice-voicevox.js)
 # こえを かえる ときは VOICE を かえる(say -v '?' | grep ja で いちらんが でる)。
 set -e
 cd "$(dirname "$0")/.."

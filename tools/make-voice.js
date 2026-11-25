@@ -2,7 +2,8 @@
 //
 //  1) node tools/make-voice.js list          … よみあげる もじと ことばの いちらんを tools/voice-list.txt に かく
 //  2) (Mac) bash tools/make-voice-mac.sh     … Mac の こえ(Kyoko)で wav を つくり、3) まで まとめて やる
-//  3) node tools/make-voice.js embed <dir>   … <dir>/0001.wav … を ちいさく して index.html に うめこむ
+//  3) node tools/make-voice.js embed <dir> [クレジット]  … <dir>/0001.wav … を ちいさく して index.html に うめこむ
+//  VOICEVOX の こえは node tools/make-voice-voicevox.js で 1)〜3) を まとめて やる(いまは こちらが ほんばん)
 //
 //  wav は 16bit PCM(モノラル/ステレオ、サンプリングレートは なんでも よい)。
 //  じぶんの こえで ろくおんした wav でも、なまえ(ばんごう)が いちらんの じゅんばん なら つかえる。
@@ -20,7 +21,9 @@ function voiceList(){
   const seg=html.slice(a,b),words=[];
   for(const m of seg.matchAll(/\[\s*'([^'#]+)'\s*,/g))if(/^[\u3040-\u30ff]+$/.test(m[1])&&!words.includes(m[1]))words.push(m[1]);
   const chars=[];
-  for(const w of words)for(const c of w)if(!NOLEARN.includes(c)&&!chars.includes(c))chars.push(c);
+  /* カタカナ1もじは ひらがなと おなじ おとなので、ひらがなだけ つくる(ゲームの vKey が ク → く に よみかえる) */
+  const hira=c=>c.replace(/[\u30a1-\u30f6]/,x=>String.fromCharCode(x.charCodeAt(0)-0x60));
+  for(const w of words)for(const c0 of w){if(NOLEARN.includes(c0))continue;const c=hira(c0);if(!chars.includes(c))chars.push(c);}
   const extra=['おとが でるよ','こえが でるよ'];
   return [...chars,...words,...extra];
 }
@@ -65,7 +68,7 @@ function encode(f){
   }
   return out;
 }
-function embed(dir){
+function embed(dir,credit){
   const list=fs.readFileSync(LIST,'utf8').split('\n').map(s=>s.trim()).filter(Boolean),res={};let total=0,miss=[];
   list.forEach((t,i)=>{
     const f=path.join(dir,String(i+1).padStart(4,'0')+'.wav');
@@ -76,12 +79,12 @@ function embed(dir){
   let html=fs.readFileSync(FILE,'utf8');
   const A='/*VOICE_DATA_START*/',B='/*VOICE_DATA_END*/',i=html.indexOf(A),j=html.indexOf(B);
   if(i<0||j<0)throw new Error('VOICE_DATA の しるしが ありません');
-  html=html.slice(0,i+A.length)+'const VOICE_DATA='+JSON.stringify(res)+';'+html.slice(j);
+  html=html.slice(0,i+A.length)+'const VOICE_DATA='+JSON.stringify(res)+';const VOICE_CREDIT='+JSON.stringify(credit||'')+';'+html.slice(j);
   fs.writeFileSync(FILE,html);
   console.log(`こえ ${Object.keys(res).length} こ / ${(total/1024/1024).toFixed(2)} MB`);
   if(miss.length)console.log('wav が ない もの(ゲームでは いままでどおり よみあげる):',miss.join(' '));
 }
 const [cmd,arg]=process.argv.slice(2);
 if(cmd==='list'){const l=voiceList();fs.writeFileSync(LIST,l.join('\n')+'\n');console.log(`${l.length} こ を ${path.relative(ROOT,LIST)} に かきました`);}
-else if(cmd==='embed'){embed(arg||path.join(__dirname,'voice-wav'));}
+else if(cmd==='embed'){embed(arg||path.join(__dirname,'voice-wav'),process.argv[4]);}
 else console.log('つかいかた: node tools/make-voice.js list | embed <wavの フォルダ>');
