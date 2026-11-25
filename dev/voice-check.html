@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>読み上げ音声の確認(開発用)</title>
+<style>
+:root{--bg:#f6f1fb;--card:#fff;--ink:#4a3a5a;--sub:#8a7a9a;--line:#e3d9ee;--acc:#8a7ad8;--ng:#ff8fb0}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:#fffe;backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:16px;margin:0 0 4px}
+.devnav{font-size:12px;margin-bottom:4px}.devnav a{color:var(--acc)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.ctl label{display:flex;gap:4px;align-items:center;white-space:nowrap}
+select,button,input{font:inherit;color:inherit}
+button,select{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 10px;cursor:pointer}
+button:hover{background:#f0eaff}
+main{max-width:900px;margin:0 auto;padding:12px 16px 60px}
+p.note{color:var(--sub);font-size:12px;margin:4px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px}
+.row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.row.ng{border-color:var(--ng);background:#fff0f5}
+.row.playing{outline:3px solid var(--acc)}
+.row .no{font-size:11px;color:var(--sub);min-width:30px}
+.row .t{font-size:20px;font-weight:bold;flex:1;word-break:keep-all}
+.row .m{font-size:11px;color:var(--sub);text-align:right;line-height:1.3}
+.row .warn{color:#d0502a;font-weight:bold}
+.row button.p{width:36px;height:36px;border-radius:50%;padding:0}
+.row label{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--sub)}
+#out{width:100%;height:90px;font:12px/1.4 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:8px;padding:6px}
+#err{color:#c0392b;font-weight:bold}
+</style>
+</head>
+<body>
+<header>
+  <div class="devnav"><a href="index.html">← 開発メニュー</a></div>
+  <h1>読み上げ音声の確認</h1>
+  <div class="ctl">
+    <label>表示 <select id="fil">
+      <option value="all">ぜんぶ</option><option value="char">もじ(1文字)</option><option value="word">ことば</option>
+      <option value="warn">⚠ 要確認だけ</option><option value="ng">✕ 作り直しだけ</option></select></label>
+    <button id="bAll">▶ 表示中をつづけて再生</button>
+    <button id="bStop">■ とめる</button>
+    <label>音量 <input type="range" id="vol" min="0.2" max="1" step="0.1" value="1"></label>
+    <span id="cnt"></span>
+  </div>
+</header>
+<main>
+  <p id="err"></p>
+  <p class="note">ゲーム本体(<code>../index.html</code>)に埋め込まれた <code>VOICE_DATA</code> を、ゲームと同じ方法で復号して鳴らします。「作り直し」にチェックした分はこのブラウザに保存されます。<br>
+  ⚠ は目安です。長さが極端(もじ 0.15秒未満 / 1.2秒超、ことば 0.3秒未満 / 2.5秒超)、または音が割れている(最大値に張りついたサンプルが多い)ものに付きます。</p>
+  <div class="grid" id="grid"></div>
+  <h3>作り直しリスト</h3>
+  <textarea id="out" readonly></textarea>
+  <p class="note">番号は <code>tools/voice-list.txt</code> の行番号で、<code>tools/voice-wav/NNNN.wav</code> と同じです。このリストを元に、読みを変えた言葉を <code>voice-list.txt</code> や録音の wav に反映し、<code>node tools/make-voice.js embed</code> で埋め込み直します。</p>
+  <button id="bCopy">リストをコピー</button> <button id="bClear">チェックを全部はずす</button>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const KEY='maho-voice-ng';
+let ng=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'));
+let ctx=null,gain=null,cur=null,seq=0;
+const clips=[];/* {no,t,d,sr,dur,peak,clip,warn,kind} */
+
+function parseArr(txt,name){const m=txt.match(new RegExp('const '+name+'=(\\[[^\\]]*\\])'));if(!m)throw new Error(name+' が見つかりません');return JSON.parse(m[1]);}
+function decode(src,STEP,IDX){
+  const n=src.n,bin=atob(src.a),d=new Float32Array(n);let pred=0,idx=0,i=0;
+  for(let b=0;b<bin.length&&i<n;b++){const byte=bin.charCodeAt(b);
+    for(let h=0;h<2&&i<n;h++){const code=h?byte>>4:byte&15,st=STEP[idx];let df=st>>3;
+      if(code&4)df+=st;if(code&2)df+=st>>1;if(code&1)df+=st>>2;
+      pred+=(code&8)?-df:df;if(pred>32767)pred=32767;else if(pred<-32768)pred=-32768;
+      idx+=IDX[code];if(idx<0)idx=0;else if(idx>88)idx=88;d[i++]=pred/32768;}}
+  return d;
+}
+async function load(){
+  const txt=await (await fetch('../index.html',{cache:'no-store'})).text();
+  const A='/*VOICE_DATA_START*/',B='/*VOICE_DATA_END*/',i=txt.indexOf(A),j=txt.indexOf(B);
+  if(i<0||j<0)throw new Error('VOICE_DATA が見つかりません');
+  const data=JSON.parse(txt.slice(i+A.length,j).replace(/^\s*const VOICE_DATA=/,'').replace(/;\s*$/,''));
+  const STEP=parseArr(txt,'ADPCM_STEP'),IDX=parseArr(txt,'ADPCM_IDX');
+  let order=Object.keys(data);
+  try{const r=await fetch('../tools/voice-list.txt',{cache:'no-store'});
+    if(r.ok){const l=(await r.text()).split('\n').map(s=>s.trim()).filter(Boolean);
+      order=l.filter(t=>data[t]).concat(Object.keys(data).filter(t=>!l.includes(t)));
+      l.forEach((t,k)=>{if(data[t])data[t].no=k+1;});}}catch(e){}
+  order.forEach(t=>{
+    const s=data[t],d=decode(s,STEP,IDX),dur=d.length/s.sr;
+    let pk=0,hot=0;for(const v of d){const a=Math.abs(v);if(a>pk)pk=a;}
+    for(const v of d)if(Math.abs(v)>=pk*.985)hot++;
+    const clip=hot/d.length,kind=[...t].length===1?'char':'word';
+    const short=kind==='char'?dur<.15:dur<.3,long=kind==='char'?dur>1.2:dur>2.5;
+    const w=[];if(short)w.push('短い');if(long)w.push('長い');if(clip>.02)w.push('割れ?');
+    clips.push({no:s.no||0,t,d,sr:s.sr,dur,clip,kind,warn:w});
+  });
+  if(!clips.length)throw new Error('VOICE_DATA が空です。tools/make-voice-mac.sh を実行してください');
+}
+function ensureCtx(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();gain=ctx.createGain();gain.connect(ctx.destination);}
+  gain.gain.value=+$('#vol').value;if(ctx.state!=='running')ctx.resume();}
+function stop(){seq++;if(cur){try{cur.stop();}catch(e){}cur=null;}document.querySelectorAll('.playing').forEach(e=>e.classList.remove('playing'));}
+function play(c,onEnd){
+  ensureCtx();if(cur){try{cur.onended=null;cur.stop();}catch(e){}}
+  document.querySelectorAll('.playing').forEach(e=>e.classList.remove('playing'));
+  const b=ctx.createBuffer(1,c.d.length,c.sr);b.getChannelData(0).set(c.d);
+  const s=ctx.createBufferSource();s.buffer=b;s.connect(gain);cur=s;
+  const el=document.getElementById('r'+c.t);if(el){el.classList.add('playing');el.scrollIntoView({block:'nearest'});}
+  s.onended=()=>{if(cur===s)cur=null;if(el)el.classList.remove('playing');onEnd&&onEnd();};
+  s.start();
+}
+function shown(){const f=$('#fil').value;
+  return clips.filter(c=>f==='all'||f===c.kind||(f==='warn'&&c.warn.length)||(f==='ng'&&ng.has(c.t)));}
+function save(){localStorage.setItem(KEY,JSON.stringify([...ng]));
+  $('#out').value=clips.filter(c=>ng.has(c.t)).map(c=>String(c.no).padStart(4,'0')+'\t'+c.t).join('\n');}
+function render(){
+  const g=$('#grid');g.textContent='';const list=shown();
+  for(const c of list){
+    const r=document.createElement('div');r.className='row'+(ng.has(c.t)?' ng':'');r.id='r'+c.t;
+    const b=document.createElement('button');b.className='p';b.textContent='▶';b.onclick=()=>{seq++;play(c);};
+    const no=document.createElement('span');no.className='no';no.textContent=c.no?String(c.no).padStart(4,'0'):'—';
+    const t=document.createElement('span');t.className='t';t.textContent=c.t;
+    const m=document.createElement('span');m.className='m';
+    m.textContent=c.dur.toFixed(2)+'秒';
+    if(c.warn.length){const w=document.createElement('div');w.className='warn';w.textContent='⚠ '+c.warn.join('・');m.append(w);}
+    const l=document.createElement('label'),k=document.createElement('input');k.type='checkbox';k.checked=ng.has(c.t);
+    k.onchange=()=>{k.checked?ng.add(c.t):ng.delete(c.t);r.classList.toggle('ng',k.checked);save();count();};
+    l.append(k,'作り直し');
+    r.append(b,no,t,m,l);g.append(r);
+  }
+  count();save();
+}
+function count(){$('#cnt').textContent=`${shown().length} / ${clips.length}こ・作り直し ${ng.size}こ・⚠ ${clips.filter(c=>c.warn.length).length}こ`;}
+$('#fil').onchange=render;
+$('#vol').oninput=()=>{if(gain)gain.gain.value=+$('#vol').value;};
+$('#bStop').onclick=stop;
+$('#bAll').onclick=()=>{stop();const my=seq,list=shown();let i=0;
+  const next=()=>{if(my!==seq||i>=list.length)return;const c=list[i++];play(c,()=>setTimeout(()=>{if(my===seq)next();},350));};next();};
+$('#bCopy').onclick=()=>{navigator.clipboard.writeText($('#out').value).then(()=>{$('#bCopy').textContent='コピーしました';setTimeout(()=>$('#bCopy').textContent='リストをコピー',1500);});};
+$('#bClear').onclick=()=>{ng.clear();render();};
+load().then(render).catch(e=>{$('#err').textContent=e.message+'(file:// ではなく、python3 -m http.server などで開いてください)';});
+</script>
+</body>
+</html>
