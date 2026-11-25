@@ -32,8 +32,11 @@ python3 -m http.server 8000   # → http://localhost:8000/
 index.html                ゲーム本体(HTML/CSS/JS と、埋め込んだ BGM・声のデータ)
 tools/make-bgm.js         BGM を前もって作り、index.html に埋め込む道具(Node.js)
 tools/make-voice.js       読み上げの声を index.html に埋め込む道具(Node.js)
-tools/make-voice-mac.sh   Mac の声で全部の声を作って埋め込むスクリプト
-tools/voice-reading.txt   読み上げの読み替え表(ここの言葉だけ、別の読み・声で作り直す)
+tools/make-voice-voicevox.js  VOICEVOX で全部の声を作って埋め込む(いまの本番)
+tools/voice-accent.txt    VOICEVOX の読み・アクセントの直し(dev/voice-check.html の ✎ で作る)
+tools/voice-manual/       VOICEVOX アプリで手で直して書き出した wav(ことば.wav、あればそのまま使う)
+tools/voice-meta.json     作った声の情報(アクセント・直し方)。dev/voice-check.html が読む
+tools/make-voice-mac.sh   Mac の声(Kyoko)で全部の声を作って埋め込む(予備)
 tools/voice-list.txt      読み上げる文字・言葉の一覧(make-voice.js list で作る)
 tools/smoke-test.js       ゲームを、にせの画面環境で動かして、致命的な壊れを見つける(マージの前に実行)
 tools/sync-catdoll.js     dev/cat-lab.html のねこの絵を、index.html に取りこむ(--check でずれを調べる)
@@ -41,7 +44,7 @@ dev/doll-lab.html         人形のフォルムと服を見比べる開発用画
 dev/animal-lab.html       同じ画面の どうぶつ版(うさぎ・くま・ねこ、32ドット)
 dev/cat-lab.html          ゲームの にんぎょう(白ねこ)の元。服33点に番号、着せ替え、1ドット単位の調整。直したら tools/sync-catdoll.js でゲームへ
 dev/shop-items.html       各お店のアイテム(3けたの番号)と、ひらがな・カタカナ表(ゲーム本体を読み込んで表示)
-dev/voice-check.html    埋め込んだ読み上げ音声を一覧で聞き比べ、作り直したいものに印を付ける
+dev/voice-check.html    埋め込んだ読み上げ音声を一覧で聞き比べ、VOICEVOX でイントネーションを直して試す
 dev/play-lab.html         ゲーム本体(?lab つき・セーブなし)を埋め込み、食べ物のリアクション・時間帯・閉店/まとめの演出をボタンで確認する
 dev/scrub-lab.html        パズルの特別な回「こすって ぴかぴか」の試作(ゲーム本体にはまだ入っていない)
 dev/search-lab.html       パズルの特別な回「かたづけさがし(文字さがし + ホコリんぼう)」の試作(ゲーム本体にはまだ入っていない)

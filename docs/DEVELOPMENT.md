@@ -150,13 +150,14 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 - 曲は IMA ADPCM(4bit、16kHz)で埋め込んでいます。ゲームの中では wav に戻して `<audio>` で流します。
 - 曲を足すときは、`wantBgm()` にその曲を流す場面を書きます。お店の種類と同じ名前なら、自動でその部屋とお店で流れます。
 
-### 声を作る(まだ作っていません)
-この作業環境には日本語の読み上げソフトがないため、`VOICE_DATA` は空のままです。今は端末の読み上げで読んでいます。
-1. Mac で `bash tools/make-voice-mac.sh` を実行する(Kyoko の声で252個作り、埋め込むまで自動)。
-   - 声の種類や速さは `VOICE=Otoya RATE=140 bash tools/make-voice-mac.sh` のように変えられる。
-   - 変に聞こえる言葉は `tools/voice-reading.txt`(ことば・読み・声をタブ区切り)に書くと、その言葉だけ別の読み(漢字など)と声(既定 `REDO_VOICE`=Kyoko (Enhanced))で作り直す。既にある wav は残る。最初から全部作り直すときは `FULL=1`。`dev/voice-check.html` で確認できる(作り直し済みに印が付く)。
-2. 言葉を足したときは、もう一度実行する(一覧 `tools/voice-list.txt` は `ITEMS` から自動で作る)。
-3. 自分で録音した wav でも、`tools/voice-wav/0001.wav …` の番号を一覧の順にそろえれば、`node tools/make-voice.js embed tools/voice-wav` で入れられる。
+### 声を作る(VOICEVOX)
+読み上げの声は VOICEVOX(既定は 春日部つむぎ ノーマル)で作り、`VOICE_DATA` に埋め込んでいます。きまりにより、タイトル画面の下に「こえ: VOICEVOX:キャラ名」を出しています(`VOICE_CREDIT`)。
+1. VOICEVOX アプリ(https://voicevox.hiroshiba.jp/)を開いた状態で、`node tools/make-voice-voicevox.js` を実行する(一覧を作り直し、全部作って埋め込むまで自動)。
+   - 声は `SPEAKER=四国めたん STYLE=ノーマル node tools/make-voice-voicevox.js` のように変えられる(`… speakers` で一覧)。声を変えたら、そのキャラの利用規約を確かめる。
+2. イントネーションが変な言葉は `dev/voice-check.html` の ✎ で直す。アクセントつきのカナ(例: `カ'メ`)や話速・抑揚・音高を変えて、その場で VOICEVOX で試せる。決まった行を `tools/voice-accent.txt` に貼って、1. をもう一度実行する。
+3. 1音ずつの高さまで直したいときは、VOICEVOX アプリで調整して wav に書き出し、`tools/voice-manual/ことば.wav` に置く(そのまま使われる)。
+4. 言葉を足したときは、1. をもう一度実行する(一覧 `tools/voice-list.txt` は `ITEMS` から自動で作る)。
+- Mac の声(Kyoko)で作る `bash tools/make-voice-mac.sh` も残してあります(VOICEVOX が使えないときの予備)。
 - 前後の無音は自動で削ります。大きさは約1.2MB増える見込みです。
 
 ## 5. よくある改修
@@ -198,7 +199,7 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 
 ## 8. 残っている課題
 
-- [ ] 声のデータを Mac で作って埋め込む(`tools/make-voice-mac.sh`)。
+- [x] 声のデータを作って埋め込む(VOICEVOX、`tools/make-voice-voicevox.js`)。
 - [ ] iPhone で、完成時の時間(おとテストの「さいごの かんせい」)を測って、間が空いていないか確かめる。
 - [ ] `index.html` が大きい(BGM で約3MB。声を入れると約4.3MB)。気になるなら、曲の長さを短くするか、サンプリングレートを下げる(`make-bgm.js` の `SR`)。
 - [ ] 古い仕様の名残が残っている。使っていない CSS(`.shopbtn`, `.stabs`, `#buyBar`, `.rbub`)、なかよし度の関数(`hearts`, `heartsHTML`, `needOf`)、使っていない保存データのキー。
