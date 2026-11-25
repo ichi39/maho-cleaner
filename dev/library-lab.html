@@ -125,7 +125,7 @@ function soft(){tone(260,0,.18,'sine',.07);tone(200,.08,.2,'sine',.05);}
 function whoosh(up){const a=audio();if(!S.opt.snd||!a)return;try{const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.setValueAtTime(up?200:900,t);o.frequency.exponentialRampToValueAtTime(up?1500:200,t+.8);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.95);}catch(e){}}
 function sparkleSnd(){[1047,1319,1568,2093].forEach((f,i)=>tone(f,i*.07,.35,'sine',.06));}
 function fanfare(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.11,.4));tone(1319,.5,.6,'sine',.1);}
-function readWord(){if(S.phase!=='play'||!G)return;const d=speak(S.w);S.read={t:0,i:0,dur:d||S.chars.length*.42};}   /* ことばを ゆっくり よむ。よむ あいだ、もじが じゅんばんに ひかる(こえが きこえなくても ひかりの リズムで わかる) */
+function readWord(){if(!G||(S.phase!=='play'&&S.phase!=='magic'&&S.phase!=='rest'))return;const d=speak(S.w);S.read={t:0,i:0,dur:d||S.chars.length*.42};}   /* ことばを ゆっくり よむ。よむ あいだ、もじが じゅんばんに ひかる(こえが きこえなくても ひかりの リズムで わかる) */
 const vKey=t=>{const k=String(t);return k.length===1?k.replace(/[\u30a1-\u30f6]/,c=>String.fromCharCode(c.charCodeAt(0)-0x60)):k;};   /* カタカナ1もじは ひらがなの こえ */
 const vbuf={};
 function clipBuf(k){
@@ -312,6 +312,7 @@ function startMagic(){
   /* てんき */
   const wt=WEATHER[S.w];if(wt){const old=S.weather&&S.weather.type;S.weather={type:wt,day:S.day,t:0,swap:old&&old!==wt?1:0};initWeatherParts();}
   setTimeout(fanfare,100);
+  readWord();   /* できあがった ことばを よむ */
 }
 function updateMagic(dt){
   const m=S.m;m.t+=dt;
