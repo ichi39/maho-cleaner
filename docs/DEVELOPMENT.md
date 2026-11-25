@@ -154,6 +154,7 @@ iPhone Safari で何度も試して、今の形になりました。**直すと�
 この作業環境には日本語の読み上げソフトがないため、`VOICE_DATA` は空のままです。今は端末の読み上げで読んでいます。
 1. Mac で `bash tools/make-voice-mac.sh` を実行する(Kyoko の声で252個作り、埋め込むまで自動)。
    - 声の種類や速さは `VOICE=Otoya RATE=140 bash tools/make-voice-mac.sh` のように変えられる。
+   - 変に聞こえる言葉は `tools/voice-reading.txt`(ことば・読み・声をタブ区切り)に書くと、その言葉だけ別の読み(漢字など)と声(既定 `REDO_VOICE`=Kyoko (Enhanced))で作り直す。既にある wav は残る。最初から全部作り直すときは `FULL=1`。`dev/voice-check.html` で確認できる(作り直し済みに印が付く)。
 2. 言葉を足したときは、もう一度実行する(一覧 `tools/voice-list.txt` は `ITEMS` から自動で作る)。
 3. 自分で録音した wav でも、`tools/voice-wav/0001.wav …` の番号を一覧の順にそろえれば、`node tools/make-voice.js embed tools/voice-wav` で入れられる。
 - 前後の無音は自動で削ります。大きさは約1.2MB増える見込みです。
